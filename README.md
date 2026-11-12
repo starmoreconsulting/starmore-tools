@@ -17,6 +17,20 @@ npm install
 npm run dev
 ```
 
+## Deploy on Cloudflare Pages
+
+This project builds as a static site and does not need a Cloudflare adapter.
+
+1. In the Cloudflare dashboard, open **Workers & Pages** and create a **Pages** application using **Connect to Git**.
+2. Connect the GitHub account `starmoreconsulting` and select `starmore-tools`.
+3. Use these build settings:
+   - Production branch: `main`
+   - Framework preset: `Astro`
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Node.js version: `22.23.4` or newer (the project requires Node `>=22.23.4`)
+4. Save and deploy. Cloudflare Pages will build future pushes to `main` automatically.
+
 ## Project structure
 
 ```text
