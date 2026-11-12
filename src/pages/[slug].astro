@@ -1,0 +1,35 @@
+---
+import ToolLayout from '../components/ToolLayout.astro';
+import CaseConverter from '../components/tools/CaseConverter';
+import JsonFormatter from '../components/tools/JsonFormatter';
+import PercentageCalculator from '../components/tools/PercentageCalculator';
+import WordCounter from '../components/tools/WordCounter';
+import { departments, liveTools } from '../data/tools';
+
+export function getStaticPaths() {
+	return liveTools.map((tool) => ({
+		params: { slug: tool.slug },
+		props: { tool },
+	}));
+}
+
+const { tool } = Astro.props;
+const departmentName = departments.find((department) => department.slug === tool.department)?.name;
+---
+
+<ToolLayout title={tool.name} description={tool.description}>
+	<section class="tool-page">
+		<a class="back-link" href="/#tool-library">← All tools</a>
+		<header class="tool-page-header">
+			<p class="eyebrow">{departmentName?.toUpperCase()} TOOL</p>
+			<h1>{tool.name}</h1>
+			<p>{tool.description}</p>
+		</header>
+		<div class="tool-workspace">
+			{tool.component === 'CaseConverter' && <CaseConverter client:load />}
+			{tool.component === 'WordCounter' && <WordCounter client:load />}
+			{tool.component === 'JsonFormatter' && <JsonFormatter client:load />}
+			{tool.component === 'PercentageCalculator' && <PercentageCalculator client:load />}
+		</div>
+	</section>
+</ToolLayout>

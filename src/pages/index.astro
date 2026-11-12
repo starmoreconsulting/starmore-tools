@@ -1,0 +1,109 @@
+---
+import ToolLayout from '../components/ToolLayout.astro';
+import { departments, liveTools } from '../data/tools';
+---
+
+<ToolLayout
+	title="Small tools. Big momentum."
+	description="A growing collection of free, thoughtful tools for everyday work."
+>
+	<section class="hero">
+		<div class="hero-copy">
+			<p class="eyebrow"><span class="eyebrow-dot"></span> YOUR EVERYDAY TOOLKIT</p>
+			<h1>Small tools.<br /><span>Big momentum.</span></h1>
+			<p class="hero-description">
+				Useful little helpers for the work in between. Free to use, easy to love, and right here when you need them.
+			</p>
+			<a class="hero-link" href="#tool-library">Explore the toolkit <span aria-hidden="true">↓</span></a>
+		</div>
+		<div class="hero-art" aria-hidden="true">
+			<div class="art-orbit orbit-one"></div>
+			<div class="art-orbit orbit-two"></div>
+			<div class="art-star star-one">✳</div>
+			<div class="art-star star-two">✦</div>
+			<div class="art-card">
+				<div class="art-card-top"><span></span><span></span><span></span></div>
+				<div class="art-code"><i>&#123;</i><b>make</b>: <em>something</em>,</div>
+				<div class="art-code indent"><b>better</b>: <em>true</em></div>
+				<div class="art-code"><i>&#125;</i><span class="cursor"></span></div>
+				<div class="art-card-label">a little help, right on time</div>
+			</div>
+			<div class="art-badge">MADE FOR<br />THE IN-BETWEEN</div>
+		</div>
+		<div class="hero-footnote"><span>01</span> A growing collection, made for real life.</div>
+	</section>
+
+	<section class="library" id="tool-library">
+		<div class="library-heading">
+			<div>
+				<p class="eyebrow">THE TOOLKIT</p>
+				<h2>What can we help with?</h2>
+			</div>
+			<label class="search-wrap">
+				<span class="search-icon" aria-hidden="true">⌕</span>
+				<span class="visually-hidden">Search tools</span>
+				<input id="tool-search" type="search" placeholder="Find a tool..." autocomplete="off" />
+				<kbd>/</kbd>
+			</label>
+		</div>
+
+		<nav class="department-links" aria-label="Browse by department">
+			<a class="department-chip active" href="#tool-library">All tools <span>{liveTools.length}</span></a>
+			{departments.map((department) => (
+				<a class="department-chip" href={`/departments/${department.slug}`}>
+					{department.name} <span>↗</span>
+				</a>
+			))}
+		</nav>
+
+		<div class="tool-grid" id="tool-grid">
+			{liveTools.map((tool, index) => (
+				<a
+					class="tool-card"
+					href={`/${tool.slug}`}
+					data-search={`${tool.name} ${tool.description} ${tool.department}`}
+					style={`--card-index: ${index}`}
+				>
+					<div class="tool-card-top">
+						<span class="tool-icon" aria-hidden="true">{tool.icon}</span>
+						<span class="tool-arrow" aria-hidden="true">↗</span>
+					</div>
+					<div class="tool-card-copy">
+						<span class="tool-category">{departments.find((department) => department.slug === tool.department)?.name}</span>
+						<h3>{tool.name}</h3>
+						<p>{tool.description}</p>
+					</div>
+					<span class="card-bottom"><span>Open tool</span><span aria-hidden="true">→</span></span>
+				</a>
+			))}
+		</div>
+		<p class="empty-state" id="empty-state" hidden>No tools match that search. Try another word.</p>
+		<div class="library-foot"><span>MORE GOOD THINGS ARE ON THE WAY</span><span>✳</span></div>
+	</section>
+
+	<script>
+		const search = document.querySelector<HTMLInputElement>('#tool-search');
+		const cards = Array.from(document.querySelectorAll<HTMLElement>('.tool-card'));
+		const emptyState = document.querySelector<HTMLElement>('#empty-state');
+
+		search?.addEventListener('input', () => {
+			const query = search.value.trim().toLowerCase();
+			let visibleCount = 0;
+
+			for (const card of cards) {
+				const matches = card.dataset.search?.toLowerCase().includes(query) ?? false;
+				card.hidden = !matches;
+				if (matches) visibleCount += 1;
+			}
+
+			if (emptyState) emptyState.hidden = visibleCount > 0;
+		});
+
+		document.addEventListener('keydown', (event) => {
+			if (event.key === '/' && !(event.target instanceof HTMLInputElement)) {
+				event.preventDefault();
+				search?.focus();
+			}
+		});
+	</script>
+</ToolLayout>
