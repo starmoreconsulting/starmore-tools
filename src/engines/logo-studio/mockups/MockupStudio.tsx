@@ -286,15 +286,31 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 									{availableVariants.map((name) => <option key={name} value={name}>{name}</option>)}
 								</select>
 							</label>
-							<label className="logo-mockup-check"><input type="checkbox" checked={autoVariant} onChange={(event) => setAutoVariant(event.target.checked)} /> Use dark / light version automatically</label>
+							<label className="logo-mockup-check"><input type="checkbox" checked={autoVariant} onChange={(event) => {
+								setAutoVariant(event.target.checked);
+								if (!event.target.checked && variant === 'preferred') setVariant('primary');
+							}} /> Use dark / light version automatically</label>
 							<label className="logo-mockup-check"><input type="checkbox" checked={includeBackground} onChange={(event) => setIncludeBackground(event.target.checked)} /> Show scene background</label>
 							<fieldset className="logo-mockup-color-fields">
 								<legend>Scene colours</legend>
 								{Object.entries(colors).map(([name, value]) => {
 									const parameter = name as keyof MockupColors;
+									const swatches = ['#fffefa', '#d8cbb5', '#718477', '#263d32', '#222222'];
 									return <label key={name}>
-										<span>{selectedScene.colors[parameter].name}</span>
-										<input aria-label={`${selectedScene.colors[parameter].name} colour`} type="color" value={value} onChange={(event) => setColors((current) => ({ ...current, [parameter]: event.target.value }))} />
+										<span className="logo-mockup-color-name">{selectedScene.colors[parameter].name}
+											<span className="logo-mockup-swatches" role="group" aria-label={`${selectedScene.colors[parameter].name} swatches`}>
+												{swatches.map((swatch) => <button
+													type="button"
+													key={swatch}
+													className={value.toLowerCase() === swatch ? 'is-selected' : ''}
+													style={{ backgroundColor: swatch }}
+													aria-label={`${selectedScene.colors[parameter].name} ${swatch} swatch`}
+													aria-pressed={value.toLowerCase() === swatch}
+													onClick={() => setColors((current) => ({ ...current, [parameter]: swatch }))}
+												/>)}
+											</span>
+										</span>
+										<input aria-label={`${selectedScene.colors[parameter].name} custom colour`} type="color" value={value} onChange={(event) => setColors((current) => ({ ...current, [parameter]: event.target.value }))} />
 									</label>;
 								})}
 							</fieldset>

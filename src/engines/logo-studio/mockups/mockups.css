@@ -35,6 +35,10 @@
 .logo-mockup-color-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 0; padding: 10px; border: 1px solid #e2e6dd; border-radius: 7px; }
 .logo-mockup-color-fields legend { padding: 0 5px; color: #68746a; font-size: 12px; }
 .logo-mockup-color-fields label { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 5px; color: #657067; font-size: 11px; }
+.logo-mockup-color-name { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
+.logo-mockup-swatches { display: flex; gap: 3px; }
+.logo-mockup-swatches button { width: 13px; height: 13px; padding: 0; border: 1px solid #c9cfc5; border-radius: 50%; cursor: pointer; }
+.logo-mockup-swatches button.is-selected { outline: 2px solid #536e51; outline-offset: 1px; }
 .logo-mockup-color-fields input[type="color"] { width: 35px; height: 29px; padding: 2px; border: 1px solid #dce1d8; border-radius: 5px; background: #fff; }
 .logo-mockup-exports { display: grid; gap: 10px; margin: 0; padding: 10px; border: 1px solid #e2e6dd; border-radius: 7px; }
 .logo-mockup-exports legend { padding: 0 5px; color: #68746a; font-size: 12px; }
