@@ -1,6 +1,6 @@
 import opentype from 'opentype.js';
 import type { Element, LogoProject } from '../model/types';
-import { getLogoFont } from '../library/fonts';
+import { getLogoFont, logoFonts } from '../library/fonts';
 
 export interface TextOutline {
 	elementId: string;
@@ -22,6 +22,7 @@ export interface OutlineResult {
 }
 
 const parsedFonts = new Map<string, Promise<opentype.Font>>();
+const textFontCache = new Map<string, Promise<{ font: opentype.Font; family: string }>>();
 
 function getOpenTypeFont(family: string, weight: number): Promise<opentype.Font> {
 	const definition = getLogoFont(family);
@@ -46,6 +47,47 @@ function getOpenTypeFont(family: string, weight: number): Promise<opentype.Font>
 
 function escapeWarningText(value: string): string {
 	return value.replace(/[\r\n]+/g, ' ').slice(0, 60);
+}
+
+function fontContainsText(font: opentype.Font, text: string): boolean {
+	const missingGlyphIndex = font.charToGlyph('\u{10FFFF}').index;
+	return Array.from(text.normalize('NFC')).every((character) => {
+		const codePoint = character.codePointAt(0) ?? 0;
+		if (/\s/.test(character) || codePoint === 0x200d || (codePoint >= 0xfe00 && codePoint <= 0xfe0f)) return true;
+		const glyphIndex = font.charToGlyph(character).index;
+		return glyphIndex !== 0 && glyphIndex !== missingGlyphIndex;
+	});
+}
+
+function getFontForText(family: string, weight: number, text: string): Promise<{ font: opentype.Font; family: string }> {
+	const key = `${family}:${weight}:${text}`;
+	const cached = textFontCache.get(key);
+	if (cached) return cached;
+
+	const loading = (async () => {
+		let preferred: opentype.Font | undefined;
+		try {
+			preferred = await getOpenTypeFont(family, weight);
+			if (fontContainsText(preferred, text)) return { font: preferred, family };
+		} catch {
+			preferred = undefined;
+		}
+
+		const fallbacks = ['Inter', 'Open Sans', 'Lora']
+			.filter((candidate) => candidate !== family && logoFonts.some((font) => font.family === candidate));
+		for (const fallback of fallbacks) {
+			try {
+				const font = await getOpenTypeFont(fallback, weight);
+				if (fontContainsText(font, text)) return { font, family: fallback };
+			} catch {
+				continue;
+			}
+		}
+		throw new Error('No bundled font contains every character.');
+	})();
+	textFontCache.set(key, loading);
+	loading.catch(() => textFontCache.delete(key));
+	return loading;
 }
 
 export function layoutTextGlyphs(element: Element, font: opentype.Font): TextGlyphPlacement[] {
@@ -98,8 +140,10 @@ export function layoutTextGlyphs(element: Element, font: opentype.Font): TextGly
 	return placements;
 }
 
-async function outlineText(element: Element): Promise<TextOutline> {
-	const font = await getOpenTypeFont(element.fontFamily ?? 'Inter', element.fontWeight ?? 400);
+async function outlineText(element: Element): Promise<{ outline: TextOutline; warning?: string }> {
+	const preferredFamily = element.fontFamily ?? 'Inter';
+	const text = element.text ?? '';
+	const { font, family } = await getFontForText(preferredFamily, element.fontWeight ?? 400, text);
 	const placements = layoutTextGlyphs(element, font);
 	const paths = placements.map(({ glyph, centerX, centerY, rotation, advance }) => {
 		const d = glyph.getPath(0, 0, Math.max(1, element.fontSize ?? 48)).toPathData(3);
@@ -107,9 +151,14 @@ async function outlineText(element: Element): Promise<TextOutline> {
 		return { d, transform };
 	});
 	return {
-		elementId: element.id,
-		markup: paths.map((path) => `<path d="${path.d}" transform="${path.transform}"/>`).join(''),
-		paths,
+		outline: {
+			elementId: element.id,
+			markup: paths.map((path) => `<path d="${path.d}" transform="${path.transform}"/>`).join(''),
+			paths,
+		},
+		...(family !== preferredFamily ? {
+			warning: `The “${escapeWarningText(preferredFamily)}” font does not include every character in “${escapeWarningText(text)}”. The bundled ${family} font was used instead.`,
+		} : {}),
 	};
 }
 
@@ -127,9 +176,16 @@ export async function outlineProjectText(project: LogoProject, curvedOnly = fals
 	await visitElements(elements, async (element) => {
 		if (curvedOnly && !element.curve) return;
 		try {
-			outlines.set(element.id, await outlineText(element));
-		} catch {
-			warnings.push(`Could not load the bundled ${escapeWarningText(element.fontFamily ?? 'Inter')} font for “${escapeWarningText(element.text ?? 'text')}”. This text will remain editable in the SVG.`);
+			const result = await outlineText(element);
+			outlines.set(element.id, result.outline);
+			if (result.warning) warnings.push(result.warning);
+		} catch (cause) {
+			const text = escapeWarningText(element.text ?? 'text');
+			if (cause instanceof Error && cause.message === 'No bundled font contains every character.') {
+				warnings.push(`No bundled font contains every character in “${text}”. The text remains editable and the browser's system fallback will be used.`);
+			} else {
+				warnings.push(`Could not load a bundled font for “${text}”. This text remains editable and the browser's font fallback will be used.`);
+			}
 		}
 	});
 	return { outlines, warnings };

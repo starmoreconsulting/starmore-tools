@@ -36,15 +36,16 @@ export function textElement(
 	const lines = wrapped.split('\n').length;
 	const longestLine = Math.max(1, ...wrapped.split('\n').map((line) => graphemes(line).length));
 	const baseSize = options.size ?? 56;
-	const fitSize = Math.min(baseSize, box.width / Math.max(3, longestLine * 0.9));
+	const spacing = Math.min(options.spacing ?? 0, box.width / Math.max(2, longestLine * 2));
+	const fitSize = Math.min(baseSize, Math.max(0.5, (box.width - Math.max(0, longestLine - 1) * spacing) / Math.max(3, longestLine * 0.9)));
 	const element = createDefaultElement('text', {
 		...box,
-		name: options.name ?? (text === input.brief.businessName ? 'Business name' : 'Tagline'),
+		name: options.name ?? (text === input.brief.tagline && input.brief.tagline ? 'Tagline' : 'Business name'),
 		text: wrapped,
 		fontFamily: options.font ?? input.fontPair.primary,
 		fontSize: Math.min(fitSize, box.height / (lines * 1.25)),
 		fontWeight: options.weight ?? 700,
-		letterSpacing: options.spacing ?? 0,
+		letterSpacing: spacing,
 		lineHeight: 1.08,
 		align: options.align ?? 'center',
 		fill: options.fill ?? input.palette.colors[0],

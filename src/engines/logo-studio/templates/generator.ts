@@ -65,7 +65,15 @@ function unique<T>(items: T[], key: (item: T) => string): T[] {
 function applyTypography(elements: Element[], weight: number, letterSpacing: number, businessName: string): Element[] {
 	return elements.map((element) => {
 		if (element.type === 'text' && (element.name === 'Business name' || element.text === businessName)) {
-			return { ...element, fontWeight: weight, letterSpacing };
+			const longestLine = Math.max(1, ...(element.text ?? '').split('\n').map((line) => Array.from(line).length));
+			const safeSpacing = Math.min(letterSpacing, element.width / Math.max(2, longestLine * 2));
+			const sizeForSpacing = Math.max(0.5, (element.width - Math.max(0, longestLine - 1) * safeSpacing) / (longestLine * 0.9));
+			return {
+				...element,
+				fontWeight: weight,
+				letterSpacing: safeSpacing,
+				fontSize: Math.min(element.fontSize ?? 48, sizeForSpacing),
+			};
 		}
 		if (element.children) return { ...element, children: applyTypography(element.children, weight, letterSpacing, businessName) };
 		return element;
