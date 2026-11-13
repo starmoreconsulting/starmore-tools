@@ -50,6 +50,7 @@ function presetBrief(preset: LogoStudioPreset): LogoBrief {
 		'business-card-mockup': { style: 'Corporate', arrangement: 'icon-left' },
 		'tshirt-mockup': { style: 'Bold' },
 		'preview-mockup': { style: 'Modern' },
+		'export-centre': { style: 'Modern' },
 	};
 	return { ...defaults, ...presets[preset] };
 }
@@ -115,7 +116,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [storageReady, setStorageReady] = useState(false);
 	const [showProjects, setShowProjects] = useState(false);
 	const [showExportCenter, setShowExportCenter] = useState(false);
-	const [showSetup, setShowSetup] = useState(Boolean(preset && !uploadPreset && !mockupPreset));
+	const [showSetup, setShowSetup] = useState(Boolean(preset && !uploadPreset && !mockupPreset && preset !== 'export-centre'));
 	const [showGallery, setShowGallery] = useState(false);
 	const [showMockups, setShowMockups] = useState(mockupPreset);
 	const [showVariantComparison, setShowVariantComparison] = useState(false);
@@ -244,6 +245,10 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 		});
 		return () => { active = false; };
 	}, [loadProject]);
+
+	useEffect(() => {
+		if (storageReady && preset === 'export-centre') setShowExportCenter(true);
+	}, [preset, storageReady]);
 
 	useEffect(() => {
 		if (!storageReady) return undefined;

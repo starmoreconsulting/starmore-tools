@@ -57,6 +57,7 @@ export function getStaticPaths() {
 		'business-card-mockup',
 		'tshirt-logo-mockup',
 		'logo-preview-tool',
+		'logo-export-centre',
 	]);
 	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },

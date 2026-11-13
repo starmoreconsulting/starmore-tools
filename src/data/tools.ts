@@ -924,6 +924,24 @@ export const tools: ToolDefinition[] = [
 		live: false,
 		preset: 'preview-mockup',
 	},
+	{
+		slug: 'logo-export-centre',
+		name: 'Logo Export Centre',
+		department: 'logo',
+		description: 'Prepare outlined, print-ready, layered, and Canva-ready logo files locally.',
+		seoTitle: 'Logo Export Centre — Print, PSD, and Canva-ready Files',
+		seoDescription: 'Export outlined SVGs, print PDFs, variant sheets, layered PSDs, and Canva-ready logo files directly in your browser.',
+		howTo: ['Open a saved logo project or create a design in Logo Studio.', 'Choose an export format and set its print, background, or simplification options.', 'Download the files and review the included warnings before using them.'],
+		faqs: [
+			{ question: 'Does my logo leave this device?', answer: 'No. The exports are generated locally in your browser.' },
+			{ question: 'Is text editable in the PSD?', answer: 'No. Each PSD element is an image layer; text is not live-editable.' },
+			{ question: 'Can Canva import every SVG feature?', answer: 'Canva import support can change. Simplify for Canva flattens the artwork for broader compatibility.' },
+		],
+		component: 'LogoStudioApp',
+		icon: '⇩',
+		live: false,
+		preset: 'export-centre',
+	},
 ];
 
 export const liveTools = tools.filter((tool) => tool.live);
