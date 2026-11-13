@@ -18,6 +18,10 @@ interface Props {
 	onReorder?: (id: string, targetId: string) => void;
 	onGroup?: () => void;
 	onUngroup?: () => void;
+	artboardWidth?: number;
+	artboardHeight?: number;
+	onAlign?: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom', toArtboard: boolean) => void;
+	onDistribute?: (axis: 'horizontal' | 'vertical') => void;
 }
 
 export default function ElementSidebar({
@@ -31,6 +35,10 @@ export default function ElementSidebar({
 	onReorder = () => undefined,
 	onGroup = () => undefined,
 	onUngroup = () => undefined,
+	artboardWidth = 600,
+	artboardHeight = 600,
+	onAlign = () => undefined,
+	onDistribute = () => undefined,
 }: Props) {
 	const [shape, setShape] = useState<(typeof shapes)[number]>('rectangle');
 	const [tab, setTab] = useState<'elements' | 'icons' | 'colors' | 'fonts' | 'layers'>('elements');
@@ -78,7 +86,7 @@ export default function ElementSidebar({
 				</Suspense>
 			) : tab === 'layers' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading layers…</p>}>
-					<LayersPanel elements={elements} selectedIds={selectedIds} onSelect={onSelect} onUpdate={onLayerUpdate} onReorder={onReorder} onGroup={onGroup} onUngroup={onUngroup} />
+					<LayersPanel elements={elements} selectedIds={selectedIds} artboardWidth={artboardWidth} artboardHeight={artboardHeight} onSelect={onSelect} onUpdate={onLayerUpdate} onReorder={onReorder} onGroup={onGroup} onUngroup={onUngroup} onAlign={onAlign} onDistribute={onDistribute} />
 				</Suspense>
 			) : <>
 			<button className="logo-phase-primary" type="button" onClick={addText}>Add text</button>

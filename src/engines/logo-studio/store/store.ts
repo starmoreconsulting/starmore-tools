@@ -140,6 +140,8 @@ interface LogoStudioState {
 	reorderElement: (id: string, targetId: string) => void;
 	groupSelected: () => void;
 	ungroupSelected: () => void;
+	alignSelected: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom', toArtboard: boolean, width: number, height: number) => void;
+	distributeSelected: (axis: 'horizontal' | 'vertical') => void;
 	undo: () => void;
 	redo: () => void;
 }
@@ -304,6 +306,59 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			if (!childIds.length) return;
 			commitProject(project);
 			set({ selectedId: childIds[0], selectedIds: childIds });
+		},
+		alignSelected: (alignment, toArtboard, width, height) => {
+			const { project: current, selectedIds, selectedId } = get();
+			const ids = selectedIds.length ? selectedIds : selectedId ? [selectedId] : [];
+			if (!ids.length) return;
+			const elements = ids.map((id) => findElement(current.variants.primary ?? [], id)).filter((element): element is Element => Boolean(element));
+			if (!elements.length) return;
+			const bounds = {
+				left: Math.min(...elements.map((element) => element.x)),
+				top: Math.min(...elements.map((element) => element.y)),
+				right: Math.max(...elements.map((element) => element.x + element.width)),
+				bottom: Math.max(...elements.map((element) => element.y + element.height)),
+			};
+			const patches = new Map<string, Partial<Element>>();
+			for (const element of elements) {
+				const x = alignment === 'left' ? (toArtboard ? 0 : bounds.left)
+					: alignment === 'center' ? (toArtboard ? width / 2 : (bounds.left + bounds.right) / 2) - element.width / 2
+						: alignment === 'right' ? (toArtboard ? width : bounds.right) - element.width : element.x;
+				const y = alignment === 'top' ? (toArtboard ? 0 : bounds.top)
+					: alignment === 'middle' ? (toArtboard ? height / 2 : (bounds.top + bounds.bottom) / 2) - element.height / 2
+						: alignment === 'bottom' ? (toArtboard ? height : bounds.bottom) - element.height : element.y;
+				patches.set(element.id, { x, y });
+			}
+			const project = updateProjectElements(current, (list) => ids.reduce((next, id) => {
+				const patch = patches.get(id);
+				return patch ? mapElements(next, id, (element) => ({ ...element, ...patch })).elements : next;
+			}, list));
+			commitProject(project);
+		},
+		distributeSelected: (axis) => {
+			const { project: current, selectedIds } = get();
+			if (selectedIds.length < 3) return;
+			const elements = selectedIds.map((id) => findElement(current.variants.primary ?? [], id)).filter((element): element is Element => Boolean(element));
+			if (elements.length < 3) return;
+			const horizontal = axis === 'horizontal';
+			const sorted = [...elements].sort((a, b) => horizontal ? a.x - b.x : a.y - b.y);
+			const start = horizontal ? sorted[0].x : sorted[0].y;
+			const end = horizontal
+				? sorted[sorted.length - 1].x + sorted[sorted.length - 1].width
+				: sorted[sorted.length - 1].y + sorted[sorted.length - 1].height;
+			const totalSize = sorted.reduce((total, element) => total + (horizontal ? element.width : element.height), 0);
+			const gap = (end - start - totalSize) / (sorted.length - 1);
+			let cursor = start;
+			const patches = new Map<string, Partial<Element>>();
+			for (const element of sorted) {
+				patches.set(element.id, horizontal ? { x: cursor } : { y: cursor });
+				cursor += (horizontal ? element.width : element.height) + gap;
+			}
+			const project = updateProjectElements(current, (list) => sorted.reduce((next, element) => {
+				const patch = patches.get(element.id);
+				return patch ? mapElements(next, element.id, (item) => ({ ...item, ...patch })).elements : next;
+			}, list));
+			commitProject(project);
 		},
 		undo: () => {
 			const { project, past, future } = get();

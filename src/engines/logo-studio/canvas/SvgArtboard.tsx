@@ -14,6 +14,11 @@ interface Props {
 	onBackgroundChange: (background: string) => void;
 }
 
+interface CenterGuides {
+	vertical: boolean;
+	horizontal: boolean;
+}
+
 function gradientElement(element: Element): ReactNode {
 	const gradient = element.gradient;
 	if (!gradient) return null;
@@ -230,6 +235,7 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 	const actionRef = useRef<PointerAction | null>(null);
 	const movedRef = useRef(false);
 	const [iconNodes, setIconNodes] = useState<LucideIconNodes | null>(null);
+	const [centerGuides, setCenterGuides] = useState<CenterGuides>({ vertical: false, horizontal: false });
 	const background = project.artboard.background;
 	const elements = project.variants.primary ?? [];
 
@@ -293,7 +299,20 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 		const isFirstMove = !movedRef.current;
 		movedRef.current = true;
 		if (action.type === 'move') {
-			onUpdate(action.id, movedElement(action.element, dx, dy), isFirstMove);
+			const moved = movedElement(action.element, dx, dy);
+			const matrix = svg.getScreenCTM();
+			const threshold = matrix ? 8 / Math.max(0.01, Math.abs(matrix.a)) : 8;
+			const centerX = moved.x + moved.width / 2;
+			const centerY = moved.y + moved.height / 2;
+			const vertical = Math.abs(centerX - project.artboard.width / 2) <= threshold;
+			const horizontal = Math.abs(centerY - project.artboard.height / 2) <= threshold;
+			const snapped = {
+				...moved,
+				x: vertical ? project.artboard.width / 2 - moved.width / 2 : moved.x,
+				y: horizontal ? project.artboard.height / 2 - moved.height / 2 : moved.y,
+			};
+			setCenterGuides({ vertical, horizontal });
+			onUpdate(action.id, snapped, isFirstMove);
 		} else if (action.type === 'resize') {
 			onUpdate(action.id, resizedElement(action.element, action.handle, dx, dy), isFirstMove);
 		} else {
@@ -306,6 +325,7 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 	const stopPointerAction = (event: ReactPointerEvent<SVGSVGElement>) => {
 		if (svgRef.current?.hasPointerCapture(event.pointerId)) svgRef.current.releasePointerCapture(event.pointerId);
 		actionRef.current = null;
+		setCenterGuides({ vertical: false, horizontal: false });
 	};
 
 	return (
@@ -350,6 +370,12 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 						iconNodes={iconNodes}
 					/>
 				))}
+				{(centerGuides.vertical || centerGuides.horizontal) && (
+					<g className="logo-snap-guides" pointerEvents="none">
+						{centerGuides.vertical && <line x1={project.artboard.width / 2} y1="0" x2={project.artboard.width / 2} y2={project.artboard.height} />}
+						{centerGuides.horizontal && <line x1="0" y1={project.artboard.height / 2} x2={project.artboard.width} y2={project.artboard.height / 2} />}
+					</g>
+				)}
 			</svg>
 		</div>
 	);

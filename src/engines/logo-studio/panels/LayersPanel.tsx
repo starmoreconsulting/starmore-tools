@@ -4,11 +4,15 @@ import type { Element } from '../model/types';
 interface Props {
 	elements: Element[];
 	selectedIds: string[];
+	artboardWidth: number;
+	artboardHeight: number;
 	onSelect: (id: string, extend: boolean) => void;
 	onUpdate: (id: string, patch: Partial<Element>) => void;
 	onReorder: (id: string, targetId: string) => void;
 	onGroup: () => void;
 	onUngroup: () => void;
+	onAlign: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom', toArtboard: boolean) => void;
+	onDistribute: (axis: 'horizontal' | 'vertical') => void;
 }
 
 const typeMarks: Record<Element['type'], string> = {
@@ -26,8 +30,9 @@ function layerName(element: Element): string {
 	return element.shape ?? element.type;
 }
 
-export default function LayersPanel({ elements, selectedIds, onSelect, onUpdate, onReorder, onGroup, onUngroup }: Props) {
+export default function LayersPanel({ elements, selectedIds, artboardWidth, artboardHeight, onSelect, onUpdate, onReorder, onGroup, onUngroup, onAlign, onDistribute }: Props) {
 	const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+	const [alignToArtboard, setAlignToArtboard] = useState(false);
 
 	const handleDrop = (event: DragEvent<HTMLLIElement>, targetId: string) => {
 		event.preventDefault();
@@ -92,11 +97,24 @@ export default function LayersPanel({ elements, selectedIds, onSelect, onUpdate,
 	});
 
 	const selectedGroup = selectedIds.length === 1 && elements.some((element) => element.id === selectedIds[0] && element.type === 'group');
+	const alignments = [
+		['left', 'Align left'], ['center', 'Align centre'], ['right', 'Align right'],
+		['top', 'Align top'], ['middle', 'Align middle'], ['bottom', 'Align bottom'],
+	] as const;
 	return (
 		<section className="logo-library-section logo-layers-panel" aria-label="Layers">
 			<div className="logo-layer-actions">
 				<button type="button" disabled={selectedIds.length < 2} onClick={onGroup}>Group</button>
 				<button type="button" disabled={!selectedGroup} onClick={onUngroup}>Ungroup</button>
+			</div>
+			<h3 className="logo-library-subheading">Align</h3>
+			<label className="logo-align-target"><input type="checkbox" checked={alignToArtboard} onChange={(event) => setAlignToArtboard(event.target.checked)} /> Relative to artboard ({artboardWidth} × {artboardHeight})</label>
+			<div className="logo-align-grid">
+				{alignments.map(([key, label]) => <button key={key} type="button" disabled={!selectedIds.length} aria-label={label} title={label} onClick={() => onAlign(key, alignToArtboard)}>{label.replace('Align ', '')}</button>)}
+			</div>
+			<div className="logo-layer-actions">
+				<button type="button" disabled={selectedIds.length < 3} onClick={() => onDistribute('horizontal')}>Distribute horizontally</button>
+				<button type="button" disabled={selectedIds.length < 3} onClick={() => onDistribute('vertical')}>Distribute vertically</button>
 			</div>
 			{elements.length ? <ul className="logo-layer-list">{renderRows([...elements].reverse())}</ul> : <p className="logo-phase-hint">Add an element to begin building your layers.</p>}
 			<p className="logo-phase-hint">Drag layers to reorder. Hold Shift to select more than one.</p>

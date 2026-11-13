@@ -48,6 +48,8 @@ export default function LogoStudioApp() {
 	const reorderElement = useLogoStudioStore((state) => state.reorderElement);
 	const groupSelected = useLogoStudioStore((state) => state.groupSelected);
 	const ungroupSelected = useLogoStudioStore((state) => state.ungroupSelected);
+	const alignSelected = useLogoStudioStore((state) => state.alignSelected);
+	const distributeSelected = useLogoStudioStore((state) => state.distributeSelected);
 	const undo = useLogoStudioStore((state) => state.undo);
 	const redo = useLogoStudioStore((state) => state.redo);
 	const loadProject = useLogoStudioStore((state) => state.loadProject);
@@ -210,6 +212,10 @@ export default function LogoStudioApp() {
 		onReorder={reorderElement}
 		onGroup={groupSelected}
 		onUngroup={ungroupSelected}
+		artboardWidth={project.artboard.width}
+		artboardHeight={project.artboard.height}
+		onAlign={(alignment, toArtboard) => alignSelected(alignment, toArtboard, project.artboard.width, project.artboard.height)}
+		onDistribute={distributeSelected}
 		onUpdate={(patch) => {
 			if (selectedId) updateElement(selectedId, patch);
 		}}

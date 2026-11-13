@@ -64,6 +64,13 @@
 .logo-layer-select { position: absolute; z-index: 0; inset: 3px; width: calc(100% - 6px); min-height: 32px !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
 .logo-layer-main > * { position: relative; z-index: 1; }
 .logo-layer-row .logo-layer-children { padding-left: 9px; border-left: 1px solid #dfe3d5; margin-left: 8px; }
+.logo-align-target { display: flex; align-items: flex-start; gap: 5px; margin-bottom: 8px; color: #687368; font-size: 9px; line-height: 1.4; }
+.logo-align-target input { margin: 0; }
+.logo-align-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-bottom: 8px; }
+.logo-align-grid button { min-width: 0; min-height: 30px; padding: 4px !important; font-size: 9px; }
+.logo-align-grid button:disabled { opacity: .45; cursor: not-allowed; }
+.logo-layer-actions button { min-width: 0; }
+.logo-snap-guides line { stroke: #387bd0; stroke-width: 1; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
 .logo-phase-field { display: flex; min-width: 0; flex-direction: column; gap: 5px; color: #59645b; font-size: 11px; font-weight: 650; }
 .logo-phase-field input, .logo-phase-field select, .logo-phase-field textarea { width: 100%; min-width: 0; min-height: 34px; padding: 6px 8px; border: 1px solid #dedfd6; border-radius: 4px; background: #fffefa; color: #28352d; font-size: 12px; }
 .logo-phase-field input[type="color"] { padding: 3px; }
