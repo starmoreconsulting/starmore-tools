@@ -58,6 +58,8 @@ export type ToolComponentName =
 	| 'ImageWatermarkGenerator'
 	| 'BackgroundRemover'
 	| 'BackgroundChanger'
+	| 'LogoBackgroundRemover'
+	| 'LogoTransparencyEditor'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
