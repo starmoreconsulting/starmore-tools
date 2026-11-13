@@ -56,6 +56,14 @@ function findElement(elements: Element[], id: string): Element | null {
 	return null;
 }
 
+function updateGroupPaint(element: Element, patch: Partial<Pick<Element, 'fill' | 'stroke'>>): Element {
+	return {
+		...element,
+		...patch,
+		...(element.children ? { children: element.children.map((child) => updateGroupPaint(child, patch)) } : {}),
+	};
+}
+
 function updateSiblingList(
 	elements: Element[],
 	ids: string[],
@@ -149,6 +157,7 @@ interface LogoStudioState {
 	select: (id: string | null, extend?: boolean) => void;
 	updateElement: (id: string, patch: Partial<Element>, recordHistory?: boolean) => void;
 	addElement: (element: Element) => void;
+	addElements: (elements: Element[]) => void;
 	removeSelected: () => void;
 	duplicateSelected: () => void;
 	copySelected: () => void;
@@ -296,10 +305,18 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			const { project, activeVariant } = get();
 			const currentElements = project.variants[activeVariant] ?? [];
 			if (!findElement(currentElements, id)) return;
+			const paintPatch: Partial<Pick<Element, 'fill' | 'stroke'>> = {};
+			if (patch.fill !== undefined) paintPatch.fill = patch.fill;
+			if (patch.stroke !== undefined) paintPatch.stroke = patch.stroke;
 			const updated = updateProjectElements(project, (elements) => mapElements(
 				elements,
 				id,
-				(element) => ({ ...element, ...patch }),
+				(element) => {
+					const next = { ...element, ...patch };
+					return element.type === 'group' && element.role === 'icon' && Object.keys(paintPatch).length
+						? updateGroupPaint(next, paintPatch)
+						: next;
+				},
 			).elements, activeVariant);
 			commitProject(updated, recordHistory);
 		},
@@ -308,6 +325,13 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			const project = updateProjectElements(current, (elements) => [...elements, element], activeVariant);
 			commitProject(project);
 			set({ selectedId: element.id, selectedIds: [element.id] });
+		},
+		addElements: (elements) => {
+			if (!elements.length) return;
+			const { project: current, activeVariant } = get();
+			const project = updateProjectElements(current, (existing) => [...existing, ...elements], activeVariant);
+			commitProject(project);
+			set({ selectedId: elements[0].id, selectedIds: elements.map((element) => element.id) });
 		},
 		removeSelected: () => {
 			const { project: current, selectedId, selectedIds, activeVariant } = get();

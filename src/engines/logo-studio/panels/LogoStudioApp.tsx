@@ -17,6 +17,7 @@ import VariantBar from './VariantBar';
 import CompareVariants from './CompareVariants';
 import { primarySignature } from '../variants/automatic';
 import { createReferenceFromFile, deleteLocalReference, loadLocalReference, saveLocalReference, type ReferenceLayer } from '../store/references';
+import { importCustomSvgIcon, importSvg } from '../import/svg-import';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -70,6 +71,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const select = useLogoStudioStore((state) => state.select);
 	const updateElement = useLogoStudioStore((state) => state.updateElement);
 	const addElement = useLogoStudioStore((state) => state.addElement);
+	const addElements = useLogoStudioStore((state) => state.addElements);
 	const removeSelected = useLogoStudioStore((state) => state.removeSelected);
 	const duplicateSelected = useLogoStudioStore((state) => state.duplicateSelected);
 	const copySelected = useLogoStudioStore((state) => state.copySelected);
@@ -105,6 +107,8 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [gallerySeed, setGallerySeed] = useState(0);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const referenceInputRef = useRef<HTMLInputElement>(null);
+	const svgInputRef = useRef<HTMLInputElement>(null);
+	const iconInputRef = useRef<HTMLInputElement>(null);
 	const elements = project.variants[activeVariant] ?? [];
 	const primaryElements = project.variants.primary ?? [];
 	const primaryChanged = activeVariant !== 'primary'
@@ -142,6 +146,29 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			setStatus(`Reference “${prepared.name}” is stored on this device only.`);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'The reference image could not be opened.';
+			setFileError(message);
+			setStatus(message);
+		}
+	};
+	const openSvgImport = async (file: File | undefined, asIcon: boolean) => {
+		if (!file) return;
+		try {
+			if (file.size > 10 * 1024 * 1024) throw new Error('SVG files must be 10 MB or smaller.');
+			if (file.type !== 'image/svg+xml' && !file.name.toLowerCase().endsWith('.svg')) {
+				throw new Error('Choose a valid SVG file.');
+			}
+			const contents = await file.text();
+			const result = asIcon
+				? importCustomSvgIcon(contents, project.artboard.width, project.artboard.height)
+				: importSvg(contents, project.artboard.width, project.artboard.height);
+			addElements(result.elements);
+			const summary = asIcon
+				? `Imported ${result.imported} shapes as one custom icon group`
+				: `Imported ${result.imported} shapes`;
+			setStatus(`${summary}${result.skipped ? `, skipped ${result.skipped} unsupported items` : ''}${result.truncated ? '. The 500-element limit was reached' : ''}.`);
+			setFileError('');
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'The SVG could not be imported.';
 			setFileError(message);
 			setStatus(message);
 		}
@@ -305,6 +332,8 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	/>;
 	const elementLibrary = <ElementSidebar
 		onAdd={addElement}
+		onImportSvg={() => svgInputRef.current?.click()}
+		onImportIcon={() => iconInputRef.current?.click()}
 		element={selectedElement}
 		elements={elements}
 		selectedIds={selectedIds}
@@ -370,6 +399,28 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				aria-label="Upload reference image"
 				onChange={(event) => {
 					void openReferenceFile(event.currentTarget.files?.[0]);
+					event.currentTarget.value = '';
+				}}
+			/>
+			<input
+				ref={svgInputRef}
+				type="file"
+				accept="image/svg+xml,.svg"
+				className="visually-hidden"
+				aria-label="Import SVG"
+				onChange={(event) => {
+					void openSvgImport(event.currentTarget.files?.[0], false);
+					event.currentTarget.value = '';
+				}}
+			/>
+			<input
+				ref={iconInputRef}
+				type="file"
+				accept="image/svg+xml,.svg"
+				className="visually-hidden"
+				aria-label="Upload custom icon SVG"
+				onChange={(event) => {
+					void openSvgImport(event.currentTarget.files?.[0], true);
 					event.currentTarget.value = '';
 				}}
 			/>

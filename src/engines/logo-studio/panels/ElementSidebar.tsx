@@ -9,6 +9,8 @@ const shapes = ['rectangle', 'rounded-rectangle', 'circle', 'triangle', 'polygon
 
 interface Props {
 	onAdd: (element: Element) => void;
+	onImportSvg: () => void;
+	onImportIcon: () => void;
 	element?: Element | null;
 	onUpdate?: (patch: Partial<Element>) => void;
 	elements?: Element[];
@@ -26,6 +28,8 @@ interface Props {
 
 export default function ElementSidebar({
 	onAdd,
+	onImportSvg,
+	onImportIcon,
 	element = null,
 	onUpdate = () => undefined,
 	elements = [],
@@ -100,6 +104,10 @@ export default function ElementSidebar({
 				</select>
 			</label>
 			<button type="button" onClick={addShape}>Add shape</button>
+			<div className="logo-svg-import-actions">
+				<button type="button" onClick={onImportSvg}>Import SVG</button>
+				<button type="button" onClick={onImportIcon}>Upload custom icon (SVG)</button>
+			</div>
 			<p className="logo-phase-hint">Drag elements on the artboard to position them.</p>
 			</>}
 		</aside>
