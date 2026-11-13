@@ -116,8 +116,8 @@ export async function exportProjectToSvg(
 		const library = await loadLucideLibrary();
 		icons = library.icons;
 	}
-	if (options.outlineText !== false) {
-		const result = await outlineProjectText(project);
+	if (options.outlineText !== false || projectElements.some((element) => containsCurvedText(element))) {
+		const result = await outlineProjectText(project, options.outlineText === false);
 		for (const [id, outline] of result.outlines) outlines.set(id, outline);
 		warnings.push(...result.warnings);
 	}
@@ -130,13 +130,11 @@ export async function exportProjectToSvg(
 		.map((element) => renderElement(element, outlines, icons, warnings))
 		.join('');
 	const gradientMarkup = `<defs>${collectEffectMarkup(projectElements)}</defs>`;
-	if (projectElements.some((element) => containsShadow(element))) {
-		warnings.push('This design uses shadows. PDF export will use a local raster fallback so shadows remain visible.');
-	}
 	const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${project.artboard.width}" height="${project.artboard.height}" viewBox="0 0 ${project.artboard.width} ${project.artboard.height}"><title>${escapeXml(project.name)}</title>${gradientMarkup}${backgroundMarkup}${artwork}</svg>`;
 	return { svg, warnings };
 }
 
-function containsShadow(element: Element): boolean {
-	return Boolean(element.shadow) || Boolean(element.children?.some(containsShadow));
+function containsCurvedText(element: Element): boolean {
+	return (element.type === 'text' && Boolean(element.curve))
+		|| Boolean(element.children?.some(containsCurvedText));
 }

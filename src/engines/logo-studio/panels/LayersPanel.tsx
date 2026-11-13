@@ -85,7 +85,7 @@ export default function LayersPanel({ elements, selectedIds, artboardWidth, artb
 						onKeyDown={(event) => {
 							if (event.key === 'Enter') event.currentTarget.blur();
 						}}
-						onClick={() => onSelect(element.id, false)}
+						onClick={(event) => onSelect(element.id, event.shiftKey)}
 					/>
 					<button type="button" className="logo-layer-toggle" aria-label={`${element.visible ? 'Hide' : 'Show'} ${layerName(element)}`} aria-pressed={element.visible} onClick={() => onUpdate(element.id, { visible: !element.visible })}>{element.visible ? '◉' : '○'}</button>
 					<button type="button" className="logo-layer-toggle" aria-label={`${element.locked ? 'Unlock' : 'Lock'} ${layerName(element)}`} aria-pressed={element.locked} onClick={() => onUpdate(element.id, { locked: !element.locked })}>{element.locked ? '▣' : '□'}</button>
@@ -96,7 +96,15 @@ export default function LayersPanel({ elements, selectedIds, artboardWidth, artb
 		);
 	});
 
-	const selectedGroup = selectedIds.length === 1 && elements.some((element) => element.id === selectedIds[0] && element.type === 'group');
+	const findGroup = (items: Element[], id: string): Element | undefined => {
+		for (const item of items) {
+			if (item.id === id) return item.type === 'group' ? item : undefined;
+			const nested = item.children && findGroup(item.children, id);
+			if (nested) return nested;
+		}
+		return undefined;
+	};
+	const selectedGroup = selectedIds.length === 1 && Boolean(findGroup(elements, selectedIds[0]));
 	const alignments = [
 		['left', 'Align left'], ['center', 'Align centre'], ['right', 'Align right'],
 		['top', 'Align top'], ['middle', 'Align middle'], ['bottom', 'Align bottom'],

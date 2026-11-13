@@ -4,7 +4,6 @@ import { getLogoFont } from '../library/fonts';
 
 export interface TextOutline {
 	elementId: string;
-	pathData: string;
 	markup: string;
 	paths: { d: string; transform: string }[];
 }
@@ -107,28 +106,26 @@ async function outlineText(element: Element): Promise<TextOutline> {
 		const transform = `translate(${centerX} ${centerY}) rotate(${rotation}) translate(${-advance / 2} 0)`;
 		return { d, transform };
 	});
-	const pathData = paths.map((path) => path.d).join('');
 	return {
 		elementId: element.id,
-		pathData,
 		markup: paths.map((path) => `<path d="${path.d}" transform="${path.transform}"/>`).join(''),
 		paths,
 	};
 }
 
-function visitElements(elements: Element[], visit: (element: Element) => Promise<void>): Promise<void[]> {
-	return Promise.all(elements.flatMap((element) => {
-		const tasks = element.type === 'text' ? [visit(element)] : [];
-		if (element.children) tasks.push(...visitElements(element.children, visit));
-		return tasks;
+async function visitElements(elements: Element[], visit: (element: Element) => Promise<void>): Promise<void> {
+	await Promise.all(elements.map(async (element) => {
+		if (element.type === 'text') await visit(element);
+		if (element.children) await visitElements(element.children, visit);
 	}));
 }
 
-export async function outlineProjectText(project: LogoProject): Promise<OutlineResult> {
+export async function outlineProjectText(project: LogoProject, curvedOnly = false): Promise<OutlineResult> {
 	const outlines = new Map<string, TextOutline>();
 	const warnings: string[] = [];
 	const elements = Object.values(project.variants).flat();
 	await visitElements(elements, async (element) => {
+		if (curvedOnly && !element.curve) return;
 		try {
 			outlines.set(element.id, await outlineText(element));
 		} catch {

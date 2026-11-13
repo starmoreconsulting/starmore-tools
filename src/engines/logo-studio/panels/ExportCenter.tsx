@@ -110,20 +110,21 @@ export default function ExportCenter({ project, onClose }: Props) {
 					<div>
 						<p className="eyebrow">DOWNLOAD YOUR DESIGN</p>
 						<h2 id="logo-export-title">Export Centre</h2>
-						<p>Files are created locally and downloaded directly to your device.</p>
+						<p>Files are created locally. Layers, Lucide icons, shapes, gradients, and effects are included in supported formats.</p>
 					</div>
 					<button type="button" className="logo-export-close" autoFocus onClick={onClose} aria-label="Close Export Centre">×</button>
 				</header>
 
 				<div className="logo-export-options">
 					<section className="logo-export-format">
-						<div><h3>SVG</h3><p>Scalable vector artwork.</p></div>
+						<div><h3>SVG</h3><p>Scalable vectors with gradients, shadows, and Lucide paths.</p></div>
 						<label className="logo-export-check"><input type="checkbox" checked={outlineText} onChange={(event) => setOutlineText(event.target.checked)} /> Convert text to outlines</label>
+						<p className="logo-export-size">Curved text is outlined even when this option is off.</p>
 						<button type="button" onClick={() => void exportSvg()} disabled={Boolean(busy)}>{busy === 'SVG' ? 'Preparing…' : 'Download SVG'}</button>
 					</section>
 
 					<section className="logo-export-format">
-						<div><h3>PNG</h3><p>Raster image with a transparent background option.</p></div>
+						<div><h3>PNG</h3><p>Local raster render of your full design, with a transparent background option.</p></div>
 						<label className="logo-phase-field"><span>Scale</span><select value={pngScale} onChange={(event) => setPngScale(Number(event.target.value) as RasterScale)}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
 						<label className="logo-export-check"><input type="checkbox" checked={pngTransparent} onChange={(event) => setPngTransparent(event.target.checked)} /> Transparent background</label>
 						<p className="logo-export-size">Output: {pngSize}</p>
@@ -131,7 +132,7 @@ export default function ExportCenter({ project, onClose }: Props) {
 					</section>
 
 					<section className="logo-export-format">
-						<div><h3>JPG</h3><p>Always fills the background with your selected colour.</p></div>
+						<div><h3>JPG</h3><p>Local raster render of the full design, always filled with your selected background.</p></div>
 						<div className="logo-export-control-row">
 							<label className="logo-phase-field"><span>Scale</span><select value={jpgScale} onChange={(event) => setJpgScale(Number(event.target.value) as RasterScale)}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
 							<label className="logo-phase-field"><span>Background</span><input type="color" value={jpgBackground} onChange={(event) => setJpgBackground(event.target.value)} /></label>
@@ -142,7 +143,7 @@ export default function ExportCenter({ project, onClose }: Props) {
 					</section>
 
 					<section className="logo-export-format">
-						<div><h3>PDF</h3><p>Vector PDF sized to the artboard, with text outlined.</p></div>
+						<div><h3>PDF</h3><p>Artboard-sized PDF with outlined text. Designs with shadows use a raster fallback so effects remain visible.</p></div>
 						<button type="button" onClick={() => void exportPdf()} disabled={Boolean(busy)}>{busy === 'PDF' ? 'Preparing…' : 'Download PDF'}</button>
 					</section>
 
@@ -159,7 +160,7 @@ export default function ExportCenter({ project, onClose }: Props) {
 
 				{busy && <p className="logo-export-progress" role="status" aria-live="polite">Preparing {busy} locally…</p>}
 				{error && <p className="logo-export-error" role="alert">{error}</p>}
-				{warnings.length > 0 && <div className="logo-export-warning" role="status"><strong>Some text could not be outlined:</strong><ul>{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}
+				{warnings.length > 0 && <div className="logo-export-warning" role="status"><strong>Export notes:</strong><ul>{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}
 			</section>
 		</div>
 	);
