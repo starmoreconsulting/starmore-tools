@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import SvgArtboard from '../canvas/SvgArtboard';
-import { createDefaultElement, type Element } from '../model/types';
+import { createDefaultElement, createDefaultProject, type Element, type LogoBrief } from '../model/types';
 import { useLogoStudioStore } from '../store/store';
 import ElementProperties from './ElementProperties';
 import ElementSidebar from './ElementSidebar';
@@ -9,6 +9,7 @@ import { loadBrowserFont } from '../library/fonts';
 import { readProjectFile } from '../export/project-file';
 import MyProjects from './MyProjects';
 import ExportCenter from './ExportCenter';
+import SetupFlow from './SetupFlow';
 import { restoreLastProject, saveLocalProject, setLastProjectId } from '../store/local-projects';
 import './phase-one.css';
 
@@ -61,6 +62,7 @@ export default function LogoStudioApp() {
 	const [storageReady, setStorageReady] = useState(false);
 	const [showProjects, setShowProjects] = useState(false);
 	const [showExportCenter, setShowExportCenter] = useState(false);
+	const [showSetup, setShowSetup] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const elements = project.variants.primary ?? [];
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
@@ -231,9 +233,23 @@ export default function LogoStudioApp() {
 				onRedo={redo}
 				onZoomChange={setZoom}
 				onOpenProject={() => fileInputRef.current?.click()}
+				onNewLogo={() => setShowSetup(true)}
 				onProjects={() => setShowProjects(true)}
 				onExport={() => setShowExportCenter(true)}
 			/>
+			{showSetup && <SetupFlow
+				onSkip={() => {
+					loadProject(createDefaultProject());
+					setShowSetup(false);
+					setShowProjects(false);
+				}}
+				onComplete={(brief: LogoBrief) => {
+					loadProject({ ...createDefaultProject(brief.businessName), brief });
+					setShowSetup(false);
+					setShowProjects(false);
+					setStatus(`Brief saved for ${brief.businessName}.`);
+				}}
+			/>}
 			<input
 				ref={fileInputRef}
 				type="file"

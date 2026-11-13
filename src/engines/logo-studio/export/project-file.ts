@@ -1,9 +1,12 @@
-import type { Element, ElementType, LogoProject } from '../model/types';
+import type { Element, ElementType, LogoArrangement, LogoIndustry, LogoProject, LogoStyle } from '../model/types';
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_ELEMENTS = 5000;
 const MAX_GROUP_DEPTH = 30;
 const elementTypes = new Set<ElementType>(['text', 'shape', 'icon', 'image', 'group']);
+const industries = new Set<LogoIndustry>(['Technology', 'Business', 'Fashion', 'Construction', 'Food', 'Transport', 'Education', 'Health', 'Creative', 'General']);
+const styles = new Set<LogoStyle>(['Minimalist', 'Modern', 'Corporate', 'Luxury', 'Futuristic', 'Geometric', 'Vintage', 'Elegant', 'Bold', 'Abstract', 'Playful', 'Professional']);
+const arrangements = new Set<LogoArrangement>(['icon-above-text', 'icon-left', 'icon-right', 'text-only', 'badge']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -175,6 +178,39 @@ export function validateLogoProject(value: unknown): LogoProject {
 	}
 	if (!variants.primary) throw new Error('The project file is missing its primary design.');
 
+	let brief: LogoProject['brief'];
+	if (value.brief !== undefined) {
+		if (!isRecord(value.brief)
+			|| typeof value.brief.businessName !== 'string'
+			|| !value.brief.businessName.trim()
+			|| value.brief.businessName.length > 200
+			|| typeof value.brief.tagline !== 'string'
+			|| value.brief.tagline.length > 300
+			|| typeof value.brief.description !== 'string'
+			|| value.brief.description.length > 1000
+			|| typeof value.brief.industry !== 'string'
+			|| !industries.has(value.brief.industry as LogoIndustry)
+			|| typeof value.brief.style !== 'string'
+			|| !styles.has(value.brief.style as LogoStyle)
+			|| typeof value.brief.preferredPalette !== 'string'
+			|| value.brief.preferredPalette.length > 80
+			|| typeof value.brief.arrangement !== 'string'
+			|| !arrangements.has(value.brief.arrangement as LogoArrangement)
+			|| (value.brief.customColor !== undefined && (typeof value.brief.customColor !== 'string' || !/^#[\da-f]{6}$/i.test(value.brief.customColor)))) {
+			throw new Error('The project file contains an invalid design brief.');
+		}
+		brief = {
+			businessName: value.brief.businessName,
+			tagline: value.brief.tagline,
+			description: value.brief.description,
+			industry: value.brief.industry as LogoIndustry,
+			style: value.brief.style as LogoStyle,
+			preferredPalette: value.brief.preferredPalette,
+			arrangement: value.brief.arrangement as LogoArrangement,
+			...(typeof value.brief.customColor === 'string' ? { customColor: value.brief.customColor } : {}),
+		};
+	}
+
 	return {
 		version: 1,
 		id: requiredString(value, 'id', 160),
@@ -182,6 +218,7 @@ export function validateLogoProject(value: unknown): LogoProject {
 		updatedAt: finiteNumber(value.updatedAt) ? value.updatedAt : Date.now(),
 		artboard: { width, height, background },
 		variants,
+		...(brief ? { brief } : {}),
 	};
 }
 

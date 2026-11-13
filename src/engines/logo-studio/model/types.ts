@@ -42,6 +42,29 @@ export interface LogoProject {
 	updatedAt: number;
 	artboard: { width: number; height: number; background: string };
 	variants: Record<string, Element[]>;
+	brief?: LogoBrief;
+}
+
+export type LogoIndustry =
+	| 'Technology' | 'Business' | 'Fashion' | 'Construction' | 'Food'
+	| 'Transport' | 'Education' | 'Health' | 'Creative' | 'General';
+
+export type LogoStyle =
+	| 'Minimalist' | 'Modern' | 'Corporate' | 'Luxury' | 'Futuristic'
+	| 'Geometric' | 'Vintage' | 'Elegant' | 'Bold' | 'Abstract'
+	| 'Playful' | 'Professional';
+
+export type LogoArrangement = 'icon-above-text' | 'icon-left' | 'icon-right' | 'text-only' | 'badge';
+
+export interface LogoBrief {
+	businessName: string;
+	tagline: string;
+	industry: LogoIndustry;
+	description: string;
+	style: LogoStyle;
+	preferredPalette: string;
+	customColor?: string;
+	arrangement: LogoArrangement;
 }
 
 export interface GradientStop {
