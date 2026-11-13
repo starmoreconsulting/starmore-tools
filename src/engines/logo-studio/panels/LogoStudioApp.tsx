@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import SvgArtboard from '../canvas/SvgArtboard';
 import { createDefaultElement, type Element } from '../model/types';
 import { useLogoStudioStore } from '../store/store';
@@ -27,6 +27,10 @@ export default function LogoStudioApp() {
 	const select = useLogoStudioStore((state) => state.select);
 	const updateElement = useLogoStudioStore((state) => state.updateElement);
 	const addElement = useLogoStudioStore((state) => state.addElement);
+	const removeSelected = useLogoStudioStore((state) => state.removeSelected);
+	const duplicateSelected = useLogoStudioStore((state) => state.duplicateSelected);
+	const copySelected = useLogoStudioStore((state) => state.copySelected);
+	const paste = useLogoStudioStore((state) => state.paste);
 	const setBackground = useLogoStudioStore((state) => state.setBackground);
 	const undo = useLogoStudioStore((state) => state.undo);
 	const redo = useLogoStudioStore((state) => state.redo);
@@ -36,6 +40,62 @@ export default function LogoStudioApp() {
 	const elements = project.variants.primary ?? [];
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
 	const addText = () => addElement(createDefaultElement('text', { x: 90, y: 268, width: 420, height: 64 }));
+
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			const target = event.target;
+			if (target instanceof HTMLElement && (
+				target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)
+			)) return;
+
+			const key = event.key.toLowerCase();
+			if (event.ctrlKey || event.metaKey) {
+				if (key === 'z') {
+					event.preventDefault();
+					if (event.shiftKey) redo();
+					else undo();
+				} else if (key === 'y') {
+					event.preventDefault();
+					redo();
+				} else if (key === 'c' && selectedId) {
+					event.preventDefault();
+					copySelected();
+				} else if (key === 'v') {
+					event.preventDefault();
+					paste();
+				} else if (key === 'd' && selectedId) {
+					event.preventDefault();
+					duplicateSelected();
+				}
+				return;
+			}
+
+			if ((key === 'delete' || key === 'backspace') && selectedElement && !selectedElement.locked) {
+				event.preventDefault();
+				removeSelected();
+				return;
+			}
+
+			if (!selectedId || !selectedElement || selectedElement.locked) return;
+			const step = event.shiftKey ? 10 : 1;
+			const offsets: Record<string, { x: number; y: number }> = {
+				arrowleft: { x: -step, y: 0 },
+				arrowright: { x: step, y: 0 },
+				arrowup: { x: 0, y: -step },
+				arrowdown: { x: 0, y: step },
+			};
+			const offset = offsets[key];
+			if (!offset) return;
+			event.preventDefault();
+			updateElement(selectedId, {
+				x: selectedElement.x + offset.x,
+				y: selectedElement.y + offset.y,
+			});
+		};
+
+		document.addEventListener('keydown', onKeyDown);
+		return () => document.removeEventListener('keydown', onKeyDown);
+	}, [copySelected, duplicateSelected, paste, project, redo, removeSelected, selectedElement, selectedId, undo, updateElement]);
 
 	const propertiesPanel = <ElementProperties
 		element={selectedElement}
