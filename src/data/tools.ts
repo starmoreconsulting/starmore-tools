@@ -54,6 +54,7 @@ export type ToolComponentName =
 	| 'ImageColourPicker'
 	| 'ColourPaletteExtractor'
 	| 'FaviconGenerator'
+	| 'SocialMediaImageResizer'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -197,6 +198,23 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'FaviconGenerator',
 		icon: '✦',
+		live: false,
+	},
+	{
+		slug: 'social-media-image-resizer',
+		name: 'Social Media Image Resizer',
+		department: 'image',
+		description: 'Resize images for social platform presets and download one or many sizes.',
+		seoTitle: 'Social Media Image Resizer | Starmore Tools',
+		seoDescription: 'Resize images for Instagram, Facebook, YouTube, LinkedIn, X and WhatsApp presets, adjust crop focus, and download one image or a ZIP locally.',
+		howTo: ['Choose an image and a platform size preset.', 'Pick Cover, Contain or Blurred background; drag the focus point to adjust a Cover crop.', 'Download one size or select multiple presets and create a ZIP.'],
+		faqs: [
+			{ question: 'Does Cover mode crop the image?', answer: 'Yes. Cover fills the target canvas, cropping the overflow around a draggable focus point. Contain modes preserve the complete image.' },
+			{ question: 'Can I create several sizes together?', answer: 'Yes. Select any number of presets and download all selected image files together as a ZIP.' },
+			{ question: 'Are images uploaded?', answer: 'No. Your images never leave your device; resizing and ZIP creation run locally in your browser.' },
+		],
+		component: 'SocialMediaImageResizer',
+		icon: '▣',
 		live: false,
 	},
 	{
