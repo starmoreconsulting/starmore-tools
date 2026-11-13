@@ -47,6 +47,7 @@ export type ToolComponentName =
 	| 'PdfPageRotator'
 	| 'ImageFormatConverter'
 	| 'ImageCropper'
+	| 'ImageUpscaler'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -76,6 +77,23 @@ export interface ToolDefinition {
 }
 
 export const tools: ToolDefinition[] = [
+	{
+		slug: 'image-upscaler',
+		name: 'Image Upscaler',
+		department: 'image',
+		description: 'Enlarge photos and pixel art locally with a worker-based resampler.',
+		seoTitle: 'Private Image Upscaler | Starmore Tools',
+		seoDescription: 'Upscale images 2×, 3×, 4× or to a custom width using Lanczos-3 or nearest-neighbour resampling in your browser. Images never leave your device.',
+		howTo: ['Choose a JPG, PNG, WebP, GIF or BMP image from your device.', 'Select a scale or custom target width, then choose Photo or Pixel art resampling.', 'Upscale, compare the before and after preview, and download the result.'],
+		faqs: [
+			{ question: 'Does upscaling invent missing detail?', answer: 'No. It enlarges and smooths existing pixels but cannot recover detail that was never present.' },
+			{ question: 'Are my images uploaded?', answer: 'No. Image decoding, processing and export run in your browser. Your image files never leave your device.' },
+			{ question: 'Which formats can I export?', answer: 'Choose PNG, JPG or WebP. PNG and WebP preserve transparency; JPG uses a solid white background.' },
+		],
+		component: 'ImageUpscaler',
+		icon: '↗',
+		live: false,
+	},
 	{
 		slug: 'case-converter',
 		name: 'Case Converter',
