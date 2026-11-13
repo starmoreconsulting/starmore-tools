@@ -18,10 +18,11 @@ const models = [
 		maximumBytes: 6 * mebibyte,
 	},
 	{
-		name: 'isnet-general-use-fp16.onnx',
-		url: 'https://huggingface.co/onnx-community/ISNet-ONNX/resolve/main/onnx/model_fp16.onnx',
-		minimumBytes: 80 * mebibyte,
-		maximumBytes: 95 * mebibyte,
+		name: 'isnet-general-use-fp32.onnx',
+		url: 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx',
+		minimumBytes: 150 * mebibyte,
+		maximumBytes: 190 * mebibyte,
+		expectedSha256: '60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a',
 	},
 ];
 
@@ -40,7 +41,11 @@ function formatMebibytes(bytes) {
 }
 
 async function reportModel(model, filePath, size) {
-	console.log(`${model.name}: ${formatMebibytes(size)}; SHA-256 ${await sha256File(filePath)}`);
+	const digest = await sha256File(filePath);
+	console.log(`${model.name}: ${formatMebibytes(size)}; SHA-256 ${digest}`);
+	if (model.expectedSha256 && digest !== model.expectedSha256) {
+		throw new Error(`${model.name} SHA-256 mismatch. Expected ${model.expectedSha256}; got ${digest}.`);
+	}
 }
 
 async function fetchModel(model) {
@@ -54,7 +59,12 @@ async function fetchModel(model) {
 		});
 		if (existing && isPlausibleSize(existing.size, model)) {
 			console.log(`${model.name}: already present (${formatMebibytes(existing.size)}); skipping download.`);
-			await reportModel(model, destination, existing.size);
+			try {
+				await reportModel(model, destination, existing.size);
+			} catch (error) {
+				await rm(destination);
+				throw error;
+			}
 			return;
 		}
 		if (existing) await rm(destination);
@@ -96,8 +106,13 @@ async function fetchModel(model) {
 			);
 		}
 
+		const digest = await sha256File(temporaryFile);
+		console.log(`${model.name}: ${formatMebibytes(receivedBytes)}; SHA-256 ${digest}`);
+		if (model.expectedSha256 && digest !== model.expectedSha256) {
+			await rm(temporaryFile, { force: true });
+			throw new Error(`${model.name} SHA-256 mismatch. Expected ${model.expectedSha256}; got ${digest}.`);
+		}
 		await rename(temporaryFile, destination);
-		await reportModel(model, destination, receivedBytes);
 	} catch (error) {
 		await rm(temporaryFile, { force: true });
 		throw error;

@@ -1,1 +1,2 @@
 Models: only use models whose licence allows commercial use and redistribution (Apache-2.0, MIT, BSD). Never use RMBG (any version), CodeFormer or any non-commercial model. Never load a model or script from a third-party URL at runtime; serve everything from our own site.
+Before using any model file, read the licence on the page it comes from and record it exactly. If the stated licence is not Apache-2.0, MIT or BSD, stop and ask me.

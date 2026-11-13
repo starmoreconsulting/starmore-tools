@@ -25,6 +25,7 @@ pnpm-debug.log*
 
 # Local model weights and mask-test images
 models-source/*.onnx
+.venv-models/
 test-images/*
 !test-images/README.md
 docs/mask-tests/*.png
