@@ -81,6 +81,7 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 	const [printCropMarks, setPrintCropMarks] = useState(false);
 	const [extendBackground, setExtendBackground] = useState(project.artboard.background !== 'transparent');
 	const [includeVariantLabels, setIncludeVariantLabels] = useState(false);
+	const [includePsdBackground, setIncludePsdBackground] = useState(false);
 	const [busy, setBusy] = useState('');
 	const [error, setError] = useState('');
 	const [warnings, setWarnings] = useState<string[]>([]);
@@ -230,6 +231,12 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 		const pdf = await exportPrintPdf(pages, { preset: 'screen' });
 		downloadBlob(pdf.blob, `${safeFileName(project.name)}-variants.pdf`);
 		return { warnings: [...warnings] };
+	});
+	const exportPsd = () => runExport('PSD', async () => {
+		const { exportProjectToPsd } = await import('../export/psd');
+		const bytes = await exportProjectToPsd(activeProject, { includeArtboardBackground: includePsdBackground });
+		downloadBlob(new Blob([bytes], { type: 'image/vnd.adobe.photoshop' }), `${safeFileName(project.name)}.psd`);
+		return {};
 	});
 	const exportProjectFile = () => runExport('Project file', async () => {
 		const file = includeReference
@@ -396,6 +403,13 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 						<div><h3>Variants sheet PDF</h3><p>One outlined page for Primary, Horizontal, Vertical, Icon only, Wordmark only, Black, White, and Monochrome.</p></div>
 						<label className="logo-export-check"><input type="checkbox" checked={includeVariantLabels} onChange={(event) => setIncludeVariantLabels(event.target.checked)} /> Add a label below each logo</label>
 						<button type="button" onClick={() => void exportVariantsSheet()} disabled={Boolean(busy)}>{busy === 'Variants sheet' ? 'Preparing…' : 'Download variants sheet'}</button>
+					</section>
+
+					<section className="logo-export-format">
+						<div><h3>Layered PSD</h3><p>Each element is an image layer; text is not live-editable. Raster layers are rendered at 2× and hidden layers remain hidden.</p></div>
+						<label className="logo-export-check"><input type="checkbox" checked={includePsdBackground} onChange={(event) => setIncludePsdBackground(event.target.checked)} /> Include artboard background as its own layer</label>
+						<p className="logo-export-size">The PSD stays transparent when this option is off. Export is capped at 64 million 2× layer pixels.</p>
+						<button type="button" onClick={() => void exportPsd()} disabled={Boolean(busy)}>{busy === 'PSD' ? 'Preparing…' : 'Download Layered PSD'}</button>
 					</section>
 
 					<section className="logo-export-format">
