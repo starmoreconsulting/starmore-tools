@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from 'react';
 import { createDefaultElement, type Element } from '../model/types';
 const IconLibrary = lazy(() => import('./IconLibrary'));
 
-const shapes = ['rectangle', 'circle', 'triangle', 'star', 'line'] as const;
+const shapes = ['rectangle', 'rounded-rectangle', 'circle', 'triangle', 'polygon', 'star', 'arrow', 'line', 'ring', 'hexagon', 'diamond', 'shield', 'leaf', 'drop', 'bolt'] as const;
 
 interface Props {
 	onAdd: (element: Element) => void;
@@ -28,6 +28,7 @@ export default function ElementSidebar({ onAdd }: Props) {
 		fill: shape === 'line' ? 'none' : '#d7ed79',
 		stroke: '#203b32',
 		strokeWidth: 2,
+		radius: shape === 'rounded-rectangle' ? 18 : 0,
 	}));
 
 	return (

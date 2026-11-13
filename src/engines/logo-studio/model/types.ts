@@ -23,6 +23,8 @@ export interface Element {
 	align?: 'left' | 'center' | 'right';
 	curve?: number;
 	shape?: string;
+	sides?: number;
+	points?: number;
 	iconName?: string;
 	radius?: number;
 	children?: Element[];

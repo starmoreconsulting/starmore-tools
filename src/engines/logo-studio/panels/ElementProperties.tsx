@@ -37,6 +37,27 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 				<label className="logo-phase-field"><span>Stroke</span><input type="color" value={element.stroke && /^#[\da-f]{6}$/i.test(element.stroke) ? element.stroke : '#203b32'} onChange={(event) => onUpdate({ stroke: event.target.value })} /></label>
 				<label className="logo-phase-field"><span>Stroke width</span><input type="number" min="0" value={element.strokeWidth ?? 0} onChange={(event) => onUpdate({ strokeWidth: Math.max(0, numberValue(event.target.value, element.strokeWidth ?? 0)) })} /></label>
 			</div>
+			{element.type === 'shape' && (element.shape === 'polygon' || element.shape === 'star') && (
+				<label className="logo-phase-field">
+					<span>{element.shape === 'star' ? 'Points' : 'Sides'}</span>
+					<input
+						type="number"
+						min={3}
+						max={12}
+						value={element.shape === 'star' ? element.points ?? 5 : element.sides ?? 6}
+						onChange={(event) => {
+							const count = Math.min(12, Math.max(3, Math.round(numberValue(event.target.value, 5))));
+							onUpdate(element.shape === 'star' ? { points: count } : { sides: count });
+						}}
+					/>
+				</label>
+			)}
+			{element.type === 'shape' && (element.shape === 'rectangle' || element.shape === 'rounded-rectangle') && (
+				<label className="logo-phase-field">
+					<span>Corner radius</span>
+					<input type="number" min={0} value={element.radius ?? 0} onChange={(event) => onUpdate({ radius: Math.max(0, numberValue(event.target.value, element.radius ?? 0)) })} />
+				</label>
+			)}
 			{element.type === 'text' && (
 				<div className="logo-phase-text-options">
 					<label className="logo-phase-field"><span>Text</span><textarea rows={3} value={element.text ?? ''} onChange={(event) => onUpdate({ text: event.target.value })} /></label>

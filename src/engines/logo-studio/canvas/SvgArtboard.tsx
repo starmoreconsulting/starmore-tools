@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, ty
 import type { Element, LogoProject } from '../model/types';
 import { getElementBounds, movedElement, resizedElement, rotationFromPointer, type ResizeHandle } from './geometry';
 import { loadLucideLibrary, type LucideIconNodes } from '../library/icons';
+import { getShapeGeometry } from '../library/shapes';
 
 interface Props {
 	project: LogoProject;
@@ -63,34 +64,18 @@ function renderIcon(element: Element, icons: LucideIconNodes | null): ReactNode 
 	);
 }
 
-function starPoints(width: number, height: number) {
-	const cx = width / 2;
-	const cy = height / 2;
-	const outer = Math.min(width, height) / 2;
-	const inner = outer * 0.43;
-	return Array.from({ length: 10 }, (_, index) => {
-		const radius = index % 2 === 0 ? outer : inner;
-		const angle = -Math.PI / 2 + index * Math.PI / 5;
-		return `${cx + Math.cos(angle) * radius},${cy + Math.sin(angle) * radius}`;
-	}).join(' ');
-}
-
 function renderShape(element: Element): ReactNode {
 	const fill = element.shape === 'line' ? 'none' : element.fill ?? '#d7ed79';
 	const stroke = element.stroke ?? (element.shape === 'line' ? '#203b32' : 'none');
 	const strokeWidth = element.strokeWidth ?? 2;
-	switch (element.shape) {
-		case 'circle':
-			return <ellipse cx={element.width / 2} cy={element.height / 2} rx={element.width / 2} ry={element.height / 2} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
-		case 'triangle':
-			return <polygon points={`${element.width / 2},0 ${element.width},${element.height} 0,${element.height}`} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
-		case 'star':
-			return <polygon points={starPoints(element.width, element.height)} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
-		case 'line':
-			return <line x1="0" y1="0" x2={element.width} y2={element.height} stroke={stroke} strokeWidth={strokeWidth} />;
-		case 'rectangle':
-		default:
-			return <rect width={element.width} height={element.height} rx={element.radius ?? 0} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+	const geometry = getShapeGeometry(element);
+	const common = { fill, stroke, strokeWidth, strokeLinejoin: 'round' as const };
+	switch (geometry.tag) {
+		case 'rect': return <rect x={geometry.x} y={geometry.y} width={geometry.width} height={geometry.height} rx={geometry.rx} {...common} />;
+		case 'ellipse': return <ellipse cx={geometry.cx} cy={geometry.cy} rx={geometry.rx} ry={geometry.ry} {...common} />;
+		case 'line': return <line x1={geometry.x1} y1={geometry.y1} x2={geometry.x2} y2={geometry.y2} {...common} />;
+		case 'polygon': return <polygon points={geometry.points} {...common} />;
+		case 'path': return <path d={geometry.d} fillRule={geometry.fillRule} {...common} />;
 	}
 }
 
