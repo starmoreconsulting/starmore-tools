@@ -148,6 +148,27 @@
 .logo-setup-actions { justify-content: flex-end; flex-wrap: wrap; }
 .logo-setup-actions button:disabled { opacity: .45; cursor: not-allowed; }
 .logo-setup-actions .logo-phase-primary { border-color: #37694f; }
+.logo-gallery-screen { min-height: min(760px, calc(100vh - 180px)); padding: 18px 0 30px; }
+.logo-gallery-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+.logo-gallery-header .eyebrow { margin: 0 0 6px; color: #718071; font-size: 10px; letter-spacing: .12em; }
+.logo-gallery-header h2 { margin: 0; color: #28352d; font-size: 26px; }
+.logo-gallery-header p:last-child { margin: 7px 0 0; color: #788078; font-size: 12px; }
+.logo-gallery-header-actions { display: flex; gap: 7px; }
+.logo-gallery-header-actions button, .logo-gallery-more { min-height: 38px; padding: 8px 12px; border: 1px solid #dfe3d5; border-radius: 4px; background: #fffefa; color: #354139; font-size: 11px; font-weight: 700; cursor: pointer; }
+.logo-gallery-header-actions button:hover, .logo-gallery-more:hover { border-color: #9fb38c; background: #f3f5ed; }
+.logo-gallery-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 12px; margin-bottom: 14px; border: 1px solid #e6e5dc; border-radius: 5px; background: #fbfaf6; }
+.logo-gallery-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.logo-gallery-card { position: relative; min-width: 0; overflow: hidden; border: 1px solid #e6e5dc; border-radius: 5px; background: #fffefa; transition: border-color .15s, box-shadow .15s; }
+.logo-gallery-card:hover { border-color: #aaba9d; box-shadow: 0 5px 16px #28392914; }
+.logo-gallery-select { display: flex; width: 100%; min-width: 0; flex-direction: column; align-items: stretch; padding: 9px; border: 0; background: transparent; color: #354139; text-align: left; cursor: pointer; }
+.logo-gallery-preview { display: block; width: 100%; aspect-ratio: 1; background: white; }
+.logo-gallery-card-title { overflow: hidden; margin-top: 7px; font-size: 11px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.logo-gallery-card-detail { overflow: hidden; margin-top: 3px; color: #788078; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.logo-gallery-favorite { position: absolute; top: 14px; right: 14px; display: grid; width: 34px; min-height: 34px; place-items: center; border: 1px solid #e6e5dc; border-radius: 50%; background: #fffefaeF; color: #a2444c; font-size: 19px; cursor: pointer; }
+.logo-gallery-favorite[aria-pressed="true"] { border-color: #e4b7b9; background: #fff0f0; }
+.logo-gallery-more { display: block; min-width: 180px; margin: 20px auto 0; }
+.logo-gallery-empty, .logo-gallery-error { grid-column: 1 / -1; padding: 12px; border: 1px solid #e6e5dc; border-radius: 4px; color: #687368; font-size: 12px; }
+.logo-gallery-error { border-color: #e7c7c1; background: #fff7f5; color: #9c3d32; }
 .logo-selection-controls { pointer-events: all; }
 .logo-selection-controls rect, .logo-selection-controls circle { vector-effect: non-scaling-stroke; }
 @media (max-width: 760px) {
@@ -182,6 +203,14 @@
 	.logo-setup { width: 100%; max-height: 94vh; padding: 20px 15px max(18px, env(safe-area-inset-bottom)); border-radius: 14px 14px 0 0; }
 	.logo-setup-header { align-items: flex-start; flex-direction: column; }
 	.logo-setup-actions > button { flex: 1 1 30%; }
+	.logo-gallery-header { flex-direction: column; }
+	.logo-gallery-header-actions { width: 100%; }
+	.logo-gallery-header-actions button { flex: 1; }
+	.logo-gallery-filters { grid-template-columns: 1fr; }
+	.logo-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+}
+@media (min-width: 761px) and (max-width: 1050px) {
+	.logo-gallery-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 430px) {
 	.logo-phase-brand { font-size: 13px; }

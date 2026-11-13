@@ -5,6 +5,7 @@ import type { LogoArrangement, LogoBrief, LogoIndustry, LogoStyle } from '../mod
 interface Props {
 	onComplete: (brief: LogoBrief) => void;
 	onSkip: () => void;
+	initialBrief?: LogoBrief;
 }
 
 const industries: LogoIndustry[] = ['Technology', 'Business', 'Fashion', 'Construction', 'Food', 'Transport', 'Education', 'Health', 'Creative', 'General'];
@@ -17,7 +18,7 @@ const arrangements: { value: LogoArrangement; label: string }[] = [
 	{ value: 'badge', label: 'Badge' },
 ];
 
-const initialBrief: LogoBrief = {
+const defaultBrief: LogoBrief = {
 	businessName: '',
 	tagline: '',
 	industry: 'General',
@@ -27,9 +28,9 @@ const initialBrief: LogoBrief = {
 	arrangement: 'icon-above-text',
 };
 
-export default function SetupFlow({ onComplete, onSkip }: Props) {
+export default function SetupFlow({ onComplete, onSkip, initialBrief }: Props) {
 	const [step, setStep] = useState(0);
-	const [brief, setBrief] = useState<LogoBrief>(initialBrief);
+	const [brief, setBrief] = useState<LogoBrief>(initialBrief ?? defaultBrief);
 	const update = <K extends keyof LogoBrief>(key: K, value: LogoBrief[K]) => setBrief((current) => ({ ...current, [key]: value }));
 	const steps = ['Name', 'Business', 'Style', 'Colours', 'Arrangement'];
 	const finish = () => {

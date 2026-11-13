@@ -10,6 +10,8 @@ import { readProjectFile } from '../export/project-file';
 import MyProjects from './MyProjects';
 import ExportCenter from './ExportCenter';
 import SetupFlow from './SetupFlow';
+import GalleryScreen from './GalleryScreen';
+import { seedForBrief, type LogoDesign } from '../templates/generator';
 import { restoreLastProject, saveLocalProject, setLastProjectId } from '../store/local-projects';
 import './phase-one.css';
 
@@ -63,6 +65,9 @@ export default function LogoStudioApp() {
 	const [showProjects, setShowProjects] = useState(false);
 	const [showExportCenter, setShowExportCenter] = useState(false);
 	const [showSetup, setShowSetup] = useState(false);
+	const [showGallery, setShowGallery] = useState(false);
+	const [galleryBrief, setGalleryBrief] = useState<LogoBrief | null>(null);
+	const [gallerySeed, setGallerySeed] = useState(0);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const elements = project.variants.primary ?? [];
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
@@ -238,16 +243,17 @@ export default function LogoStudioApp() {
 				onExport={() => setShowExportCenter(true)}
 			/>
 			{showSetup && <SetupFlow
+				initialBrief={galleryBrief ?? undefined}
 				onSkip={() => {
 					loadProject(createDefaultProject());
 					setShowSetup(false);
 					setShowProjects(false);
 				}}
 				onComplete={(brief: LogoBrief) => {
-					loadProject({ ...createDefaultProject(brief.businessName), brief });
+					setGalleryBrief(brief);
+					setGallerySeed(seedForBrief(brief));
+					setShowGallery(true);
 					setShowSetup(false);
-					setShowProjects(false);
-					setStatus(`Brief saved for ${brief.businessName}.`);
 				}}
 			/>}
 			<input
@@ -262,7 +268,26 @@ export default function LogoStudioApp() {
 				}}
 			/>
 			{showExportCenter && <ExportCenter project={project} onClose={() => setShowExportCenter(false)} />}
-			{showProjects ? (
+			{showGallery && galleryBrief ? (
+				<GalleryScreen
+					brief={galleryBrief}
+					seed={gallerySeed}
+					onSeedChange={setGallerySeed}
+					onBack={() => {
+						setShowGallery(false);
+						setShowSetup(true);
+					}}
+					onChoose={(design: LogoDesign) => {
+						loadProject({
+							...createDefaultProject(galleryBrief.businessName),
+							brief: galleryBrief,
+							variants: { primary: design.elements },
+						});
+						setShowGallery(false);
+						setStatus(`Opened ${design.name} for ${galleryBrief.businessName}.`);
+					}}
+				/>
+			) : showProjects ? (
 				<MyProjects
 					onBack={() => setShowProjects(false)}
 					onImport={() => fileInputRef.current?.click()}

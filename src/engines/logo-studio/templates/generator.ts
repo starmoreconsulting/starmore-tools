@@ -108,7 +108,7 @@ function getCandidates(brief: LogoBrief, seed: number, filters: DesignFilters = 
 						const elements = layout.build({ brief, palette, fontPair, icon });
 						const styledElements = applyTypography(elements, weight, letterSpacing, brief.businessName);
 						candidates.push({
-							id: `${layout.id}|${palette.name}|${fontPair.name}|${icon}|${weight}|${letterSpacing}`,
+							id: `${hashSeed(JSON.stringify(brief)).toString(36)}|${layout.id}|${palette.name}|${fontPair.name}|${icon}|${weight}|${letterSpacing}`,
 							name: layout.name,
 							layoutId: layout.id,
 							palette,
