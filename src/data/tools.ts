@@ -51,6 +51,7 @@ export type ToolComponentName =
 	| 'ImageSharpener'
 	| 'ImageDenoiser'
 	| 'PhotoAdjustments'
+	| 'ImageColourPicker'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -145,6 +146,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PhotoAdjustments',
 		icon: '◐',
+		live: false,
+	},
+	{
+		slug: 'image-colour-picker',
+		name: 'Image Colour Picker',
+		department: 'image',
+		description: 'Tap a photo to inspect a pixel colour and copy its HEX, RGB or HSL value.',
+		seoTitle: 'Image Colour Picker: HEX, RGB and HSL | Starmore Tools',
+		seoDescription: 'Pick a colour from any image in your browser with a magnifier loupe, native EyeDropper support, HEX, RGB and HSL values, and recent picks.',
+		howTo: ['Choose an image from your device.', 'Move the pointer to inspect pixels with the loupe, then click or tap to save a colour.', 'Copy the HEX, RGB or HSL value, or revisit one of your last ten picks.'],
+		faqs: [
+			{ question: 'Does the EyeDropper button work in every browser?', answer: 'No. The native EyeDropper appears only when the current browser supports that API; clicking the image works as an alternative.' },
+			{ question: 'Are my images uploaded?', answer: 'No. Image decoding and pixel sampling happen locally on your device.' },
+		],
+		component: 'ImageColourPicker',
+		icon: '◉',
 		live: false,
 	},
 	{
