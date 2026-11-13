@@ -30,10 +30,11 @@ export async function renderMockupSvg(
 	scene: MockupScene,
 	project: LogoProject,
 	colors: MockupColors,
-	options: { variant?: string; includeBackground?: boolean } = {},
-): Promise<{ svg: string; warnings: string[]; missingVariants: string[] }> {
+	options: { variant?: string; includeBackground?: boolean; autoContrast?: boolean } = {},
+): Promise<{ svg: string; warnings: string[]; missingVariants: string[]; contrastWarnings: string[] }> {
 	const warnings: string[] = [];
 	const missingVariants: string[] = [];
+	const contrastWarnings: string[] = [];
 	const defs: string[] = [];
 	const background = Object.entries(colors).reduce(
 		(svg, [name, value]) => svg.replaceAll(`{{${name}}}`, safeColor(value)),
@@ -42,12 +43,22 @@ export async function renderMockupSvg(
 	const slots: string[] = [];
 
 	for (const slot of scene.slots) {
-		const preferred = options.variant && options.variant !== 'preferred'
+		const surface = colors[slot.surfaceParameter];
+		const brightSurface = relativeLuminance(surface) > 0.42;
+		const suggestedVariant = brightSurface ? 'black' : 'white';
+		const preferred = options.autoContrast
+			? suggestedVariant
+			: options.variant && options.variant !== 'preferred'
 			? options.variant
 			: slot.preferredVariant;
 		const variant = project.variants[preferred] ? preferred : 'primary';
 		if (variant !== preferred && !missingVariants.includes(preferred)) missingVariants.push(preferred);
 		const elements = project.variants[variant] ?? [];
+		const artworkLuminance = getArtworkLuminance(elements);
+		const contrast = getContrastRatio(relativeLuminance(surface), artworkLuminance);
+		if (contrast < 3) {
+			contrastWarnings.push(`The current logo has low contrast on this surface. Try the ${suggestedVariant} variant for better visibility.`);
+		}
 		const slotProject: LogoProject = {
 			...project,
 			artboard: { ...project.artboard, background: 'transparent' },
@@ -77,7 +88,12 @@ export async function renderMockupSvg(
 		: background;
 	const [, , width, height] = scene.viewBox.trim().split(/\s+/).map(Number);
 	const svg = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${scene.viewBox}"><defs>${defs.join('')}</defs>${backgroundMarkup}${slots.join('')}</svg>`;
-	return { svg, warnings: Array.from(new Set(warnings)), missingVariants };
+	return {
+		svg,
+		warnings: Array.from(new Set(warnings)),
+		missingVariants,
+		contrastWarnings: Array.from(new Set(contrastWarnings)),
+	};
 }
 
 export function getSceneSurfaceColor(scene: MockupScene, colors: MockupColors, slot = scene.slots[0]): string {
@@ -90,6 +106,29 @@ export function relativeLuminance(color: string): number {
 	const channels = [0, 2, 4].map((index) => parseInt(normalized.slice(index, index + 2), 16) / 255);
 	const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
 	return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+function getContrastRatio(first: number, second: number): number {
+	const lighter = Math.max(first, second);
+	const darker = Math.min(first, second);
+	return (lighter + 0.05) / (darker + 0.05);
+}
+
+function getArtworkLuminance(elements: LogoProject['variants'][string]): number {
+	const colors: string[] = [];
+	const collect = (items: LogoProject['variants'][string]) => {
+		for (const element of items) {
+			if (element.visible) {
+				if (element.gradient?.stops.length) colors.push(element.gradient.stops[0].color);
+				else if (element.fill && element.fill !== 'none') colors.push(element.fill);
+				if (element.stroke && element.stroke !== 'none') colors.push(element.stroke);
+				if (element.children) collect(element.children);
+			}
+		}
+	};
+	collect(elements);
+	const luminances = colors.filter((color) => /^#[\da-f]{3,8}$/i.test(color)).map(relativeLuminance);
+	return luminances.length ? luminances.reduce((sum, value) => sum + value, 0) / luminances.length : 0.12;
 }
 
 export function createSceneColors(scene: MockupScene): MockupColors {

@@ -20,35 +20,49 @@ function useRenderedScene(
 	colors: MockupColors,
 	variant: string,
 	includeBackground: boolean,
+	autoContrast: boolean,
 ) {
 	const [svg, setSvg] = useState('');
 	const [error, setError] = useState('');
+	const [notes, setNotes] = useState<string[]>([]);
 	const signature = `${scene.id}:${project.id}:${project.updatedAt}:${variant}:${includeBackground}:${JSON.stringify(colors)}:${JSON.stringify(project.variants)}`;
 	useEffect(() => {
 		let active = true;
 		setSvg('');
 		setError('');
-		void renderMockupSvg(scene, project, colors, { variant, includeBackground }).then((result) => {
-			if (active) setSvg(result.svg);
+		setNotes([]);
+		void renderMockupSvg(scene, project, colors, { variant, includeBackground, autoContrast }).then((result) => {
+			if (active) {
+				setSvg(result.svg);
+				setNotes([
+					...result.missingVariants.map((missing) => `The ${missing} variant is not available; showing the primary logo instead.`),
+					...result.contrastWarnings,
+				]);
+			}
 		}).catch((cause: unknown) => {
 			if (active) setError(cause instanceof Error ? cause.message : 'This mockup could not be rendered.');
 		});
 		return () => { active = false; };
-	}, [signature]);
-	return { svg, error };
+	}, [signature, autoContrast]);
+	return { svg, error, notes };
 }
 
-function SceneImage({ scene, project, colors, variant, includeBackground }: {
+function SceneImage({ scene, project, colors, variant, includeBackground, autoContrast = false, showNotes = false }: {
 	scene: MockupScene;
 	project: LogoProject;
 	colors: MockupColors;
 	variant: string;
 	includeBackground: boolean;
+	autoContrast?: boolean;
+	showNotes?: boolean;
 }) {
-	const { svg, error } = useRenderedScene(scene, project, colors, variant, includeBackground);
+	const { svg, error, notes } = useRenderedScene(scene, project, colors, variant, includeBackground, autoContrast);
 	if (error) return <div className="logo-mockup-image-error" role="alert">{error}</div>;
 	if (!svg) return <div className="logo-mockup-image-loading" aria-label="Preparing mockup" />;
-	return <div className="logo-mockup-svg" dangerouslySetInnerHTML={{ __html: svg }} />;
+	return <div className="logo-mockup-preview-wrap">
+		<div className="logo-mockup-svg" dangerouslySetInnerHTML={{ __html: svg }} />
+		{showNotes && notes.map((note) => <p className="logo-mockup-note" role="status" key={note}>{note}</p>)}
+	</div>;
 }
 
 function hasArtwork(project: LogoProject): boolean {
@@ -111,6 +125,7 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 		{
 			variant: scene.id === selectedScene?.id ? activeVariant : 'preferred',
 			includeBackground: scene.id === selectedScene?.id ? includeBackground : true,
+			autoContrast: scene.id === selectedScene?.id ? autoVariant : true,
 		},
 	);
 	const exportAction = async (label: string, action: () => Promise<void>) => {
@@ -204,7 +219,7 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 					</div>
 					<div className="logo-mockup-detail-grid">
 						<div className="logo-mockup-stage">
-							<SceneImage scene={selectedScene} project={project} colors={colors} variant={activeVariant} includeBackground={includeBackground} />
+							<SceneImage scene={selectedScene} project={project} colors={colors} variant={activeVariant} includeBackground={includeBackground} autoContrast={autoVariant} showNotes />
 						</div>
 						<aside className="logo-mockup-controls" aria-label="Mockup settings">
 							<label className="logo-mockup-control">
@@ -259,7 +274,7 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 							const sceneColors = scene.id === selectedSceneId ? colors : createSceneColors(scene);
 							return <article className="logo-mockup-card" key={scene.id}>
 								<button type="button" className="logo-mockup-card-open" onClick={() => setSelectedSceneId(scene.id)} aria-label={`Open ${scene.name}`}>
-									<div className="logo-mockup-card-image"><SceneImage scene={scene} project={project} colors={sceneColors} variant="preferred" includeBackground /></div>
+									<div className="logo-mockup-card-image"><SceneImage scene={scene} project={project} colors={sceneColors} variant="preferred" includeBackground autoContrast /></div>
 									<span className="logo-mockup-card-category">{scene.category}</span>
 									<strong>{scene.name}</strong>
 									<span className="logo-mockup-card-description">{scene.description}</span>

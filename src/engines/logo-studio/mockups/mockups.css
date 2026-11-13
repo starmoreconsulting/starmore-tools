@@ -13,6 +13,9 @@
 .logo-mockup-card-image { position: relative; display: block; width: 100%; aspect-ratio: 1.32; overflow: hidden; background: #e8e7df; }
 .logo-mockup-svg, .logo-mockup-image-loading, .logo-mockup-image-error { display: block; width: 100%; height: 100%; }
 .logo-mockup-svg svg { display: block; width: 100%; height: 100%; }
+.logo-mockup-preview-wrap { position: relative; width: 100%; height: 100%; }
+.logo-mockup-note { position: absolute; right: 8px; bottom: 8px; left: 8px; margin: 0; padding: 7px 9px; border: 1px solid #e6d9b8; border-radius: 6px; color: #675a38; background: #fffdf4eF; font-size: 11px; line-height: 1.4; }
+.logo-mockup-note + .logo-mockup-note { bottom: 50px; }
 .logo-mockup-image-loading { background: linear-gradient(100deg, #edeee9 25%, #f8f8f5 45%, #edeee9 65%); background-size: 220% 100%; animation: logo-mockup-shimmer 1.5s linear infinite; }
 .logo-mockup-image-error { padding: 14px; color: #8d3932; font-size: 13px; }
 @keyframes logo-mockup-shimmer { to { background-position-x: -220%; } }
