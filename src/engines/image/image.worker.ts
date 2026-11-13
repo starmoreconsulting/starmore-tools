@@ -124,7 +124,7 @@ function resample(id: string, task: Extract<ImageWorkerTask, { type: 'upscale' }
 }
 
 function sharpenImage(id: string, task: Extract<ImageWorkerTask, { type: 'sharpen' }>): ImageData {
-	const { data, width, height, amount, radius, threshold } = task;
+	const { data, width, height, amount, radius, threshold, contrast } = task;
 	if (data.length !== width * height * 4) throw new Error('The source pixel data is incomplete.');
 	if (width * height > 48_000_000) throw new Error('This image exceeds the 48 million pixel processing limit. Try a smaller image.');
 	if (width * height * 32 > 384 * 1024 * 1024) throw new Error('This image needs too much working memory for safe browser processing. Try a smaller image.');
@@ -133,6 +133,7 @@ function sharpenImage(id: string, task: Extract<ImageWorkerTask, { type: 'sharpe
 	const blur = new Float32Array(width * height * 3);
 	const kernelRadius = Math.max(1, Math.min(8, Math.round(radius)));
 	const sigma = Math.max(0.5, kernelRadius / 1.5);
+	const contrastFactor = (259 * (contrast + 255)) / (255 * (259 - contrast));
 	const weights: number[] = [];
 	let weightTotal = 0;
 	for (let offset = -kernelRadius; offset <= kernelRadius; offset += 1) {
@@ -174,9 +175,10 @@ function sharpenImage(id: string, task: Extract<ImageWorkerTask, { type: 'sharpe
 			const blurIndex = (y * width + x) * 3;
 			for (let channel = 0; channel < 3; channel += 1) {
 				const difference = data[index + channel] - blur[blurIndex + channel];
-				output[index + channel] = Math.abs(difference) < threshold
+				const sharpened = Math.abs(difference) < threshold
 					? data[index + channel]
 					: Math.max(0, Math.min(255, data[index + channel] + difference * amount));
+				output[index + channel] = Math.max(0, Math.min(255, Math.round((sharpened - 128) * contrastFactor + 128)));
 			}
 		}
 		if (y % 64 === 0) emitProgress(id, height * 2 + y, height * 3);

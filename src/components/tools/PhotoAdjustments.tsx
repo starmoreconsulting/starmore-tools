@@ -40,7 +40,10 @@ function makeHistogram(data: Uint8ClampedArray): number[] {
 	return histogram;
 }
 
-export default function PhotoAdjustments() {
+export default function PhotoAdjustments({ preset }: { preset?: 'brightness-contrast' }) {
+	const presetDefaults: Adjustments = preset === 'brightness-contrast'
+		? { ...defaults, brightness: 14, contrast: 12 }
+		: defaults;
 	const [file, setFile] = useState<File | null>(null);
 	const [source, setSource] = useState<DecodedImage | null>(null);
 	const [inputUrl, setInputUrl] = useState('');
@@ -48,7 +51,7 @@ export default function PhotoAdjustments() {
 	const [previewUrl, setPreviewUrl] = useState('');
 	const [result, setResult] = useState<Blob | null>(null);
 	const [resultUrl, setResultUrl] = useState('');
-	const [adjustments, setAdjustments] = useState<Adjustments>(defaults);
+	const [adjustments, setAdjustments] = useState<Adjustments>(presetDefaults);
 	const [histogram, setHistogram] = useState<number[]>([]);
 	const [format, setFormat] = useState<ImageOutputType>('image/png');
 	const [quality, setQuality] = useState(90);
@@ -152,7 +155,7 @@ export default function PhotoAdjustments() {
 			const decoded = await decodeImageFile(selected);
 			setSource(decoded);
 			setFile(selected);
-			setAdjustments(defaults);
+			setAdjustments(presetDefaults);
 			setMessage('Preparing a downscaled preview…');
 		} catch (error) {
 			setMessage(error instanceof Error ? error.message : 'Could not open this image. Convert it to JPG or PNG first.');
@@ -221,7 +224,7 @@ export default function PhotoAdjustments() {
 				</div>
 				<div className="tool-actions">
 					<button className="tool-button secondary" type="button" onClick={() => { setAdjustments((current) => ({ ...current, autoStretch: true })); setResult(null); }}>Auto improve</button>
-					<button className="tool-button secondary" type="button" onClick={() => { setAdjustments(defaults); setResult(null); }}>Reset</button>
+					<button className="tool-button secondary" type="button" onClick={() => { setAdjustments(presetDefaults); setResult(null); }}>Reset</button>
 				</div>
 				{slider('brightness', 'Brightness', -100, 100)}
 				{slider('contrast', 'Contrast', -100, 100)}

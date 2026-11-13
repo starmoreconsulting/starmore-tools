@@ -76,6 +76,7 @@ export interface ToolDefinition {
 	icon: string;
 	live: boolean;
 	preset?: LogoStudioPreset;
+	imagePreset?: 'brightness-contrast' | 'blurry-photo';
 	recommended?: RecommendedDefinition;
 }
 
@@ -145,6 +146,42 @@ export const tools: ToolDefinition[] = [
 		component: 'PhotoAdjustments',
 		icon: '◐',
 		live: false,
+	},
+	{
+		slug: 'brightness-contrast-editor',
+		name: 'Brightness and Contrast Editor',
+		department: 'image',
+		description: 'Open the photo editor with a gentle brightness and contrast starting preset.',
+		seoTitle: 'Brightness and Contrast Photo Editor | Starmore Tools',
+		seoDescription: 'Adjust image brightness and contrast in a browser-based photo editor with a ready-to-tune starting preset. Your image remains on your device.',
+		howTo: ['Choose a photo from your device.', 'Review the brightness and contrast starting settings and adjust any of the editor controls.', 'Compare the preview, prepare a full-resolution copy and download it.'],
+		faqs: [
+			{ question: 'Does the preset permanently change my original?', answer: 'No. The editor keeps your original file unchanged and creates a separate adjusted download.' },
+			{ question: 'Can I change more than brightness and contrast?', answer: 'Yes. The same editor also offers exposure, saturation, vibrance, temperature, tint, highlights and shadows.' },
+			{ question: 'Is my photo uploaded?', answer: 'No. Preview and export processing stay in your browser on your device.' },
+		],
+		component: 'PhotoAdjustments',
+		icon: '◑',
+		live: false,
+		imagePreset: 'brightness-contrast',
+	},
+	{
+		slug: 'blurry-photo-enhancer',
+		name: 'Blurry Photo Enhancer',
+		department: 'image',
+		description: 'Use a balanced sharpening and contrast preset to improve slightly soft photos.',
+		seoTitle: 'Blurry Photo Enhancer | Starmore Tools',
+		seoDescription: 'Apply an adjustable sharpening and contrast starting preset to slightly soft photos, then compare and download the result locally in your browser.',
+		howTo: ['Choose a photo from your device.', 'Inspect the sharpening and contrast preset, then tune the sliders for your image.', 'Compare the original and enhanced preview, then download the result.'],
+		faqs: [
+			{ question: 'Can this fix a heavily blurred photo?', answer: 'No. It can improve slightly soft photos, but it cannot fix heavy blur or recreate detail that was not captured.' },
+			{ question: 'Can I adjust the preset?', answer: 'Yes. Amount, radius, threshold and contrast are adjustable before sharpening.' },
+			{ question: 'Do my photos leave my device?', answer: 'No. Image processing and download happen locally in your browser.' },
+		],
+		component: 'ImageSharpener',
+		icon: '✳',
+		live: false,
+		imagePreset: 'blurry-photo',
 	},
 	{
 		slug: 'case-converter',

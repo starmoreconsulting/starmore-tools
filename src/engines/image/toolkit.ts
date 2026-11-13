@@ -36,6 +36,7 @@ export type ImageWorkerTask = {
 	amount: number;
 	radius: number;
 	threshold: number;
+	contrast: number;
 } | {
 	type: 'denoise';
 	data: Uint8ClampedArray;

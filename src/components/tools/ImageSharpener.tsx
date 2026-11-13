@@ -12,15 +12,16 @@ import {
 	type ImageOutputType,
 } from '../../engines/image/toolkit';
 
-export default function ImageSharpener() {
+export default function ImageSharpener({ preset }: { preset?: 'blurry-photo' }) {
 	const [file, setFile] = useState<File | null>(null);
 	const [source, setSource] = useState<DecodedImage | null>(null);
 	const [inputUrl, setInputUrl] = useState('');
 	const [output, setOutput] = useState<Blob | null>(null);
 	const [outputUrl, setOutputUrl] = useState('');
-	const [amount, setAmount] = useState(1.2);
+	const [amount, setAmount] = useState(preset === 'blurry-photo' ? 1.6 : 1.2);
 	const [radius, setRadius] = useState(2);
 	const [threshold, setThreshold] = useState(4);
+	const [contrast, setContrast] = useState(preset === 'blurry-photo' ? 12 : 0);
 	const [zoom, setZoom] = useState(1);
 	const [compare, setCompare] = useState(50);
 	const [holdingOriginal, setHoldingOriginal] = useState(false);
@@ -79,6 +80,7 @@ export default function ImageSharpener() {
 				amount,
 				radius,
 				threshold,
+				contrast,
 			}, (update) => setProgress(update.total ? Math.round(update.completed * 100 / update.total) : 0));
 			const resultCanvas = createCanvas(result.width, result.height) as HTMLCanvasElement;
 			const resultContext = resultCanvas.getContext('2d');
@@ -120,6 +122,10 @@ export default function ImageSharpener() {
 			<div className="tool-control" style={{ marginTop: 14 }}>
 				<label htmlFor="sharpener-threshold">Threshold: {threshold}</label>
 				<input id="sharpener-threshold" type="range" min="0" max="40" step="1" value={threshold} onChange={(event) => setThreshold(Number(event.target.value))} />
+			</div>
+			<div className="tool-control" style={{ marginTop: 14 }}>
+				<label htmlFor="sharpener-contrast">Contrast: {contrast}</label>
+				<input id="sharpener-contrast" type="range" min="-50" max="50" step="1" value={contrast} onChange={(event) => setContrast(Number(event.target.value))} />
 			</div>
 			<div className="calc-fields" style={{ marginTop: 14 }}>
 				<div className="calc-field">
