@@ -60,7 +60,7 @@ export function createDefaultElement(type: ElementType, overrides: Partial<Eleme
 	if (type === 'text') {
 		Object.assign(defaults, {
 			text: 'Your text',
-			fontFamily: 'Arial',
+			fontFamily: 'Inter',
 			fontSize: 48,
 			fontWeight: 600,
 			letterSpacing: 0,

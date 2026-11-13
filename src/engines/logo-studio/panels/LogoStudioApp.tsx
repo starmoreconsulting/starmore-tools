@@ -5,6 +5,7 @@ import { useLogoStudioStore } from '../store/store';
 import ElementProperties from './ElementProperties';
 import ElementSidebar from './ElementSidebar';
 import PhaseOneToolbar from './PhaseOneToolbar';
+import { loadBrowserFont } from '../library/fonts';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -41,6 +42,19 @@ export default function LogoStudioApp() {
 	const elements = project.variants.primary ?? [];
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
 	const addText = () => addElement(createDefaultElement('text', { x: 90, y: 268, width: 420, height: 64 }));
+
+	useEffect(() => {
+		const texts = elements.filter((element) => element.type === 'text');
+		const fontRequests = new Map(texts.map((element) => [
+			`${element.fontFamily ?? 'Inter'}:${element.fontWeight ?? 400}`,
+			{ family: element.fontFamily ?? 'Inter', weight: element.fontWeight ?? 400 },
+		]));
+		void Promise.allSettled(Array.from(fontRequests.values(), ({ family, weight }) => loadBrowserFont(family, weight)))
+			.then((results) => {
+				const failed = results.filter((result) => result.status === 'rejected').length;
+				if (failed) setStatus(`${failed} local font${failed === 1 ? '' : 's'} could not load. The browser fallback font is being used.`);
+			});
+	}, [elements, setStatus]);
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
