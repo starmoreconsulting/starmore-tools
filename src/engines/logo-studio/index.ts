@@ -6,3 +6,5 @@ export type { Element, ElementType, LogoProject } from './model/types';
 export { logoFonts, LOGO_FONT_FAMILIES, loadBrowserFont } from './library/fonts';
 export { outlineProjectText } from './export/outline';
 export type { OutlineResult, TextOutline } from './export/outline';
+export { exportProjectToSvg } from './export/svg';
+export type { SvgExportOptions, SvgExportResult } from './export/svg';
