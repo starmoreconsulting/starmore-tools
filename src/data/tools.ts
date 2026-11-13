@@ -1,3 +1,5 @@
+import type { LogoStudioPreset } from '../engines/logo-studio/model/types';
+
 export const departments = [
 	{ slug: 'text', name: 'Text', description: 'Small helpers for words, writing, and everything in between.' },
 	{ slug: 'developer', name: 'Developer', description: 'Handy utilities for working with code and structured data.' },
@@ -38,7 +40,9 @@ export type ToolComponentName =
 	| 'SortTextAlphabetically'
 	| 'FindReplaceText'
 	| 'TextToSlugConverter'
-	| 'LogoStudioApp';
+	| 'LogoStudioApp'
+	| 'TextLogoGenerator'
+	| 'MonogramLogoGenerator';
 
 export interface ToolDefinition {
 	slug: string;
@@ -52,6 +56,7 @@ export interface ToolDefinition {
 	component: ToolComponentName;
 	icon: string;
 	live: boolean;
+	preset?: LogoStudioPreset;
 }
 
 export const tools: ToolDefinition[] = [
@@ -518,6 +523,125 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		icon: '?',
 		live: false,
+	},
+	{
+		slug: 'text-logo-generator',
+		name: 'Text Logo Generator',
+		department: 'logo',
+		description: 'Design an editable text logo with bundled fonts, icons, and shapes.',
+		seoTitle: 'Free Text Logo Generator',
+		seoDescription: 'Create a text-based logo from editable templates, fonts, shapes, and Lucide icons. Export PNG, JPG, SVG, or PDF; your design stays on your device.',
+		howTo: ['Choose a wordmark template or start by adding text to the canvas.', 'Edit the text, font, spacing, colors, icons, and shapes; drag objects to arrange them.', 'Export your finished logo, or save the JSON project to continue editing later.'],
+		faqs: [
+			{ question: 'Does my logo leave my device?', answer: 'No. The editor, project autosave, and all exports run locally in your browser.' },
+			{ question: 'Can I change a template after choosing it?', answer: 'Yes. Template elements remain editable. You can also add and remove objects freely.' },
+			{ question: 'Which file formats can I export?', answer: 'Export your design as PNG, JPG, SVG, or PDF. The project can also be saved as JSON.' },
+		],
+		component: 'TextLogoGenerator',
+		icon: 'Aa',
+		live: true,
+	},
+	{
+		slug: 'monogram-logo-generator',
+		name: 'Monogram and Initials Logo Generator',
+		department: 'logo',
+		description: 'Build a personal initials logo from customizable monogram templates.',
+		seoTitle: 'Free Monogram and Initials Logo Generator',
+		seoDescription: 'Create an editable initials logo using monogram templates, bundled fonts, shapes, and icons. Export locally as PNG, JPG, SVG, or PDF.',
+		howTo: ['Choose a monogram template to add an initials-style design to the artboard.', 'Select the text, shapes, or icons to edit their style and position.', 'Download a PNG, JPG, SVG, or PDF, or save the editable JSON project.'],
+		faqs: [
+			{ question: 'Can I use more than two initials?', answer: 'Yes. Select a text object and replace its contents with your preferred initials or wording.' },
+			{ question: 'Are the logos processed online?', answer: 'No. Your work and autosaved project remain in browser storage on this device.' },
+			{ question: 'Can I keep editing after I download?', answer: 'Save the JSON project and load it later in this browser to continue editing.' },
+		],
+		component: 'MonogramLogoGenerator',
+		icon: 'AB',
+		live: true,
+	},
+	{
+		slug: 'template-logo-generator',
+		name: 'Template-Based Logo Generator',
+		department: 'logo',
+		description: 'Explore editable logo templates and customize one for your business. Nothing leaves your device.',
+		seoTitle: 'Template-Based Logo Generator',
+		seoDescription: 'Browse editable logo layouts for your brand, then customize text, colors, fonts, shapes, and icons locally in your browser.',
+		howTo: ['Enter your business name and choose a style and arrangement.', 'Browse the generated logo templates and open a design to edit it.', 'Export your finished logo or save the editable project on your device.'],
+		faqs: [
+			{ question: 'Can I edit every part of a template?', answer: 'Yes. Template text, icons, shapes, colors, and layout elements can all be changed in the editor.' },
+			{ question: 'Are the template designs generated online?', answer: 'No. The templates and your edits are processed locally in your browser.' },
+		],
+		component: 'LogoStudioApp',
+		icon: 'â–¦',
+		live: false,
+		preset: 'template',
+	},
+	{
+		slug: 'business-name-logo-generator',
+		name: 'Business Name Logo Generator',
+		department: 'logo',
+		description: 'Turn your business name into an editable wordmark or logo concept. Nothing leaves your device.',
+		seoTitle: 'Business Name Logo Generator',
+		seoDescription: 'Create a logo from your business name with editable wordmark layouts, local fonts, colors, and icons in your browser.',
+		howTo: ['Enter the business name and optional tagline in the setup flow.', 'Choose a style and layout to generate matching wordmark concepts.', 'Open a design to edit it, then export or save your project locally.'],
+		faqs: [
+			{ question: 'Can I use a long business name?', answer: 'Yes. Generated layouts wrap or reduce text size to fit the design area.' },
+			{ question: 'Does the generator send my name anywhere?', answer: 'No. Your business name and logo are handled only in your browser.' },
+		],
+		component: 'LogoStudioApp',
+		icon: 'Aa',
+		live: false,
+		preset: 'business-name',
+	},
+	{
+		slug: 'industry-logo-generator',
+		name: 'Industry-Specific Logo Generator',
+		department: 'logo',
+		description: 'Generate logo ideas using industry-aware icons, layouts, and style choices. Nothing leaves your device.',
+		seoTitle: 'Industry-Specific Logo Generator',
+		seoDescription: 'Create logo concepts with industry-specific Lucide icons, editable layouts, and style rules, all processed privately in your browser.',
+		howTo: ['Enter your business name and select an industry.', 'Choose a visual style, colors, and arrangement for your brand.', 'Browse the generated ideas and edit or export your favorite design.'],
+		faqs: [
+			{ question: 'Which industries are supported?', answer: 'Choose from technology, business, fashion, construction, food, transport, education, health, creative, or general.' },
+			{ question: 'Are industry icons downloaded from a service?', answer: 'No. The icon library is bundled with the app and loaded locally in your browser.' },
+		],
+		component: 'LogoStudioApp',
+		icon: 'industry',
+		live: false,
+		preset: 'industry',
+	},
+	{
+		slug: 'icon-logo-generator',
+		name: 'Icon-Based Logo Generator',
+		department: 'logo',
+		description: 'Build a logo concept around an editable symbol and your business name. Nothing leaves your device.',
+		seoTitle: 'Icon-Based Logo Generator',
+		seoDescription: 'Explore logo concepts built around searchable, editable icons, then customize their colors, size, and layout locally.',
+		howTo: ['Enter your business name and choose an industry and style.', 'Browse icon-led logo ideas, then open a design in the editor.', 'Change the icon, text, and colors, then export your logo.'],
+		faqs: [
+			{ question: 'Can I replace the suggested icon?', answer: 'Yes. Search the bundled icon library and replace or restyle icons in the editor.' },
+			{ question: 'Does the icon library need an internet connection?', answer: 'No. Icons are included in the app and are processed on your device.' },
+		],
+		component: 'LogoStudioApp',
+		icon: 'icon',
+		live: false,
+		preset: 'icon',
+	},
+	{
+		slug: 'initials-logo-generator',
+		name: 'Initials Logo Generator',
+		department: 'logo',
+		description: 'Create a monogram or initials logo with editable badge and wordmark layouts. Nothing leaves your device.',
+		seoTitle: 'Initials Logo Generator',
+		seoDescription: 'Create a customizable monogram using editable initials, badge shapes, fonts, and colors, without uploading your design.',
+		howTo: ['Enter your business name or preferred initials.', 'Choose a badge or initials-focused layout and browse the results.', 'Edit the monogram and export it as an image, SVG, or PDF.'],
+		faqs: [
+			{ question: 'Can I change which initials are shown?', answer: 'Yes. The initials and all other text elements remain editable in the studio.' },
+			{ question: 'Is my monogram stored online?', answer: 'No. Autosave uses local browser storage on this device.' },
+		],
+		component: 'LogoStudioApp',
+		icon: 'AB',
+		live: false,
+		preset: 'initials',
 	},
 ];
 

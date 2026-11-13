@@ -29,10 +29,19 @@ import RemoveDuplicateLines from '../components/tools/RemoveDuplicateLines';
 import UnitConverter from '../components/tools/UnitConverter';
 import VatCalculator from '../components/tools/VatCalculator';
 import WordCounter from '../components/tools/WordCounter';
-import { departments, liveTools } from '../data/tools';
+import TextLogoGenerator from '../components/tools/TextLogoGenerator';
+import MonogramLogoGenerator from '../components/tools/MonogramLogoGenerator';
+import { departments, tools } from '../data/tools';
 
 export function getStaticPaths() {
-	return liveTools.filter((tool) => tool.slug !== 'logo-studio').map((tool) => ({
+	const hiddenGeneratorSlugs = new Set([
+		'template-logo-generator',
+		'business-name-logo-generator',
+		'industry-logo-generator',
+		'icon-logo-generator',
+		'initials-logo-generator',
+	]);
+	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },
 		props: { tool },
 	}));
@@ -79,7 +88,9 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'SortTextAlphabetically' && <SortTextAlphabetically client:load />}
 			{tool.component === 'FindReplaceText' && <FindReplaceText client:load />}
 			{tool.component === 'TextToSlugConverter' && <TextToSlugConverter client:load />}
-			{tool.component === 'LogoStudioApp' && <LogoStudioApp client:only="react" />}
+			{tool.component === 'TextLogoGenerator' && <TextLogoGenerator client:load />}
+			{tool.component === 'MonogramLogoGenerator' && <MonogramLogoGenerator client:load />}
+			{tool.component === 'LogoStudioApp' && <LogoStudioApp client:only="react" preset={tool.preset} />}
 		</div>
 		<section class="tool-guide" aria-labelledby="how-to-use">
 			<h2 id="how-to-use">How to use {tool.name}</h2>

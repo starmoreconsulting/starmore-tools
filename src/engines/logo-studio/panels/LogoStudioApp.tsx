@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import SvgArtboard from '../canvas/SvgArtboard';
-import { createDefaultElement, createDefaultProject, type Element, type LogoBrief } from '../model/types';
+import { createDefaultElement, createDefaultProject, type Element, type LogoBrief, type LogoStudioPreset } from '../model/types';
 import { useLogoStudioStore } from '../store/store';
 import ElementProperties from './ElementProperties';
 import ElementSidebar from './ElementSidebar';
@@ -16,6 +16,28 @@ import { restoreLastProject, saveLocalProject, setLastProjectId } from '../store
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
+
+function presetBrief(preset: LogoStudioPreset): LogoBrief {
+	const defaults: LogoBrief = {
+		businessName: '',
+		tagline: '',
+		industry: 'General',
+		description: '',
+		style: 'Modern',
+		preferredPalette: 'Blue and silver',
+		arrangement: 'icon-above-text',
+	};
+	const presets: Record<LogoStudioPreset, Partial<LogoBrief>> = {
+		text: { style: 'Minimalist', arrangement: 'text-only' },
+		monogram: { style: 'Elegant', arrangement: 'badge' },
+		template: { style: 'Modern', arrangement: 'icon-above-text' },
+		'business-name': { industry: 'Business', style: 'Corporate', arrangement: 'text-only' },
+		industry: { industry: 'Technology', style: 'Modern', arrangement: 'icon-above-text' },
+		icon: { style: 'Geometric', arrangement: 'icon-above-text' },
+		initials: { style: 'Elegant', arrangement: 'badge' },
+	};
+	return { ...defaults, ...presets[preset] };
+}
 
 function findElement(elements: Element[], id: string | null): Element | null {
 	if (!id) return null;
@@ -34,7 +56,7 @@ function findTextElements(elements: Element[]): Element[] {
 	]);
 }
 
-export default function LogoStudioApp() {
+export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } = {}) {
 	const project = useLogoStudioStore((state) => state.project);
 	const selectedId = useLogoStudioStore((state) => state.selectedId);
 	const selectedIds = useLogoStudioStore((state) => state.selectedIds);
@@ -64,7 +86,7 @@ export default function LogoStudioApp() {
 	const [storageReady, setStorageReady] = useState(false);
 	const [showProjects, setShowProjects] = useState(false);
 	const [showExportCenter, setShowExportCenter] = useState(false);
-	const [showSetup, setShowSetup] = useState(false);
+	const [showSetup, setShowSetup] = useState(Boolean(preset));
 	const [showGallery, setShowGallery] = useState(false);
 	const [galleryBrief, setGalleryBrief] = useState<LogoBrief | null>(null);
 	const [gallerySeed, setGallerySeed] = useState(0);
@@ -243,7 +265,7 @@ export default function LogoStudioApp() {
 				onExport={() => setShowExportCenter(true)}
 			/>
 			{showSetup && <SetupFlow
-				initialBrief={galleryBrief ?? undefined}
+				initialBrief={galleryBrief ?? (preset ? presetBrief(preset) : undefined)}
 				onSkip={() => {
 					loadProject(createDefaultProject());
 					setShowSetup(false);
