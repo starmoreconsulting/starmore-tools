@@ -1,5 +1,6 @@
 ---
 import ToolLayout from '../components/ToolLayout.astro';
+import LogoStudioApp from '../engines/logo-studio/panels/LogoStudioApp';
 import AgeCalculator from '../components/tools/AgeCalculator';
 import CaseConverter from '../components/tools/CaseConverter';
 import CharacterCounter from '../components/tools/CharacterCounter';
@@ -31,7 +32,7 @@ import WordCounter from '../components/tools/WordCounter';
 import { departments, liveTools } from '../data/tools';
 
 export function getStaticPaths() {
-	return liveTools.map((tool) => ({
+	return liveTools.filter((tool) => tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },
 		props: { tool },
 	}));
@@ -78,6 +79,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'SortTextAlphabetically' && <SortTextAlphabetically client:load />}
 			{tool.component === 'FindReplaceText' && <FindReplaceText client:load />}
 			{tool.component === 'TextToSlugConverter' && <TextToSlugConverter client:load />}
+			{tool.component === 'LogoStudioApp' && <LogoStudioApp client:only="react" />}
 		</div>
 		<section class="tool-guide" aria-labelledby="how-to-use">
 			<h2 id="how-to-use">How to use {tool.name}</h2>

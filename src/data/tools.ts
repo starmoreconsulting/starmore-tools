@@ -5,7 +5,8 @@ export const departments = [
 	{ slug: 'utilities', name: 'Utilities', description: 'Simple helpers for sharing, creating, and organizing everyday information.' },
 	{ slug: 'security', name: 'Security', description: 'Browser-based tools to help with everyday digital security.' },
 	{ slug: 'image', name: 'Image', description: 'Private, browser-based tools for resizing and optimizing images.' },
-] as const;
+	{ slug: 'logo', name: 'Logo Studio', description: 'Design and export logos privately in your browser.' },
+	] as const;
 
 export type DepartmentSlug = (typeof departments)[number]['slug'];
 export type ToolComponentName =
@@ -36,7 +37,8 @@ export type ToolComponentName =
 	| 'SentenceParagraphCounter'
 	| 'SortTextAlphabetically'
 	| 'FindReplaceText'
-	| 'TextToSlugConverter';
+	| 'TextToSlugConverter'
+	| 'LogoStudioApp';
 
 export interface ToolDefinition {
 	slug: string;
@@ -500,6 +502,22 @@ export const tools: ToolDefinition[] = [
 		component: 'TextToSlugConverter',
 		icon: '#',
 		live: true,
+	},
+	{
+		slug: 'logo-studio',
+		name: 'Logo Studio',
+		department: 'logo',
+		description: 'Create, edit, and export a vector logo while keeping your work on this device.',
+		seoTitle: 'Private Logo Studio and SVG Logo Editor',
+		seoDescription: 'Design a vector logo with text, shapes, and bundled fonts. Save projects and export SVG, PNG, JPG, or PDF; everything stays on your device.',
+		howTo: ['Add text or a shape to the artboard.', 'Select an element to edit its style, size, and position.', 'Open Export Centre to download a design or save the editable project file.'],
+		faqs: [
+			{ question: 'Does anything leave my device?', answer: 'No. Your design, autosaved projects, fonts, and exports are processed locally in your browser.' },
+			{ question: 'Can I reopen an editable project?', answer: 'Yes. Use My Projects for local copies or export a project file to open later.' },
+		],
+		component: 'LogoStudioApp',
+		icon: '?',
+		live: false,
 	},
 ];
 
