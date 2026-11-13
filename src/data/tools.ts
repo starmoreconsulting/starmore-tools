@@ -939,7 +939,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '⇩',
-		live: false,
+		live: true,
 		preset: 'export-centre',
 	},
 ];
