@@ -1,0 +1,112 @@
+import type { Canvas } from 'fabric';
+import type { MutableRefObject } from 'react';
+
+export type ElementType = 'text' | 'shape' | 'icon' | 'image' | 'group';
+
+export interface Element {
+	id: string;
+	type: ElementType;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	rotation: number;
+	opacity: number;
+	locked: boolean;
+	visible: boolean;
+	fill?: string;
+	stroke?: string;
+	strokeWidth?: number;
+	text?: string;
+	fontFamily?: string;
+	fontSize?: number;
+	fontWeight?: number;
+	letterSpacing?: number;
+	lineHeight?: number;
+	align?: 'left' | 'center' | 'right';
+	curve?: number;
+	shape?: string;
+	iconName?: string;
+	radius?: number;
+	children?: Element[];
+	src?: string;
+	pathData?: string | number[][];
+}
+
+export interface LogoProject {
+	version: 1;
+	id: string;
+	name: string;
+	updatedAt: number;
+	artboard: { width: number; height: number; background: string };
+	variants: Record<string, Element[]>;
+}
+
+export type LogoElement = Element;
+export type LogoElementType = ElementType;
+export type LogoStudioMode = 'text' | 'monogram';
+
+export interface LogoTemplate {
+	id: string;
+	name: string;
+	mode: LogoStudioMode;
+}
+
+export interface LogoCanvasProps {
+	canvasRef: MutableRefObject<Canvas | null>;
+	transparent: boolean;
+	onReady: (canvas: Canvas) => void;
+}
+
+function createId(): string {
+	return globalThis.crypto?.randomUUID?.() ?? `logo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+export function createDefaultElement(type: ElementType, overrides: Partial<Element> = {}): Element {
+	const defaults: Element = {
+		id: createId(),
+		type,
+		x: 180,
+		y: 180,
+		width: 240,
+		height: 64,
+		rotation: 0,
+		opacity: 1,
+		locked: false,
+		visible: true,
+	};
+
+	if (type === 'text') {
+		Object.assign(defaults, {
+			text: 'Your text',
+			fontFamily: 'Arial',
+			fontSize: 48,
+			fontWeight: 600,
+			letterSpacing: 0,
+			align: 'center',
+			fill: '#203b32',
+		});
+	} else if (type === 'shape') {
+		Object.assign(defaults, { shape: 'rectangle', fill: '#d7ed79' });
+	} else if (type === 'group') {
+		defaults.children = [];
+	} else if (type === 'icon') {
+		defaults.iconName = '';
+		defaults.fill = '#203b32';
+	} else if (type === 'image') {
+		defaults.src = '';
+	}
+
+	return { ...defaults, ...overrides, id: overrides.id ?? defaults.id };
+}
+
+export function createDefaultProject(name = 'Untitled logo'): LogoProject {
+	return {
+		version: 1,
+		id: createId(),
+		name,
+		updatedAt: Date.now(),
+		artboard: { width: 600, height: 600, background: '#ffffff' },
+		variants: { primary: [] },
+	};
+}
