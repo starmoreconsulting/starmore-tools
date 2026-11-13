@@ -13,7 +13,8 @@
     "models:fetch": "node scripts/fetch-models.mjs",
     "models:convert": ".\\.venv-models\\Scripts\\python.exe scripts\\convert-isnet-fp16.py",
     "models:prepare": "node scripts/prepare-models.mjs",
-    "models:copy-ort": "node scripts/copy-ort-assets.mjs"
+    "models:copy-ort": "node scripts/copy-ort-assets.mjs",
+    "models:test": ".\\.venv-models\\Scripts\\python.exe scripts\\test-model-masks.py"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.8",
