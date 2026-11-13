@@ -5,12 +5,12 @@ interface Props {
 	onUndo: () => void;
 	onRedo: () => void;
 	onZoomChange: (zoom: number) => void;
-	onSave: () => void;
 	onOpenProject: () => void;
 	onProjects: () => void;
+	onExport: () => void;
 }
 
-export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo, onZoomChange, onSave, onOpenProject, onProjects }: Props) {
+export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo, onZoomChange, onOpenProject, onProjects, onExport }: Props) {
 	return (
 		<header className="logo-phase-toolbar">
 			<a href="/" className="logo-phase-brand">Starmore <span>Logo Studio</span></a>
@@ -23,7 +23,7 @@ export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo
 					<button type="button" onClick={() => onZoomChange(Math.min(150, zoom + 10))} disabled={zoom >= 150} aria-label="Zoom in">+</button>
 				</div>
 				<button type="button" onClick={onOpenProject}>Open project file</button>
-				<button type="button" onClick={onSave}>Save project file</button>
+				<button type="button" onClick={onExport}>Export</button>
 				<button type="button" onClick={onProjects}>My Projects</button>
 			</div>
 		</header>

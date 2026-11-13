@@ -1,5 +1,4 @@
-import { jsPDF } from 'jspdf';
-import 'svg2pdf.js';
+import type { Svg2pdfOptions } from 'svg2pdf.js';
 
 export async function exportSvgToPdf(svg: string, width: number, height: number): Promise<Blob> {
 	if (!Number.isFinite(width) || width < 1 || !Number.isFinite(height) || height < 1) {
@@ -11,6 +10,10 @@ export async function exportSvgToPdf(svg: string, width: number, height: number)
 		throw new Error('The SVG could not be opened to create the PDF.');
 	}
 	const svgElement = document.documentElement as unknown as SVGSVGElement;
+	const [{ jsPDF }] = await Promise.all([
+		import('jspdf'),
+		import('svg2pdf.js/dist/svg2pdf.es.min.js'),
+	]);
 	const pdf = new jsPDF({
 		orientation: width >= height ? 'landscape' : 'portrait',
 		unit: 'pt',
@@ -18,6 +21,7 @@ export async function exportSvgToPdf(svg: string, width: number, height: number)
 		compress: true,
 	});
 
-	await pdf.svg(svgElement, { x: 0, y: 0, width, height });
+	const options: Svg2pdfOptions = { x: 0, y: 0, width, height };
+	await pdf.svg(svgElement, options);
 	return pdf.output('blob');
 }

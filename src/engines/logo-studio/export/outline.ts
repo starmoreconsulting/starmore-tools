@@ -47,7 +47,7 @@ function linePath(
 	startX: number,
 	baseline: number,
 ): { pathData: string; width: number } {
-	const glyphs = font.stringToGlyphs(text);
+	const glyphs = Array.from(text, (character) => font.charToGlyph(character));
 	const scale = fontSize / font.unitsPerEm;
 	let x = startX;
 	let pathData = '';

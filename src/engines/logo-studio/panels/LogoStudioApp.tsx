@@ -6,9 +6,9 @@ import ElementProperties from './ElementProperties';
 import ElementSidebar from './ElementSidebar';
 import PhaseOneToolbar from './PhaseOneToolbar';
 import { loadBrowserFont } from '../library/fonts';
-import { createProjectFile, readProjectFile } from '../export/project-file';
-import { downloadBlob } from '../export/raster';
+import { readProjectFile } from '../export/project-file';
 import MyProjects from './MyProjects';
+import ExportCenter from './ExportCenter';
 import { restoreLastProject, saveLocalProject, setLastProjectId } from '../store/local-projects';
 import './phase-one.css';
 
@@ -54,16 +54,11 @@ export default function LogoStudioApp() {
 	const [fileError, setFileError] = useState('');
 	const [storageReady, setStorageReady] = useState(false);
 	const [showProjects, setShowProjects] = useState(false);
+	const [showExportCenter, setShowExportCenter] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const elements = project.variants.primary ?? [];
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
 	const addText = () => addElement(createDefaultElement('text', { x: 90, y: 268, width: 420, height: 64 }));
-	const saveProjectFile = () => {
-		const safeName = project.name.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'logo-project';
-		downloadBlob(createProjectFile(project), `${safeName}.json`);
-		setStatus('Project file downloaded.');
-		setFileError('');
-	};
 	const openProjectFile = async (file: File | undefined) => {
 		if (!file) return;
 		try {
@@ -211,9 +206,9 @@ export default function LogoStudioApp() {
 				onUndo={undo}
 				onRedo={redo}
 				onZoomChange={setZoom}
-				onSave={saveProjectFile}
 				onOpenProject={() => fileInputRef.current?.click()}
 				onProjects={() => setShowProjects(true)}
+				onExport={() => setShowExportCenter(true)}
 			/>
 			<input
 				ref={fileInputRef}
@@ -226,6 +221,7 @@ export default function LogoStudioApp() {
 					event.currentTarget.value = '';
 				}}
 			/>
+			{showExportCenter && <ExportCenter project={project} onClose={() => setShowExportCenter(false)} />}
 			{showProjects ? (
 				<MyProjects
 					onBack={() => setShowProjects(false)}
