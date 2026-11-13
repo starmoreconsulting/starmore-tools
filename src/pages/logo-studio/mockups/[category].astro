@@ -1,0 +1,43 @@
+---
+import ToolLayout from '../../../components/ToolLayout.astro';
+import { mockupCategoryPages } from '../../../engines/logo-studio/mockups/categories';
+import { mockupScenes } from '../../../engines/logo-studio/mockups/scenes';
+
+export function getStaticPaths() {
+	return mockupCategoryPages.map((category) => ({
+		params: { category: category.slug },
+		props: { category },
+	}));
+}
+
+const { category } = Astro.props;
+const scenes = mockupScenes.filter((scene) => scene.category === category.name);
+---
+
+<ToolLayout title={category.title} description={category.description}>
+	<section class="tool-page mockup-category-page">
+		<a class="back-link" href="/logo-studio/mockups/">← All mockup categories</a>
+		<header class="tool-page-header">
+			<p class="eyebrow">{category.name.toUpperCase()} MOCKUP SCENES</p>
+			<h1>{category.title}</h1>
+			<p>{category.description} These scenes use locally drawn vector artwork, with adjustable colours in Mockup Studio.</p>
+			<a href="/logo-mockup-generator/">Try your logo in these scenes</a>
+		</header>
+		<div class="mockup-scene-list">
+			{scenes.map((scene) => (
+				<article>
+					<h2>{scene.name}</h2>
+					<p>{scene.description}</p>
+				</article>
+			))}
+		</div>
+	</section>
+</ToolLayout>
+
+<style>
+	.mockup-category-page { max-width: 76rem; }
+	.mockup-scene-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; margin-top: 2rem; }
+	.mockup-scene-list article { padding: 1.2rem; border: 1px solid #e6e5df; border-radius: 1rem; background: #fff; }
+	.mockup-scene-list h2 { margin: 0 0 .6rem; font-size: 1.1rem; }
+	.mockup-scene-list p { margin: 0; color: #66675f; line-height: 1.5; }
+</style>

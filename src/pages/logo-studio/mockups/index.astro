@@ -1,0 +1,37 @@
+---
+import ToolLayout from '../../../components/ToolLayout.astro';
+import { mockupCategoryPages } from '../../../engines/logo-studio/mockups/categories';
+---
+
+<ToolLayout title="Logo Mockups by Category" description="Browse local SVG logo mockup scenes for cards, packaging, signage, apparel, and digital previews.">
+	<section class="tool-page mockup-category-page">
+		<a class="back-link" href="/logo-studio/">← Logo Studio</a>
+		<header class="tool-page-header">
+			<p class="eyebrow">LOGO PRESENTATION LIBRARY</p>
+			<h1>Browse logo mockups</h1>
+			<p>Choose a category to explore hand-drawn SVG scenes. Add your own logo in Logo Studio to preview it in context; all scenes are rendered locally.</p>
+			<a href="/logo-mockup-generator/">Open Mockup Studio</a>
+		</header>
+		<div class="mockup-category-grid">
+			{mockupCategoryPages.map((category) => (
+				<a class="mockup-category-card" href={`/logo-studio/mockups/${category.slug}/`}>
+					<span>{category.name}</span>
+					<strong>{category.title}</strong>
+					<p>{category.description}</p>
+					<span class="mockup-category-link">Explore scenes →</span>
+				</a>
+			))}
+		</div>
+	</section>
+</ToolLayout>
+
+<style>
+	.mockup-category-page { max-width: 76rem; }
+	.mockup-category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; margin-top: 2rem; }
+	.mockup-category-card { display: flex; min-height: 12rem; flex-direction: column; align-items: flex-start; padding: 1.25rem; border: 1px solid #e6e5df; border-radius: 1rem; background: #fff; color: inherit; text-decoration: none; }
+	.mockup-category-card > span:first-child { color: #53665b; font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+	.mockup-category-card strong { margin-top: .8rem; font-size: 1.15rem; }
+	.mockup-category-card p { color: #66675f; font-size: .9rem; line-height: 1.5; }
+	.mockup-category-link { margin-top: auto; color: #203b32; font-size: .9rem; font-weight: 700; }
+	.mockup-category-card:hover, .mockup-category-card:focus-visible { border-color: #203b32; }
+</style>

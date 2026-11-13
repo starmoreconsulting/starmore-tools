@@ -7,8 +7,9 @@ export const departments = [
 	{ slug: 'utilities', name: 'Utilities', description: 'Simple helpers for sharing, creating, and organizing everyday information.' },
 	{ slug: 'security', name: 'Security', description: 'Browser-based tools to help with everyday digital security.' },
 	{ slug: 'image', name: 'Image', description: 'Private, browser-based tools for resizing and optimizing images.' },
-	{ slug: 'logo', name: 'Logo Studio', description: 'Design and export logos privately in your browser.' },
-	] as const;
+	{ slug: 'pdf', name: 'PDF', description: 'Create, combine, split, and adjust PDFs privately in your browser.' },
+	{ slug: 'logo', name: 'Logo Studio', description: 'Design custom text and initials logos privately in your browser.' },
+] as const;
 
 export type DepartmentSlug = (typeof departments)[number]['slug'];
 export type ToolComponentName =
@@ -40,9 +41,23 @@ export type ToolComponentName =
 	| 'SortTextAlphabetically'
 	| 'FindReplaceText'
 	| 'TextToSlugConverter'
-	| 'LogoStudioApp'
+	| 'ImageToPdfConverter'
+	| 'PdfMerger'
+	| 'PdfSplitter'
+	| 'PdfPageRotator'
+	| 'ImageFormatConverter'
+	| 'ImageCropper'
+	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
-	| 'MonogramLogoGenerator';
+	| 'MonogramLogoGenerator'
+	| 'LogoStudioApp';
+
+export interface RecommendedDefinition {
+	title: string;
+	description: string;
+	url?: string;
+	buttonText: string;
+}
 
 export interface ToolDefinition {
 	slug: string;
@@ -57,6 +72,7 @@ export interface ToolDefinition {
 	icon: string;
 	live: boolean;
 	preset?: LogoStudioPreset;
+	recommended?: RecommendedDefinition;
 }
 
 export const tools: ToolDefinition[] = [
@@ -297,7 +313,7 @@ export const tools: ToolDefinition[] = [
 			{ question: 'Is my text sent to a server?', answer: 'No. The QR code is generated locally in your browser using the qrcode library.' },
 		],
 		component: 'QrCodeGenerator',
-		icon: '▦',
+		icon: 'grid',
 		live: true,
 	},
 	{
@@ -509,6 +525,118 @@ export const tools: ToolDefinition[] = [
 		live: true,
 	},
 	{
+		slug: 'image-to-pdf-converter',
+		name: 'Image to PDF Converter',
+		department: 'pdf',
+		description: 'Combine JPG, PNG, or WebP images into a single PDF.',
+		seoTitle: 'Private Image to PDF Converter',
+		seoDescription: 'Convert multiple JPG, PNG, or WebP images into a single PDF with A4, Letter, or image-fit pages. Your images never leave your device.',
+		howTo: ['Choose one or more JPG, PNG, or WebP images.', 'Reorder the images and choose A4, Letter, or fit-to-image pages.', 'Create and download your PDF; images are processed only on your device.'],
+		faqs: [
+			{ question: 'Can I change the order of the images?', answer: 'Yes. Use the up and down controls to arrange the image pages before creating the PDF.' },
+			{ question: 'Are WebP images supported?', answer: 'Yes. WebP is decoded and embedded locally in your browser; no image files are uploaded.' },
+		],
+		component: 'ImageToPdfConverter',
+		icon: '▧',
+		live: true,
+	},
+	{
+		slug: 'pdf-merger',
+		name: 'PDF Merger',
+		department: 'pdf',
+		description: 'Combine multiple PDF files in the order you choose.',
+		seoTitle: 'Private PDF Merger',
+		seoDescription: 'Merge multiple PDF files, reorder or remove documents, and download one combined PDF. Files are processed locally and never leave your device.',
+		howTo: ['Choose at least two PDF files.', 'Reorder the files and remove any you do not want to include.', 'Merge and download the combined PDF on your device.'],
+		faqs: [
+			{ question: 'Are my PDFs uploaded?', answer: 'No. PDFs are read, merged, and downloaded locally in your browser.' },
+			{ question: 'Why could a PDF not be opened?', answer: 'The file may be damaged or password-protected. This browser tool cannot open protected PDFs; try an unlocked, valid PDF.' },
+		],
+		component: 'PdfMerger',
+		icon: '⊕',
+		live: true,
+	},
+	{
+		slug: 'pdf-splitter',
+		name: 'PDF Splitter',
+		department: 'pdf',
+		description: 'Extract page ranges or split a PDF into individual pages.',
+		seoTitle: 'Private PDF Splitter',
+		seoDescription: 'Split a PDF into selected page ranges or individual pages and download the results in a ZIP. Your PDF never leaves your device.',
+		howTo: ['Choose a PDF file.', 'Enter page ranges such as 1-3, 5, 8-10, or select individual pages.', 'Download a ZIP containing the extracted PDF files.'],
+		faqs: [
+			{ question: 'Can I split into single-page PDFs?', answer: 'Yes. Select Split into individual pages to create one PDF per page in the downloaded ZIP.' },
+			{ question: 'What if the PDF is protected or damaged?', answer: 'The tool displays an error if it cannot open the PDF. Password-protected and corrupted files cannot be processed.' },
+		],
+		component: 'PdfSplitter',
+		icon: '⇱',
+		live: true,
+	},
+	{
+		slug: 'pdf-page-rotator',
+		name: 'PDF Page Rotator',
+		department: 'pdf',
+		description: 'Rotate all PDF pages or selected pages by 90, 180, or 270 degrees.',
+		seoTitle: 'Private PDF Page Rotator',
+		seoDescription: 'Rotate all pages or selected pages in a PDF by 90, 180, or 270 degrees, then download the result. Files stay on your device.',
+		howTo: ['Choose a PDF file.', 'Select all pages or enter page numbers and ranges, then choose a rotation.', 'Rotate and download the updated PDF locally.'],
+		faqs: [
+			{ question: 'Can I rotate only certain pages?', answer: 'Yes. Turn off Rotate all pages and enter page numbers or ranges, such as 1-3, 5.' },
+			{ question: 'What happens if a PDF cannot be read?', answer: 'The tool shows a clear error for damaged or password-protected PDFs instead of processing them.' },
+		],
+		component: 'PdfPageRotator',
+		icon: '↻',
+		live: true,
+	},
+	{
+		slug: 'image-format-converter',
+		name: 'Image Format Converter',
+		department: 'image',
+		description: 'Convert images between JPG, PNG, and WebP formats.',
+		seoTitle: 'Private JPG, PNG, and WebP Converter',
+		seoDescription: 'Convert JPG, PNG, and WebP images with your browser’s Canvas API. Transparency is filled white when converting to JPG; files never leave your device.',
+		howTo: ['Choose a JPG, PNG, or WebP image.', 'Select the output format and adjust quality for JPG or WebP.', 'Convert and download the new image locally.'],
+		faqs: [
+			{ question: 'What happens to transparency when converting to JPG?', answer: 'JPG cannot store transparency. Transparent areas are filled with white before the image is saved.' },
+			{ question: 'Are my images uploaded?', answer: 'No. Image decoding, conversion, and download happen locally in your browser.' },
+		],
+		component: 'ImageFormatConverter',
+		icon: '⇄',
+		live: true,
+	},
+	{
+		slug: 'image-cropper',
+		name: 'Image Cropper',
+		department: 'image',
+		description: 'Drag to crop an image with free, square, 4:3, or 16:9 framing.',
+		seoTitle: 'Private Online Image Cropper',
+		seoDescription: 'Crop JPG, PNG, or WebP images by dragging on desktop or mobile. Choose free, 1:1, 4:3, or 16:9 framing and download as PNG or JPG.',
+		howTo: ['Choose an image from your device.', 'Select a crop ratio and drag across the image to frame it.', 'Choose PNG or JPG and download the cropped image.'],
+		faqs: [
+			{ question: 'Does cropping work on a phone?', answer: 'Yes. Drag on the image using touch or a mouse to select the crop area.' },
+			{ question: 'Are images sent to a server?', answer: 'No. The image preview and crop are processed entirely on your device.' },
+		],
+		component: 'ImageCropper',
+		icon: '▣',
+		live: true,
+	},
+	{
+		slug: 'markdown-editor',
+		name: 'Markdown Editor and Preview',
+		department: 'text',
+		description: 'Write Markdown, preview sanitized HTML, and download a .md file.',
+		seoTitle: 'Private Markdown Editor and Live Preview',
+		seoDescription: 'Edit Markdown with a live, sanitized preview and download your source as a .md file. Your text stays in your browser.',
+		howTo: ['Write or paste Markdown in the editor.', 'Review the live preview, which sanitizes generated HTML.', 'Download your Markdown source as a .md file.'],
+		faqs: [
+			{ question: 'Is the HTML preview sanitized?', answer: 'Yes. The rendered Markdown is sanitized with DOMPurify before it is displayed.' },
+			{ question: 'Is my Markdown stored or uploaded?', answer: 'No. Editing and previewing happen in your browser. Download the .md file to save a copy.' },
+		],
+		component: 'MarkdownEditor',
+		icon: 'M↓',
+		live: true,
+	},
+	{
 		slug: 'logo-studio',
 		name: 'Logo Studio',
 		department: 'logo',
@@ -521,7 +649,7 @@ export const tools: ToolDefinition[] = [
 			{ question: 'Can I reopen an editable project?', answer: 'Yes. Use My Projects for local copies or export a project file to open later.' },
 		],
 		component: 'LogoStudioApp',
-		icon: '?',
+		icon: '✳',
 		live: false,
 	},
 	{
@@ -571,7 +699,7 @@ export const tools: ToolDefinition[] = [
 			{ question: 'Are the template designs generated online?', answer: 'No. The templates and your edits are processed locally in your browser.' },
 		],
 		component: 'LogoStudioApp',
-		icon: 'â–¦',
+		icon: '▦',
 		live: false,
 		preset: 'template',
 	},
@@ -727,6 +855,74 @@ export const tools: ToolDefinition[] = [
 		icon: '✳',
 		live: false,
 		preset: 'redesign',
+	},
+	{
+		slug: 'logo-mockup-generator',
+		name: 'Logo Mockup Generator',
+		department: 'logo',
+		description: 'Preview an editable logo on realistic vector scenes for products, stationery, and screens.',
+		seoTitle: 'Private Logo Mockup Generator',
+		seoDescription: 'Place your logo in hand-drawn SVG mockups for cards, packaging, apparel, and more. All previews are created in your browser.',
+		howTo: ['Open a saved logo project or add a wordmark in Logo Studio.', 'Choose a mockup scene, variant, and surface colours.', 'Download a PNG, JPG, SVG, a ZIP of mockups, or a multi-page brand presentation.'],
+		faqs: [
+			{ question: 'Are the mockups made from stock images?', answer: 'No. The scenes are original SVG drawings made from shapes, gradients, and shading.' },
+			{ question: 'Does my logo leave my device?', answer: 'No. Your logo and every exported preview are processed locally in your browser.' },
+		],
+		component: 'LogoStudioApp',
+		icon: '▧',
+		live: false,
+		preset: 'mockups',
+	},
+	{
+		slug: 'business-card-mockup',
+		name: 'Business Card Mockup Generator',
+		department: 'logo',
+		description: 'Check your logo on a front-and-back card stack or a single desk card.',
+		seoTitle: 'Business Card Logo Mockup Generator',
+		seoDescription: 'Preview a logo on locally rendered business card scenes, customize paper and surface colours, and export the result from your browser.',
+		howTo: ['Open the business card preview and load or create your logo.', 'Choose a logo variant and customize the card colours.', 'Export the scene as PNG, JPG, SVG, or add it to a brand presentation.'],
+		faqs: [
+			{ question: 'Can I preview both sides of a card?', answer: 'Yes. The front-and-back scene places your selected logo on two separate cards.' },
+			{ question: 'Are my business details uploaded?', answer: 'No. The logo and mockup are rendered on this device only.' },
+		],
+		component: 'LogoStudioApp',
+		icon: '▱',
+		live: false,
+		preset: 'business-card-mockup',
+	},
+	{
+		slug: 'tshirt-logo-mockup',
+		name: 'T-shirt Logo Mockup Generator',
+		department: 'logo',
+		description: 'Compare a chest logo placement on light and dark T-shirt mockups.',
+		seoTitle: 'T-shirt Logo Mockup Generator',
+		seoDescription: 'Preview your logo on light and dark locally drawn T-shirt SVG scenes, with automatic contrast-aware logo variants.',
+		howTo: ['Open a T-shirt scene and load or create your logo.', 'Switch between light and dark fabric and choose a logo variant.', 'Download a high-resolution PNG, JPG, or SVG preview.'],
+		faqs: [
+			{ question: 'Can I see the logo on both shirt colours?', answer: 'Yes. Choose separate light and dark T-shirt scenes and compare the chest placement.' },
+			{ question: 'Will the mockup choose a contrasting logo?', answer: 'Automatic dark and light variant selection is available when those variants exist; otherwise the primary is shown with a note.' },
+		],
+		component: 'LogoStudioApp',
+		icon: '♧',
+		live: false,
+		preset: 'tshirt-mockup',
+	},
+	{
+		slug: 'logo-preview-tool',
+		name: 'Logo Preview Tool',
+		department: 'logo',
+		description: 'See how a logo looks across stationery, product, apparel, and digital mockups.',
+		seoTitle: 'Private Logo Preview Tool',
+		seoDescription: 'Preview a logo across vector mockup scenes for print, packaging, signage, and screens without uploading your artwork.',
+		howTo: ['Open Logo Studio and load a local project or add a wordmark.', 'Browse mockup categories and adjust the preview surface.', 'Save selected scenes in a brand presentation PDF or download individual previews.'],
+		faqs: [
+			{ question: 'Can I preview an existing project?', answer: 'Yes. Open a saved local project or import its editable project file.' },
+			{ question: 'Do previews use my current logo edits?', answer: 'Yes. The scenes are rendered from the current project whenever its logo changes.' },
+		],
+		component: 'LogoStudioApp',
+		icon: '◉',
+		live: false,
+		preset: 'preview-mockup',
 	},
 ];
 
