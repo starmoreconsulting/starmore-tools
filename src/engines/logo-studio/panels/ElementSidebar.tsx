@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import { createDefaultElement, type Element } from '../model/types';
+import type { BrandKit } from '../brand/kit';
 const IconLibrary = lazy(() => import('./IconLibrary'));
 const ColorLibrary = lazy(() => import('./ColorLibrary'));
 const FontBrowser = lazy(() => import('./FontBrowser'));
@@ -27,6 +28,7 @@ interface Props {
 	onDistribute?: (axis: 'horizontal' | 'vertical') => void;
 	project?: import('../model/types').LogoProject;
 	activeVariant?: string;
+	brandKit?: BrandKit | null;
 }
 
 export default function ElementSidebar({
@@ -48,6 +50,7 @@ export default function ElementSidebar({
 	onDistribute = () => undefined,
 	project,
 	activeVariant = 'primary',
+	brandKit = null,
 }: Props) {
 	const [shape, setShape] = useState<(typeof shapes)[number]>('rectangle');
 	const [tab, setTab] = useState<'elements' | 'icons' | 'colors' | 'fonts' | 'layers' | 'fields'>('elements');
@@ -88,11 +91,11 @@ export default function ElementSidebar({
 				</Suspense>
 			) : tab === 'colors' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading colours…</p>}>
-					<ColorLibrary element={element} onUpdate={onUpdate} />
+					<ColorLibrary element={element} onUpdate={onUpdate} brandColors={brandKit?.colors} />
 				</Suspense>
 			) : tab === 'fonts' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading font browser…</p>}>
-					<FontBrowser element={element} onUpdate={onUpdate} />
+					<FontBrowser element={element} onUpdate={onUpdate} brandFonts={brandKit?.fonts} />
 				</Suspense>
 			) : tab === 'layers' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading layers…</p>}>

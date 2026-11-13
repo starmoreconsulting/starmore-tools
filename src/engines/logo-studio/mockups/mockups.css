@@ -34,6 +34,7 @@
 .logo-mockup-check { display: flex; align-items: flex-start; gap: 8px; color: #4e5e52; font-size: 12px; line-height: 1.4; }
 .logo-mockup-color-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 0; padding: 10px; border: 1px solid #e2e6dd; border-radius: 7px; }
 .logo-mockup-color-fields legend { padding: 0 5px; color: #68746a; font-size: 12px; }
+.logo-mockup-color-control { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
 .logo-mockup-color-fields label { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 5px; color: #657067; font-size: 11px; }
 .logo-mockup-color-name { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
 .logo-mockup-swatches { display: flex; gap: 3px; }

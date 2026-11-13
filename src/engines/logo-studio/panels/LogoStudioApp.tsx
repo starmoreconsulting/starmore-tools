@@ -19,6 +19,9 @@ import { primarySignature } from '../variants/automatic';
 import { createReferenceFromFile, deleteLocalReference, loadLocalReference, saveLocalReference, type ReferenceLayer } from '../store/references';
 import { importCustomSvgIcon, importSvg } from '../import/svg-import';
 import MockupStudio from '../mockups/MockupStudio';
+import BrandKitsScreen from './BrandKitsScreen';
+import { getActiveBrandKit } from '../store/brand-kits';
+import type { BrandKit } from '../brand/kit';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -115,6 +118,8 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [fileError, setFileError] = useState('');
 	const [storageReady, setStorageReady] = useState(false);
 	const [showProjects, setShowProjects] = useState(false);
+	const [showBrandKits, setShowBrandKits] = useState(false);
+	const [activeBrandKit, setActiveBrandKit] = useState<BrandKit | null>(null);
 	const [showExportCenter, setShowExportCenter] = useState(false);
 	const [showSetup, setShowSetup] = useState(Boolean(preset && !uploadPreset && !mockupPreset && preset !== 'export-centre'));
 	const [showGallery, setShowGallery] = useState(false);
@@ -247,6 +252,16 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	}, [loadProject]);
 
 	useEffect(() => {
+		let active = true;
+		void getActiveBrandKit().then((kit) => {
+			if (active) setActiveBrandKit(kit);
+		}).catch((cause: unknown) => {
+			if (active) setStatus(`Brand kit restore failed: ${cause instanceof Error ? cause.message : 'The active brand kit could not be loaded.'}`);
+		});
+		return () => { active = false; };
+	}, []);
+
+	useEffect(() => {
 		if (storageReady && preset === 'export-centre') setShowExportCenter(true);
 	}, [preset, storageReady]);
 
@@ -349,6 +364,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 
 	const propertiesPanel = <ElementProperties
 		element={selectedElement}
+		brandColors={activeBrandKit?.colors}
 		onUpdate={(patch) => {
 			if (selectedId) updateElement(selectedId, patch);
 		}}
@@ -371,6 +387,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 		onDistribute={distributeSelected}
 		project={project}
 		activeVariant={activeVariant}
+		brandKit={activeBrandKit}
 		onUpdate={(patch) => {
 			if (selectedId) updateElement(selectedId, patch);
 		}}
@@ -389,11 +406,13 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				onReference={() => referenceInputRef.current?.click()}
 				onNewLogo={() => setShowSetup(true)}
 				onMockups={() => setShowMockups(true)}
+				onBrandKits={() => setShowBrandKits(true)}
 				onProjects={() => setShowProjects(true)}
 				onExport={() => setShowExportCenter(true)}
 			/>
 			{showSetup && <SetupFlow
 				initialBrief={galleryBrief ?? (preset ? presetBrief(preset) : undefined)}
+				brandColors={activeBrandKit?.colors}
 				onSkip={() => {
 					loadProject(createDefaultProject());
 					setShowSetup(false);
@@ -450,7 +469,13 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 					event.currentTarget.value = '';
 				}}
 			/>
-			{showExportCenter && <ExportCenter project={project} activeVariant={activeVariant} reference={referenceReady ? reference : null} onClose={() => setShowExportCenter(false)} />}
+			{showExportCenter && <ExportCenter project={project} activeVariant={activeVariant} reference={referenceReady ? reference : null} brandColors={activeBrandKit?.colors} onClose={() => setShowExportCenter(false)} />}
+			{showBrandKits && <BrandKitsScreen
+				project={project}
+				activeKitId={activeBrandKit?.id ?? null}
+				onActiveChange={setActiveBrandKit}
+				onBack={() => setShowBrandKits(false)}
+			/>}
 			{showVariantComparison && <CompareVariants project={project} onClose={() => setShowVariantComparison(false)} />}
 			{showGallery && galleryBrief ? (
 				<GalleryScreen
@@ -496,6 +521,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				<MockupStudio
 					project={project}
 					initialSceneId={initialMockupScene}
+					brandColors={activeBrandKit?.colors}
 					onBack={() => setShowMockups(false)}
 					onAddSample={() => addElement(createDefaultElement('text', {
 						name: 'Brand name',
@@ -519,6 +545,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 						outdated={primaryChanged}
 						requiresManualArrangement={!project.generation && (activeVariant === 'horizontal' || activeVariant === 'vertical')}
 						monochromeColor={monochromeColor}
+						brandColors={activeBrandKit?.colors}
 						onSelect={setActiveVariant}
 						onCreateFromPrimary={() => createFromPrimary(activeVariant)}
 						onDuplicate={duplicateCurrentVariant}

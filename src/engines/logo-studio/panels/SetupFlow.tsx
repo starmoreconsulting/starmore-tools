@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { logoPalettes } from '../library/palettes';
 import type { LogoArrangement, LogoBrief, LogoIndustry, LogoStyle } from '../model/types';
+import type { BrandKit } from '../brand/kit';
+import BrandColorSwatches from './BrandColorSwatches';
 
 interface Props {
 	onComplete: (brief: LogoBrief) => void;
 	onSkip: () => void;
 	initialBrief?: LogoBrief;
+	brandColors?: BrandKit['colors'];
 }
 
 const industries: LogoIndustry[] = ['Technology', 'Business', 'Fashion', 'Construction', 'Food', 'Transport', 'Education', 'Health', 'Creative', 'General'];
@@ -28,7 +31,7 @@ const defaultBrief: LogoBrief = {
 	arrangement: 'icon-above-text',
 };
 
-export default function SetupFlow({ onComplete, onSkip, initialBrief }: Props) {
+export default function SetupFlow({ onComplete, onSkip, initialBrief, brandColors = [] }: Props) {
 	const [step, setStep] = useState(0);
 	const [brief, setBrief] = useState<LogoBrief>(initialBrief ?? defaultBrief);
 	const update = <K extends keyof LogoBrief>(key: K, value: LogoBrief[K]) => setBrief((current) => ({ ...current, [key]: value }));
@@ -61,7 +64,7 @@ export default function SetupFlow({ onComplete, onSkip, initialBrief }: Props) {
 				{step === 2 && <label className="logo-phase-field"><span>Style</span><select value={brief.style} onChange={(event) => update('style', event.target.value as LogoStyle)}>{styles.map((style) => <option key={style}>{style}</option>)}</select></label>}
 				{step === 3 && <>
 					<label className="logo-phase-field"><span>Preferred palette</span><select value={brief.preferredPalette} onChange={(event) => setBrief((current) => ({ ...current, preferredPalette: event.target.value, ...(event.target.value === 'Custom' ? { customColor: current.customColor ?? '#203b32' } : {}) }))}>{logoPalettes.map((palette) => <option key={palette.name}>{palette.name}</option>)}<option value="Custom">Custom colour</option></select></label>
-					{brief.preferredPalette === 'Custom' && <label className="logo-phase-field"><span>Custom colour</span><input type="color" value={brief.customColor ?? '#203b32'} onChange={(event) => update('customColor', event.target.value)} /></label>}
+					{brief.preferredPalette === 'Custom' && <><BrandColorSwatches colors={brandColors} onChoose={(color) => update('customColor', color)} /><label className="logo-phase-field"><span>Custom colour</span><input type="color" value={brief.customColor ?? '#203b32'} onChange={(event) => update('customColor', event.target.value)} /></label></>}
 				</>}
 				{step === 4 && <fieldset className="logo-setup-arrangements"><legend>Arrangement</legend>{arrangements.map(({ value, label }) => <label key={value}><input type="radio" name="logo-arrangement" value={value} checked={brief.arrangement === value} onChange={() => update('arrangement', value)} />{label}</label>)}</fieldset>}
 			</div>

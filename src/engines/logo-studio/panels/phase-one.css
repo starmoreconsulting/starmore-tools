@@ -69,6 +69,28 @@
 .logo-fields-list { display: grid; gap: 10px; }
 .logo-fields-list small { display: block; color: #788177; font-size: 9px; font-weight: 500; }
 .logo-fields-preview { display: block; width: 100%; aspect-ratio: 1; border: 1px solid #e6e5dc; border-radius: 4px; background-color: white; object-fit: contain; }
+.logo-brand-color-row { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 5px; margin: 4px 0; }
+.logo-brand-color-row > strong { flex: 0 0 100%; color: #647064; font-size: 9px; }
+.logo-brand-color-row > div { display: flex; flex-wrap: wrap; gap: 5px; }
+.logo-brand-kit-overlay { position: fixed; z-index: 1100; inset: 0; display: flex; align-items: center; justify-content: center; padding: 14px; background: #18221db8; }
+.logo-brand-kits-dialog { display: flex; width: min(940px, 100%); max-height: 92vh; flex-direction: column; overflow: auto; padding: 18px; border: 1px solid #e2e1d8; border-radius: 7px; background: #fbfaf6; box-shadow: 0 24px 70px #1c29234a; }
+.logo-brand-kits-header { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.logo-brand-kits-header h2 { margin: 0; color: #28352d; font-size: 22px; }
+.logo-brand-kits-header p { margin: 5px 0 0; color: #687368; font-size: 11px; }
+.logo-brand-kits-header .eyebrow { color: #718071; font-size: 10px; letter-spacing: .12em; }
+.logo-brand-kits-header button { width: 34px; min-height: 34px; flex: 0 0 auto; border: 1px solid #dfe3d5; border-radius: 4px; background: white; font-size: 20px; cursor: pointer; }
+.logo-brand-kit-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.logo-brand-kit-actions .logo-phase-field { display: flex; flex-direction: row; align-items: center; gap: 6px; margin: 0; }
+.logo-brand-kit-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; overflow: auto; margin-top: 12px; }
+.logo-brand-kit-card { min-width: 0; padding: 10px; border: 1px solid #e4e6dc; border-radius: 5px; background: white; }
+.logo-brand-kit-title { display: flex; gap: 7px; align-items: center; }
+.logo-brand-kit-title input { min-width: 0; flex: 1; padding: 7px; border: 1px solid #dfe3d5; border-radius: 4px; }
+.logo-brand-kit-title strong { color: #37694f; font-size: 10px; }
+.logo-brand-kit-card p { color: #667167; font-size: 10px; overflow-wrap: anywhere; }
+.logo-brand-kit-swatches { display: flex; flex-wrap: wrap; gap: 4px; margin: 9px 0; }
+.logo-brand-kit-swatches span { width: 19px; height: 19px; border: 1px solid #cfd4c7; border-radius: 50%; }
+.logo-brand-kit-buttons { display: flex; flex-wrap: wrap; gap: 5px; }
+.logo-brand-kit-buttons button { min-height: 29px; padding: 5px 7px; font-size: 9px; }
 .logo-gradient-stop-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
 .logo-font-list { display: grid; max-height: 380px; gap: 5px; overflow-y: auto; margin: 10px 0; }
 .logo-font-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 3px; padding: 8px !important; text-align: left; }

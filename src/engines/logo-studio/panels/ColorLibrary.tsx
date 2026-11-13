@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
 import { logoPalettes } from '../library/palettes';
 import type { Element, GradientFill } from '../model/types';
+import type { BrandKit } from '../brand/kit';
+import BrandColorSwatches from './BrandColorSwatches';
 
 interface Props {
 	element: Element | null;
 	onUpdate: (patch: Partial<Element>) => void;
+	brandColors?: BrandKit['colors'];
 }
 
 interface HslColor {
@@ -68,7 +71,7 @@ function makeGradient(type: GradientFill['type'], angle: number, colors: string[
 	};
 }
 
-export default function ColorLibrary({ element, onUpdate }: Props) {
+export default function ColorLibrary({ element, onUpdate, brandColors = [] }: Props) {
 	const [hex, setHex] = useState('#203b32');
 	const [recent, setRecent] = useState<string[]>(() => {
 		try {
@@ -106,6 +109,7 @@ export default function ColorLibrary({ element, onUpdate }: Props) {
 		<section className="logo-library-section" aria-label="Colour library">
 			{!element && <p className="logo-phase-hint">Select an element before applying a colour or gradient.</p>}
 			{element && <>
+				<BrandColorSwatches colors={brandColors} onChoose={applyColor} />
 				<h3 className="logo-library-subheading">Palettes</h3>
 				<div className="logo-palette-list">
 					{logoPalettes.map((palette) => (

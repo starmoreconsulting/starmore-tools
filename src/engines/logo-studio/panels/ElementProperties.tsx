@@ -1,9 +1,12 @@
 import type { Element } from '../model/types';
 import { logoFonts } from '../library/fonts';
+import type { BrandKit } from '../brand/kit';
+import BrandColorSwatches from './BrandColorSwatches';
 
 interface Props {
 	element: Element | null;
 	onUpdate: (patch: Partial<Element>) => void;
+	brandColors?: BrandKit['colors'];
 }
 
 function numberValue(value: string, fallback: number): number {
@@ -11,7 +14,7 @@ function numberValue(value: string, fallback: number): number {
 	return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-export default function ElementProperties({ element, onUpdate }: Props) {
+export default function ElementProperties({ element, onUpdate, brandColors = [] }: Props) {
 	if (!element) {
 		return (
 			<aside className="logo-phase-panel logo-properties" aria-label="Properties">
@@ -55,8 +58,8 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 				<label className="logo-phase-field"><span>Opacity</span><input type="number" min="0" max="1" step="0.05" value={element.opacity} onChange={(event) => onUpdate({ opacity: Math.min(1, Math.max(0, numberValue(event.target.value, element.opacity))) })} /></label>
 			</div>
 			<div className="logo-phase-number-grid">
-				<label className="logo-phase-field"><span>Fill</span><input type="color" value={element.fill && /^#[\da-f]{6}$/i.test(element.fill) ? element.fill : '#ffffff'} onChange={(event) => onUpdate({ fill: event.target.value })} /></label>
-				<label className="logo-phase-field"><span>Stroke</span><input type="color" value={element.stroke && /^#[\da-f]{6}$/i.test(element.stroke) ? element.stroke : '#203b32'} onChange={(event) => onUpdate({ stroke: event.target.value })} /></label>
+				<div><BrandColorSwatches colors={brandColors} onChoose={(fill) => onUpdate({ fill })} /><label className="logo-phase-field"><span>Fill</span><input type="color" value={element.fill && /^#[\da-f]{6}$/i.test(element.fill) ? element.fill : '#ffffff'} onChange={(event) => onUpdate({ fill: event.target.value })} /></label></div>
+				<div><BrandColorSwatches colors={brandColors} onChoose={(stroke) => onUpdate({ stroke })} /><label className="logo-phase-field"><span>Stroke</span><input type="color" value={element.stroke && /^#[\da-f]{6}$/i.test(element.stroke) ? element.stroke : '#203b32'} onChange={(event) => onUpdate({ stroke: event.target.value })} /></label></div>
 				<label className="logo-phase-field"><span>Stroke width</span><input type="number" min="0" value={element.strokeWidth ?? 0} onChange={(event) => onUpdate({ strokeWidth: Math.max(0, numberValue(event.target.value, element.strokeWidth ?? 0)) })} /></label>
 			</div>
 			{element.type === 'shape' && (element.shape === 'polygon' || element.shape === 'star') && (
@@ -91,7 +94,7 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 						<label className="logo-phase-field"><span>Offset X</span><input type="number" min={-100} max={100} value={element.shadow.offsetX} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, offsetX: numberValue(event.target.value, element.shadow!.offsetX) } })} /></label>
 						<label className="logo-phase-field"><span>Offset Y</span><input type="number" min={-100} max={100} value={element.shadow.offsetY} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, offsetY: numberValue(event.target.value, element.shadow!.offsetY) } })} /></label>
 						<label className="logo-phase-field"><span>Blur</span><input type="number" min={0} max={80} value={element.shadow.blur} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, blur: Math.max(0, numberValue(event.target.value, element.shadow!.blur)) } })} /></label>
-						<label className="logo-phase-field"><span>Shadow colour</span><input type="color" value={element.shadow.color} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, color: event.target.value } })} /></label>
+						<div><BrandColorSwatches colors={brandColors} onChoose={(color) => onUpdate({ shadow: { ...element.shadow!, color } })} /><label className="logo-phase-field"><span>Shadow colour</span><input type="color" value={element.shadow.color} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, color: event.target.value } })} /></label></div>
 					</div>
 				)}
 			</section>
@@ -103,7 +106,7 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 					<label className="logo-phase-field"><span>Weight</span><select value={element.fontWeight ?? 400} onChange={(event) => onUpdate({ fontWeight: Number(event.target.value) })}><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semibold</option><option value="700">Bold</option><option value="800">Extra bold</option></select></label>
 					<label className="logo-phase-field"><span>Letter spacing</span><input type="number" step="0.5" value={element.letterSpacing ?? 0} onChange={(event) => onUpdate({ letterSpacing: numberValue(event.target.value, element.letterSpacing ?? 0) })} /></label>
 					<label className="logo-phase-field"><span>Curve: {element.curve ?? 0}</span><input type="range" min={-100} max={100} step={1} value={element.curve ?? 0} onChange={(event) => onUpdate({ curve: Number(event.target.value) })} /></label>
-					<label className="logo-phase-field"><span>Text colour</span><input type="color" value={element.fill && /^#[\da-f]{6}$/i.test(element.fill) ? element.fill : '#203b32'} onChange={(event) => onUpdate({ fill: event.target.value })} /></label>
+					<div><BrandColorSwatches colors={brandColors} onChoose={(fill) => onUpdate({ fill })} /><label className="logo-phase-field"><span>Text colour</span><input type="color" value={element.fill && /^#[\da-f]{6}$/i.test(element.fill) ? element.fill : '#203b32'} onChange={(event) => onUpdate({ fill: event.target.value })} /></label></div>
 				</div>
 			)}
 			{element.type === 'image' && (

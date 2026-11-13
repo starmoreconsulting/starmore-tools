@@ -6,6 +6,8 @@ import type { Element, LogoProject } from '../model/types';
 import { createSceneColors, renderMockupSvg, type MockupColors } from './render';
 import { mockupCategories, mockupScenes, type MockupCategory, type MockupScene } from './scenes';
 import './mockups.css';
+import type { BrandKit } from '../brand/kit';
+import BrandColorSwatches from '../panels/BrandColorSwatches';
 
 const scenePreviewCache = new Map<string, { svg: string; notes: string[] }>();
 const projectVariantRevisions = new WeakMap<object, number>();
@@ -33,6 +35,7 @@ interface Props {
 	initialSceneId?: string;
 	onBack: () => void;
 	onAddSample: () => void;
+	brandColors?: BrandKit['colors'];
 }
 
 function useRenderedScene(
@@ -122,7 +125,7 @@ function hasArtwork(project: LogoProject): boolean {
 	return containsVisibleArtwork(project.variants.primary ?? []);
 }
 
-export default function MockupStudio({ project, initialSceneId, onBack, onAddSample }: Props) {
+export default function MockupStudio({ project, initialSceneId, onBack, onAddSample, brandColors = [] }: Props) {
 	const [category, setCategory] = useState<MockupCategory | 'All'>('All');
 	const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
 	const selectedScene = mockupScenes.find((scene) => scene.id === selectedSceneId) ?? null;
@@ -296,7 +299,7 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 								{Object.entries(colors).map(([name, value]) => {
 									const parameter = name as keyof MockupColors;
 									const swatches = ['#fffefa', '#d8cbb5', '#718477', '#263d32', '#222222'];
-									return <label key={name}>
+									return <div className="logo-mockup-color-control" key={name}>
 										<span className="logo-mockup-color-name">{selectedScene.colors[parameter].name}
 											<span className="logo-mockup-swatches" role="group" aria-label={`${selectedScene.colors[parameter].name} swatches`}>
 												{swatches.map((swatch) => <button
@@ -310,8 +313,9 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 												/>)}
 											</span>
 										</span>
-										<input aria-label={`${selectedScene.colors[parameter].name} custom colour`} type="color" value={value} onChange={(event) => setColors((current) => ({ ...current, [parameter]: event.target.value }))} />
-									</label>;
+										<BrandColorSwatches colors={brandColors} onChoose={(color) => setColors((current) => ({ ...current, [parameter]: color }))} />
+										<label><span>Custom colour</span><input aria-label={`${selectedScene.colors[parameter].name} custom colour`} type="color" value={value} onChange={(event) => setColors((current) => ({ ...current, [parameter]: event.target.value }))} /></label>
+									</div>;
 								})}
 							</fieldset>
 							<fieldset className="logo-mockup-exports">

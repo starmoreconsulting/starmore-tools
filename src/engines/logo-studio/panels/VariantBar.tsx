@@ -1,4 +1,6 @@
 import { STANDARD_VARIANTS, variantLabel } from '../variants/automatic';
+import type { BrandKit } from '../brand/kit';
+import BrandColorSwatches from './BrandColorSwatches';
 
 interface Props {
 	names: string[];
@@ -13,6 +15,7 @@ interface Props {
 	onRebuild: () => void;
 	onMonochromeChange: (color: string) => void;
 	onCompare: () => void;
+	brandColors?: BrandKit['colors'];
 }
 
 export default function VariantBar({
@@ -28,6 +31,7 @@ export default function VariantBar({
 	onRebuild,
 	onMonochromeChange,
 	onCompare,
+	brandColors = [],
 }: Props) {
 	const tabs = [...STANDARD_VARIANTS, ...names.filter((name) => !(STANDARD_VARIANTS as readonly string[]).includes(name))];
 	return (
@@ -49,7 +53,10 @@ export default function VariantBar({
 					<p className="logo-variant-notice" role="status">Hand-built logo: arrange this version by hand.</p>
 				)}
 				{active === 'monochrome' && (
-					<label className="logo-variant-color"><span>Monochrome colour</span><input aria-label="Monochrome colour" type="color" value={monochromeColor} onChange={(event) => onMonochromeChange(event.target.value)} /></label>
+					<>
+						<BrandColorSwatches colors={brandColors} onChoose={onMonochromeChange} />
+						<label className="logo-variant-color"><span>Monochrome colour</span><input aria-label="Monochrome colour" type="color" value={monochromeColor} onChange={(event) => onMonochromeChange(event.target.value)} /></label>
+					</>
 				)}
 				<button type="button" onClick={onCreateFromPrimary} disabled={active === 'primary'}>Create from primary</button>
 				<button type="button" onClick={onDuplicate}>Duplicate current variant</button>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { loadBrowserFont, logoFonts, type LogoFontCategory } from '../library/fonts';
 import type { Element } from '../model/types';
+import type { BrandKit } from '../brand/kit';
 
 const categories: { id: 'all' | LogoFontCategory; label: string }[] = [
 	{ id: 'all', label: 'All' },
@@ -22,6 +23,7 @@ const pairings = [
 interface Props {
 	element: Element | null;
 	onUpdate: (patch: Partial<Element>) => void;
+	brandFonts?: BrandKit['fonts'];
 }
 
 function FontPreview({ family, text, selected, disabled, onSelect }: {
@@ -73,7 +75,7 @@ function FontPreview({ family, text, selected, disabled, onSelect }: {
 	);
 }
 
-export default function FontBrowser({ element, onUpdate }: Props) {
+export default function FontBrowser({ element, onUpdate, brandFonts }: Props) {
 	const [category, setCategory] = useState<'all' | LogoFontCategory>('all');
 	const [sample, setSample] = useState('Your brand');
 	const fontGroups = useMemo(() => (
@@ -84,6 +86,7 @@ export default function FontBrowser({ element, onUpdate }: Props) {
 			}))
 	), [category]);
 	const canApply = element?.type === 'text';
+	const kitFamilies = brandFonts ? [...new Set([brandFonts.heading, brandFonts.subheading, brandFonts.body])] : [];
 
 	return (
 		<section className="logo-library-section" aria-label="Font browser">
@@ -95,6 +98,23 @@ export default function FontBrowser({ element, onUpdate }: Props) {
 				{categories.map((item) => <button key={item.id} type="button" aria-pressed={category === item.id} onClick={() => setCategory(item.id)}>{item.label}</button>)}
 			</div>
 			{!canApply && <p className="logo-phase-hint">Select a text element to change its font.</p>}
+			{kitFamilies.length > 0 && (
+				<section aria-label="Brand kit fonts">
+					<h3 className="logo-library-subheading">Brand kit fonts</h3>
+					<div className="logo-font-list">
+						{kitFamilies.map((family) => (
+							<FontPreview
+								key={family}
+								family={family}
+								text={sample || 'Sample'}
+								selected={element?.fontFamily === family}
+								disabled={!canApply}
+								onSelect={() => onUpdate({ fontFamily: family })}
+							/>
+						))}
+					</div>
+				</section>
+			)}
 			{fontGroups.map(({ category: group, fonts }) => (
 				<section key={group.id} aria-label={`${group.label} fonts`}>
 					<h3 className="logo-library-subheading">{group.label}</h3>

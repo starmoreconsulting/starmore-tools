@@ -8,11 +8,14 @@ import { exportProjectToSvg } from '../export/svg';
 import type { LogoProject } from '../model/types';
 import type { ReferenceLayer } from '../store/references';
 import { createAutomaticVariant, variantLabel } from '../variants/automatic';
+import type { BrandKit } from '../brand/kit';
+import BrandColorSwatches from './BrandColorSwatches';
 
 interface Props {
 	project: LogoProject;
 	activeVariant: string;
 	reference: ReferenceLayer | null;
+	brandColors?: BrandKit['colors'];
 	onClose: () => void;
 }
 
@@ -120,7 +123,7 @@ async function buildVariantsSheet(project: LogoProject, includeLabels: boolean):
 	};
 }
 
-export default function ExportCenter({ project, activeVariant, reference, onClose }: Props) {
+export default function ExportCenter({ project, activeVariant, reference, brandColors = [], onClose }: Props) {
 	const [outlineText, setOutlineText] = useState(true);
 	const [pngTransparent, setPngTransparent] = useState(project.artboard.background === 'transparent');
 	const [pngScale, setPngScale] = useState<RasterScale>(1);
@@ -395,7 +398,7 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 						<div><h3>JPG</h3><p>Local raster render of the full design, always filled with your selected background.</p></div>
 						<div className="logo-export-control-row">
 							<label className="logo-phase-field"><span>Scale</span><select value={jpgScale} onChange={(event) => setJpgScale(Number(event.target.value) as RasterScale)}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
-							<label className="logo-phase-field"><span>Background</span><input type="color" value={jpgBackground} onChange={(event) => setJpgBackground(event.target.value)} /></label>
+							<div><BrandColorSwatches colors={brandColors} onChoose={setJpgBackground} /><label className="logo-phase-field"><span>Background</span><input type="color" value={jpgBackground} onChange={(event) => setJpgBackground(event.target.value)} /></label></div>
 							<label className="logo-phase-field logo-export-quality"><span>Quality: {Math.round(jpgQuality * 100)}%</span><input type="range" min="0.1" max="1" step="0.05" value={jpgQuality} onChange={(event) => setJpgQuality(Number(event.target.value))} /></label>
 						</div>
 						<p className="logo-export-size">Output: {jpgSize}</p>
