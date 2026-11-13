@@ -40,6 +40,7 @@ function renderElement(element: Element, icons: LucideIconNodes | null) {
 	if (!element.visible) return null;
 	let content = null;
 	if (element.type === 'shape') content = renderShape(element);
+	else if (element.type === 'path') content = <path d={element.d ?? ''} fill={element.fill ?? '#203b32'} stroke={element.stroke ?? 'none'} strokeWidth={element.strokeWidth ?? 0} fillRule={element.fillRule ?? 'nonzero'} />;
 	else if (element.type === 'icon') content = renderIcon(element, icons);
 	else if (element.type === 'group') content = (element.children ?? []).map((child) => <g key={child.id}>{renderElement(child, icons)}</g>);
 	else if (element.type === 'text') {
@@ -51,8 +52,9 @@ function renderElement(element: Element, icons: LucideIconNodes | null) {
 	return <g transform={`translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})`} opacity={element.opacity}>{content}</g>;
 }
 
-export function DesignPreview({ design, icons }: { design: LogoDesign; icons: LucideIconNodes | null }) {
+export function DesignPreview({ design, icons, background = 'transparent' }: { design: LogoDesign; icons: LucideIconNodes | null; background?: string }) {
 	return <svg className="logo-gallery-preview" viewBox="0 0 600 600" role="img" aria-label={`${design.name} preview for ${design.elements.find((element) => element.type === 'text')?.text ?? 'business name'}`}>
+		{background !== 'transparent' && <rect width="600" height="600" fill={background} />}
 		{design.elements.map((element) => <g key={element.id}>{renderElement(element, icons)}</g>)}
 	</svg>;
 }

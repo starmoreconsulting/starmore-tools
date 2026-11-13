@@ -192,6 +192,63 @@ export function validateLogoProject(value: unknown): LogoProject {
 		variants[name] = elements.map((element) => validateElement(element, 0, count));
 	}
 	if (!variants.primary) throw new Error('The project file is missing its primary design.');
+	let variantBackgrounds: Record<string, string> | undefined;
+	if (value.variantBackgrounds !== undefined) {
+		if (!isRecord(value.variantBackgrounds)) throw new Error('The project file contains invalid variant backgrounds.');
+		variantBackgrounds = {};
+		for (const [name, background] of Object.entries(value.variantBackgrounds)) {
+			if (!variants[name] || typeof background !== 'string' || background.length > 100) {
+				throw new Error('The project file contains an invalid variant background.');
+			}
+			variantBackgrounds[name] = background;
+		}
+	}
+	let variantSources: Record<string, string> | undefined;
+	if (value.variantSources !== undefined) {
+		if (!isRecord(value.variantSources)) throw new Error('The project file contains invalid variant sources.');
+		variantSources = {};
+		for (const [name, signature] of Object.entries(value.variantSources)) {
+			if (!variants[name] || typeof signature !== 'string' || signature.length > 1_000_000) {
+				throw new Error('The project file contains an invalid variant source.');
+			}
+			variantSources[name] = signature;
+		}
+	}
+	let variantColors: Record<string, string> | undefined;
+	if (value.variantColors !== undefined) {
+		if (!isRecord(value.variantColors)) throw new Error('The project file contains invalid variant colours.');
+		variantColors = {};
+		for (const [name, color] of Object.entries(value.variantColors)) {
+			if (!variants[name] || typeof color !== 'string' || !/^#[\da-f]{6}$/i.test(color)) {
+				throw new Error('The project file contains an invalid variant colour.');
+			}
+			variantColors[name] = color;
+		}
+	}
+	let generation: LogoProject['generation'];
+	if (value.generation !== undefined) {
+		if (!isRecord(value.generation) || !isRecord(value.generation.fontPair)
+			|| typeof value.generation.seed !== 'number' || !Number.isFinite(value.generation.seed)
+			|| typeof value.generation.layoutId !== 'string'
+			|| typeof value.generation.paletteName !== 'string'
+			|| typeof value.generation.icon !== 'string'
+			|| typeof value.generation.fontPair.name !== 'string'
+			|| typeof value.generation.fontPair.primary !== 'string'
+			|| typeof value.generation.fontPair.secondary !== 'string') {
+			throw new Error('The project file contains invalid generator information.');
+		}
+		generation = {
+			layoutId: value.generation.layoutId.slice(0, 100),
+			seed: value.generation.seed,
+			paletteName: value.generation.paletteName.slice(0, 100),
+			icon: value.generation.icon.slice(0, 100),
+			fontPair: {
+				name: value.generation.fontPair.name.slice(0, 100),
+				primary: value.generation.fontPair.primary.slice(0, 100),
+				secondary: value.generation.fontPair.secondary.slice(0, 100),
+			},
+		};
+	}
 
 	let brief: LogoProject['brief'];
 	if (value.brief !== undefined) {
@@ -233,6 +290,10 @@ export function validateLogoProject(value: unknown): LogoProject {
 		updatedAt: finiteNumber(value.updatedAt) ? value.updatedAt : Date.now(),
 		artboard: { width, height, background },
 		variants,
+		...(variantBackgrounds ? { variantBackgrounds } : {}),
+		...(variantSources ? { variantSources } : {}),
+		...(variantColors ? { variantColors } : {}),
+		...(generation ? { generation } : {}),
 		...(brief ? { brief } : {}),
 	};
 }

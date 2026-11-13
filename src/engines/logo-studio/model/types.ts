@@ -46,6 +46,16 @@ export interface LogoProject {
 	updatedAt: number;
 	artboard: { width: number; height: number; background: string };
 	variants: Record<string, Element[]>;
+	variantBackgrounds?: Record<string, string>;
+	variantSources?: Record<string, string>;
+	variantColors?: Record<string, string>;
+	generation?: {
+		layoutId: string;
+		seed: number;
+		paletteName: string;
+		fontPair: { name: string; primary: string; secondary: string };
+		icon: string;
+	};
 	brief?: LogoBrief;
 }
 
@@ -106,7 +116,7 @@ export function createDefaultElement(type: ElementType, overrides: Partial<Eleme
 	const defaults: Element = {
 		id: createId(),
 		type,
-		name: type === 'text' ? 'Text' : type === 'shape' ? 'Shape' : type === 'icon' ? 'Icon' : type === 'group' ? 'Group' : 'Image',
+		name: type === 'text' ? 'Text' : type === 'shape' ? 'Shape' : type === 'icon' ? 'Icon' : type === 'group' ? 'Group' : type === 'path' ? 'Path' : 'Image',
 		x: 180,
 		y: 180,
 		width: 240,

@@ -50,7 +50,7 @@ function badgeEmblem(input: LayoutInput): Element[] {
 		shapeElement('circle', 176, 76, 248, 248, 'none', input.palette.colors[0], 4),
 		textElement(input, input.brief.businessName, { x: 186, y: 98, width: 228, height: 54 }, { size: 27, curve: -48, maximum: 16 }),
 		iconElement(input, 258, 166, 84),
-		textElement(input, input.brief.tagline || input.brief.industry, { x: 190, y: 256, width: 220, height: 45 }, { font: input.fontPair.secondary, size: 20, weight: 500, curve: 34, maximum: 18 }),
+		textElement(input, input.brief.tagline || input.brief.industry, { x: 190, y: 256, width: 220, height: 45 }, { font: input.fontPair.secondary, size: 20, weight: 500, curve: 34, role: 'tagline', maximum: 18 }),
 	];
 }
 

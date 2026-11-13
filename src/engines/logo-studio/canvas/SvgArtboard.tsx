@@ -7,6 +7,7 @@ import { outlineProjectText, type TextOutline } from '../export/outline';
 
 interface Props {
 	project: LogoProject;
+	variant: string;
 	zoom: number;
 	selectedId: string | null;
 	selectedIds: string[];
@@ -273,7 +274,7 @@ function pointInSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x: 
 	return { x: transformed.x, y: transformed.y };
 }
 
-export default function SvgArtboard({ project, zoom, selectedId, selectedIds, onSelect, onUpdate, onBackgroundChange }: Props) {
+export default function SvgArtboard({ project, variant, zoom, selectedId, selectedIds, onSelect, onUpdate, onBackgroundChange }: Props) {
 	const svgRef = useRef<SVGSVGElement>(null);
 	const actionRef = useRef<PointerAction | null>(null);
 	const movedRef = useRef(false);
@@ -281,8 +282,8 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 	const [textOutlines, setTextOutlines] = useState<Map<string, TextOutline>>(() => new Map());
 	const [outlineWarning, setOutlineWarning] = useState('');
 	const [centerGuides, setCenterGuides] = useState<CenterGuides>({ vertical: false, horizontal: false });
-	const background = project.artboard.background;
-	const elements = project.variants.primary ?? [];
+	const background = project.variantBackgrounds?.[variant] ?? project.artboard.background;
+	const elements = project.variants[variant] ?? [];
 	const textLayoutKey = getTextLayoutKey(elements);
 
 	useEffect(() => {
@@ -319,7 +320,7 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 		movedRef.current = false;
 		const point = pointInSvg(svg, event.clientX, event.clientY);
 		const [baseId, handle] = element.id.split(':');
-		const original = findElement(project.variants.primary ?? [], baseId);
+		const original = findElement(project.variants[variant] ?? [], baseId);
 		const target = original ?? element;
 		if (isResizeHandle(handle)) {
 			actionRef.current = {
@@ -393,7 +394,7 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 	};
 
 	return (
-		<div className={`logo-artboard-wrap${background === 'transparent' ? ' is-transparent' : ''}`}>
+		<div className={`logo-artboard-wrap${background === 'transparent' ? ' is-transparent' : ''}${variant === 'white' ? ' is-variant-white' : ''}`}>
 			<div className="logo-artboard-tools">
 				<label>
 					<input
@@ -421,8 +422,15 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 				}}
 				style={{ width: `${zoom}%`, background: background === 'transparent' ? 'transparent' : background, touchAction: 'none' }}
 			>
-				<rect data-artboard="background" width="100%" height="100%" fill={background === 'transparent' ? 'transparent' : background} />
-				<defs>{collectEffects(elements)}</defs>
+				<defs>
+					{collectEffects(elements)}
+					{variant === 'white' && <pattern id="logo-white-variant-checker" width="16" height="16" patternUnits="userSpaceOnUse">
+						<rect width="16" height="16" fill="#303030" />
+						<rect width="8" height="8" fill="#444444" />
+						<rect x="8" y="8" width="8" height="8" fill="#444444" />
+					</pattern>}
+				</defs>
+				<rect data-artboard="background" width="100%" height="100%" fill={variant === 'white' ? 'url(#logo-white-variant-checker)' : background === 'transparent' ? 'transparent' : background} />
 				{elements.map((element) => (
 					<SvgElement
 						key={element.id}

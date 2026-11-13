@@ -13,6 +13,9 @@ import SetupFlow from './SetupFlow';
 import GalleryScreen from './GalleryScreen';
 import { seedForBrief, type LogoDesign } from '../templates/generator';
 import { restoreLastProject, saveLocalProject, setLastProjectId } from '../store/local-projects';
+import VariantBar from './VariantBar';
+import CompareVariants from './CompareVariants';
+import { primarySignature } from '../variants/automatic';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -58,6 +61,7 @@ function findTextElements(elements: Element[]): Element[] {
 
 export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } = {}) {
 	const project = useLogoStudioStore((state) => state.project);
+	const activeVariant = useLogoStudioStore((state) => state.activeVariant);
 	const selectedId = useLogoStudioStore((state) => state.selectedId);
 	const selectedIds = useLogoStudioStore((state) => state.selectedIds);
 	const pastCount = useLogoStudioStore((state) => state.past.length);
@@ -78,6 +82,11 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const undo = useLogoStudioStore((state) => state.undo);
 	const redo = useLogoStudioStore((state) => state.redo);
 	const loadProject = useLogoStudioStore((state) => state.loadProject);
+	const setActiveVariant = useLogoStudioStore((state) => state.setActiveVariant);
+	const createFromPrimary = useLogoStudioStore((state) => state.createFromPrimary);
+	const duplicateCurrentVariant = useLogoStudioStore((state) => state.duplicateCurrentVariant);
+	const resetCurrentVariant = useLogoStudioStore((state) => state.resetCurrentVariant);
+	const rebuildVariant = useLogoStudioStore((state) => state.rebuildVariant);
 	const [zoom, setZoom] = useState(100);
 	const [mobilePanel, setMobilePanel] = useState<MobilePanel>('elements');
 	const [mobileSheetOpen, setMobileSheetOpen] = useState(true);
@@ -88,10 +97,15 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [showExportCenter, setShowExportCenter] = useState(false);
 	const [showSetup, setShowSetup] = useState(Boolean(preset));
 	const [showGallery, setShowGallery] = useState(false);
+	const [showVariantComparison, setShowVariantComparison] = useState(false);
 	const [galleryBrief, setGalleryBrief] = useState<LogoBrief | null>(null);
 	const [gallerySeed, setGallerySeed] = useState(0);
 	const fileInputRef = useRef<HTMLInputElement>(null);
-	const elements = project.variants.primary ?? [];
+	const elements = project.variants[activeVariant] ?? [];
+	const primaryElements = project.variants.primary ?? [];
+	const primaryChanged = activeVariant !== 'primary'
+		&& project.variantSources?.[activeVariant] !== primarySignature(primaryElements, project.artboard.background);
+	const monochromeColor = project.variantColors?.monochrome ?? '#111111';
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
 	const addText = () => addElement(createDefaultElement('text', { x: 90, y: 268, width: 420, height: 64 }));
 	const openProjectFile = async (file: File | undefined) => {
@@ -289,7 +303,8 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 					event.currentTarget.value = '';
 				}}
 			/>
-			{showExportCenter && <ExportCenter project={project} onClose={() => setShowExportCenter(false)} />}
+			{showExportCenter && <ExportCenter project={project} activeVariant={activeVariant} onClose={() => setShowExportCenter(false)} />}
+			{showVariantComparison && <CompareVariants project={project} onClose={() => setShowVariantComparison(false)} />}
 			{showGallery && galleryBrief ? (
 				<GalleryScreen
 					brief={galleryBrief}
@@ -304,6 +319,13 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 							...createDefaultProject(galleryBrief.businessName),
 							brief: galleryBrief,
 							variants: { primary: design.elements },
+							generation: {
+								layoutId: design.layoutId,
+								seed: gallerySeed,
+								paletteName: design.palette.name,
+								fontPair: design.fontPair,
+								icon: design.icon,
+							},
 						});
 						setShowGallery(false);
 						setStatus(`Opened ${design.name} for ${galleryBrief.businessName}.`);
@@ -329,8 +351,23 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 					{elementLibrary}
 				</div>
 				<div className="logo-phase-artboard-column">
+					<VariantBar
+						names={Object.keys(project.variants)}
+						active={activeVariant}
+						outdated={primaryChanged}
+						requiresManualArrangement={!project.generation && (activeVariant === 'horizontal' || activeVariant === 'vertical')}
+						monochromeColor={monochromeColor}
+						onSelect={setActiveVariant}
+						onCreateFromPrimary={() => createFromPrimary(activeVariant)}
+						onDuplicate={duplicateCurrentVariant}
+						onReset={resetCurrentVariant}
+						onRebuild={() => rebuildVariant(activeVariant, monochromeColor)}
+						onMonochromeChange={(color) => rebuildVariant('monochrome', color)}
+						onCompare={() => setShowVariantComparison(true)}
+					/>
 					<SvgArtboard
 						project={project}
+						variant={activeVariant}
 						zoom={zoom}
 						selectedId={selectedId}
 						selectedIds={selectedIds}

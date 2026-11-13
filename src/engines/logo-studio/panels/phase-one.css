@@ -8,6 +8,29 @@
 .logo-phase-toolbar button:disabled { opacity: .45; cursor: not-allowed; }
 .logo-phase-primary { background: #37694f !important; color: white !important; }
 .logo-phase-primary:hover { background: #2d573f !important; }
+.logo-variant-bar { width: 100%; padding: 9px; border: 1px solid #e6e5dc; border-radius: 5px; background: #fbfaf6; }
+.logo-variant-tabs { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 7px; }
+.logo-variant-tabs button { flex: 0 0 auto; min-height: 31px; padding: 5px 9px; border: 1px solid #dfe3d5; border-radius: 4px; background: #fffefa; color: #536054; font-size: 10px; font-weight: 650; cursor: pointer; }
+.logo-variant-tabs button[aria-selected="true"] { border-color: #37694f; background: #edf2e8; color: #2d573f; }
+.logo-variant-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.logo-variant-actions > button, .logo-variant-notice button { min-height: 29px; padding: 5px 8px; border: 1px solid #dfe3d5; border-radius: 4px; background: white; color: #465448; font-size: 9px; font-weight: 650; cursor: pointer; }
+.logo-variant-actions > button:disabled { opacity: .45; cursor: not-allowed; }
+.logo-variant-notice { margin: 0; color: #876318; font-size: 10px; }
+.logo-variant-color { display: inline-flex; align-items: center; gap: 5px; color: #536054; font-size: 10px; }
+.logo-variant-color input { width: 30px; height: 28px; padding: 2px; border: 1px solid #dfe3d5; border-radius: 4px; background: white; }
+.logo-compare-dialog { display: flex; width: min(1120px, 100%); max-height: 90vh; flex-direction: column; overflow: hidden; padding: 20px; border: 1px solid #e2e1d8; border-radius: 7px; background: #fbfaf6; box-shadow: 0 24px 70px #1c29234a; }
+.logo-compare-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.logo-compare-header h2 { margin: 0; color: #28352d; font-size: 22px; }
+.logo-compare-header .eyebrow { margin: 0 0 5px; color: #718071; font-size: 10px; letter-spacing: .12em; }
+.logo-compare-header button { width: 34px; min-height: 34px; border: 1px solid #dfe3d5; border-radius: 4px; background: white; font-size: 20px; cursor: pointer; }
+.logo-compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; overflow: auto; }
+.logo-compare-card { min-width: 0; padding: 8px; border: 1px solid #e6e5dc; border-radius: 5px; background: white; }
+.logo-compare-card h3 { margin: 0 0 7px; color: #465448; font-size: 11px; }
+.logo-compare-backgrounds { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.logo-compare-preview { overflow: hidden; aspect-ratio: 1; border-radius: 3px; }
+.logo-compare-preview.is-light { background: white; }
+.logo-compare-preview.is-dark { background: #202020; }
+.logo-compare-preview .logo-gallery-preview { width: 100%; height: 100%; background: transparent; }
 .logo-zoom-control { display: flex; height: 36px; align-items: center; gap: 5px; padding: 0 5px; border: 1px solid #dfe3d5; border-radius: 4px; background: #fffefa; }
 .logo-zoom-control button { width: 26px; min-height: 26px; padding: 0; border: 0; background: transparent; font-size: 18px; }
 .logo-zoom-control output { width: 38px; color: #667167; font-size: 11px; text-align: center; }
@@ -197,6 +220,9 @@
 	.logo-project-card-actions button { flex: 1; }
 	.logo-export-overlay { align-items: end; padding: 0; }
 	.logo-export-dialog { width: 100%; max-height: 94vh; padding: 17px 14px max(16px, env(safe-area-inset-bottom)); border-radius: 14px 14px 0 0; }
+	.logo-compare-dialog { width: 100%; max-height: 94vh; padding: 15px 12px max(16px, env(safe-area-inset-bottom)); border-radius: 14px 14px 0 0; }
+	.logo-compare-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.logo-variant-bar { margin-bottom: 8px; }
 	.logo-export-options { grid-template-columns: 1fr; }
 	.logo-export-format { padding: 12px; }
 	.logo-setup-overlay { align-items: end; padding: 0; }

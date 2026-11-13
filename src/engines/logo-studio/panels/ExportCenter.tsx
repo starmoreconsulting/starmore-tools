@@ -7,6 +7,7 @@ import type { LogoProject } from '../model/types';
 
 interface Props {
 	project: LogoProject;
+	activeVariant: string;
 	onClose: () => void;
 }
 
@@ -14,7 +15,7 @@ function safeFileName(name: string): string {
 	return name.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'logo-project';
 }
 
-export default function ExportCenter({ project, onClose }: Props) {
+export default function ExportCenter({ project, activeVariant, onClose }: Props) {
 	const [outlineText, setOutlineText] = useState(true);
 	const [pngTransparent, setPngTransparent] = useState(project.artboard.background === 'transparent');
 	const [pngScale, setPngScale] = useState<RasterScale>(1);
@@ -49,8 +50,16 @@ export default function ExportCenter({ project, onClose }: Props) {
 		}
 	};
 
-	const createSvg = (background = project.artboard.background) => (
-		exportProjectToSvg(project, { outlineText, background })
+	const activeProject: LogoProject = {
+		...project,
+		artboard: {
+			...project.artboard,
+			background: project.variantBackgrounds?.[activeVariant] ?? project.artboard.background,
+		},
+		variants: { primary: project.variants[activeVariant] ?? [] },
+	};
+	const createSvg = (background = activeProject.artboard.background) => (
+		exportProjectToSvg(activeProject, { outlineText, background })
 	);
 	const exportSvg = () => runExport('SVG', async () => {
 		const result = await createSvg();
@@ -60,7 +69,7 @@ export default function ExportCenter({ project, onClose }: Props) {
 	const exportPng = () => runExport('PNG', async () => {
 		const background = pngTransparent
 			? 'transparent'
-			: project.artboard.background === 'transparent' ? '#ffffff' : project.artboard.background;
+			: activeProject.artboard.background === 'transparent' ? '#ffffff' : activeProject.artboard.background;
 		const result = await createSvg(background);
 		const raster = await renderSvgToRaster(result.svg, {
 			width: project.artboard.width,
@@ -85,11 +94,11 @@ export default function ExportCenter({ project, onClose }: Props) {
 		return result;
 	});
 	const exportPdf = () => runExport('PDF', async () => {
-		const result = await exportProjectToSvg(project, {
+		const result = await exportProjectToSvg(activeProject, {
 			outlineText: true,
 			background: project.artboard.background,
 		});
-		const blob = await exportSvgToPdf(result.svg, project.artboard.width, project.artboard.height);
+		const blob = await exportSvgToPdf(result.svg, activeProject.artboard.width, activeProject.artboard.height);
 		downloadBlob(blob, `${safeFileName(project.name)}.pdf`);
 		return result;
 	});

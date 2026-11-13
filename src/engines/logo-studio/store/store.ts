@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createDefaultProject, type Element, type LogoProject } from '../model/types';
+import { createAutomaticVariant, primarySignature, STANDARD_VARIANTS } from '../variants/automatic';
 
 const HISTORY_LIMIT = 100;
 
@@ -107,28 +108,44 @@ function freshId(): string {
 	return globalThis.crypto?.randomUUID?.() ?? `logo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function cloneWithFreshIdsOnly(element: Element): Element {
+	return {
+		...clone(element),
+		id: freshId(),
+		children: element.children?.map(cloneWithFreshIdsOnly),
+	};
+}
+
 function updateProjectElements(
 	project: LogoProject,
 	update: (elements: Element[]) => Element[],
+	variant = 'primary',
 ): LogoProject {
 	return {
 		...project,
 		updatedAt: Date.now(),
 		variants: {
 			...project.variants,
-			primary: update(project.variants.primary ?? []),
+			[variant]: update(project.variants[variant] ?? []),
 		},
 	};
 }
 
 interface LogoStudioState {
 	project: LogoProject;
+	activeVariant: string;
 	selectedId: string | null;
 	selectedIds: string[];
 	past: LogoProject[];
 	future: LogoProject[];
 	clipboard: Element | null;
 	loadProject: (project: LogoProject) => void;
+	setActiveVariant: (name: string) => void;
+	createFromPrimary: (name: string) => void;
+	duplicateCurrentVariant: () => void;
+	resetCurrentVariant: () => void;
+	rebuildVariant: (name: string, monochromeColor?: string) => void;
+	setVariantBackground: (background: string) => void;
 	select: (id: string | null, extend?: boolean) => void;
 	updateElement: (id: string, patch: Partial<Element>, recordHistory?: boolean) => void;
 	addElement: (element: Element) => void;
@@ -158,6 +175,7 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 
 	return {
 		project: createDefaultProject(),
+		activeVariant: 'primary',
 		selectedId: null,
 		selectedIds: [],
 		past: [],
@@ -165,12 +183,107 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 		clipboard: null,
 		loadProject: (project) => set({
 			project: clone(project),
+			activeVariant: 'primary',
 			selectedId: null,
 			selectedIds: [],
 			past: [],
 			future: [],
 			clipboard: null,
 		}),
+		setActiveVariant: (name) => {
+			const state = get();
+			if (state.project.variants[name]) {
+				set({ activeVariant: name, selectedId: null, selectedIds: [] });
+				return;
+			}
+			if (!STANDARD_VARIANTS.includes(name as typeof STANDARD_VARIANTS[number])) return;
+			const color = state.project.variantColors?.[name] ?? '#111111';
+			const generated = createAutomaticVariant(state.project, name, color);
+			const source = primarySignature(state.project.variants.primary ?? [], state.project.artboard.background);
+			const project: LogoProject = {
+				...state.project,
+				updatedAt: Date.now(),
+				variants: { ...state.project.variants, [name]: generated.elements },
+				variantBackgrounds: { ...state.project.variantBackgrounds, [name]: generated.background },
+				variantSources: { ...state.project.variantSources, [name]: source },
+				...(name === 'monochrome' ? { variantColors: { ...state.project.variantColors, [name]: color } } : {}),
+			};
+			commitProject(project);
+			set({ activeVariant: name, selectedId: null, selectedIds: [] });
+		},
+		createFromPrimary: (name) => {
+			if (name === 'primary') return;
+			const state = get();
+			const color = state.project.variantColors?.[name] ?? '#111111';
+			const generated = createAutomaticVariant(state.project, name, color);
+			const source = primarySignature(state.project.variants.primary ?? [], state.project.artboard.background);
+			commitProject({
+				...state.project,
+				updatedAt: Date.now(),
+				variants: { ...state.project.variants, [name]: generated.elements },
+				variantBackgrounds: { ...state.project.variantBackgrounds, [name]: generated.background },
+				variantSources: { ...state.project.variantSources, [name]: source },
+				...(name === 'monochrome' ? { variantColors: { ...state.project.variantColors, [name]: color } } : {}),
+			});
+			set({ activeVariant: name, selectedId: null, selectedIds: [] });
+		},
+		duplicateCurrentVariant: () => {
+			const { project, activeVariant } = get();
+			const sourceElements = project.variants[activeVariant] ?? [];
+			let index = 2;
+			while (project.variants[`variant-${index}`]) index += 1;
+			const name = `variant-${index}`;
+			const elements = sourceElements.map(cloneWithFreshIdsOnly);
+			commitProject({
+				...project,
+				updatedAt: Date.now(),
+				variants: { ...project.variants, [name]: elements },
+				variantBackgrounds: { ...project.variantBackgrounds, [name]: project.variantBackgrounds?.[activeVariant] ?? project.artboard.background },
+				variantSources: { ...project.variantSources, [name]: primarySignature(project.variants.primary ?? [], project.artboard.background) },
+			});
+			set({ activeVariant: name, selectedId: null, selectedIds: [] });
+		},
+		resetCurrentVariant: () => {
+			const { project, activeVariant } = get();
+			if (activeVariant === 'primary') return;
+			const color = project.variantColors?.[activeVariant] ?? '#111111';
+			const generated = createAutomaticVariant(project, activeVariant, color);
+			commitProject({
+				...project,
+				updatedAt: Date.now(),
+				variants: { ...project.variants, [activeVariant]: generated.elements },
+				variantBackgrounds: { ...project.variantBackgrounds, [activeVariant]: generated.background },
+				variantSources: {
+					...project.variantSources,
+					[activeVariant]: primarySignature(project.variants.primary ?? [], project.artboard.background),
+				},
+			});
+			set({ selectedId: null, selectedIds: [] });
+		},
+		rebuildVariant: (name, monochromeColor) => {
+			const { project } = get();
+			const color = monochromeColor ?? project.variantColors?.[name] ?? '#111111';
+			const generated = createAutomaticVariant(project, name, color);
+			commitProject({
+				...project,
+				updatedAt: Date.now(),
+				variants: { ...project.variants, [name]: generated.elements },
+				variantBackgrounds: { ...project.variantBackgrounds, [name]: generated.background },
+				variantSources: { ...project.variantSources, [name]: primarySignature(project.variants.primary ?? [], project.artboard.background) },
+				...(name === 'monochrome' ? { variantColors: { ...project.variantColors, [name]: color } } : {}),
+			});
+		},
+		setVariantBackground: (background) => {
+			const { project, activeVariant } = get();
+			const nextProject: LogoProject = activeVariant === 'primary'
+				? { ...project, updatedAt: Date.now(), artboard: { ...project.artboard, background } }
+				: {
+					...project,
+					updatedAt: Date.now(),
+					variantBackgrounds: { ...project.variantBackgrounds, [activeVariant]: background },
+				};
+			commitProject(nextProject);
+		},
 		select: (id, extend = false) => set((state) => {
 			if (!id) return { selectedId: null, selectedIds: [] };
 			if (!extend) return { selectedId: id, selectedIds: [id] };
@@ -180,67 +293,63 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			return { selectedId: selectedIds.includes(id) ? id : selectedIds.at(-1) ?? null, selectedIds };
 		}),
 		updateElement: (id, patch, recordHistory = true) => {
-			const project = get().project;
-			const currentElements = project.variants.primary ?? [];
+			const { project, activeVariant } = get();
+			const currentElements = project.variants[activeVariant] ?? [];
 			if (!findElement(currentElements, id)) return;
 			const updated = updateProjectElements(project, (elements) => mapElements(
 				elements,
 				id,
 				(element) => ({ ...element, ...patch }),
-			).elements);
+			).elements, activeVariant);
 			commitProject(updated, recordHistory);
 		},
 		addElement: (element) => {
-			const project = updateProjectElements(get().project, (elements) => [...elements, element]);
+			const { project: current, activeVariant } = get();
+			const project = updateProjectElements(current, (elements) => [...elements, element], activeVariant);
 			commitProject(project);
 			set({ selectedId: element.id, selectedIds: [element.id] });
 		},
 		removeSelected: () => {
-			const { project: current, selectedId, selectedIds } = get();
+			const { project: current, selectedId, selectedIds, activeVariant } = get();
 			const ids = selectedIds.length ? selectedIds : selectedId ? [selectedId] : [];
 			if (!ids.length) return;
 			const project = updateProjectElements(current, (elements) => ids.reduce(
 				(next, id) => mapElements(next, id, () => null).elements,
 				elements,
-			));
+			), activeVariant);
 			commitProject(project);
 			set({ selectedId: null, selectedIds: [] });
 		},
 		duplicateSelected: () => {
-			const { project, selectedId } = get();
+			const { project, selectedId, activeVariant } = get();
 			if (!selectedId) return;
-			const source = findElement(project.variants.primary ?? [], selectedId);
+			const source = findElement(project.variants[activeVariant] ?? [], selectedId);
 			if (!source) return;
 			const copy = cloneWithFreshIds(source);
-			const duplicated = updateProjectElements(project, (elements) => [...elements, copy]);
+			const duplicated = updateProjectElements(project, (elements) => [...elements, copy], activeVariant);
 			commitProject(duplicated);
 			set({ selectedId: copy.id, selectedIds: [copy.id] });
 		},
 		copySelected: () => {
-			const { project, selectedId } = get();
+			const { project, selectedId, activeVariant } = get();
 			if (!selectedId) return;
-			const element = findElement(project.variants.primary ?? [], selectedId);
+			const element = findElement(project.variants[activeVariant] ?? [], selectedId);
 			if (element) set({ clipboard: clone(element) });
 		},
 		paste: () => {
-			const source = get().clipboard;
+			const { clipboard: source, project: current, activeVariant } = get();
 			if (!source) return;
 			const element = cloneWithFreshIds(source);
-			const project = updateProjectElements(get().project, (elements) => [...elements, element]);
+			const project = updateProjectElements(current, (elements) => [...elements, element], activeVariant);
 			commitProject(project);
 			set({ selectedId: element.id, selectedIds: [element.id] });
 		},
 		setBackground: (background) => {
-			const project = get().project;
-			commitProject({
-				...project,
-				updatedAt: Date.now(),
-				artboard: { ...project.artboard, background },
-			});
+			get().setVariantBackground(background);
 		},
 		reorderElement: (id, targetId) => {
 			if (id === targetId) return;
-			const current = get().project;
+			const { project: current, activeVariant } = get();
 			let changed = false;
 			const project = updateProjectElements(current, (elements) => {
 				const result = updateSiblingList(elements, [id, targetId], (siblings) => {
@@ -253,11 +362,11 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 				});
 				changed = result.changed;
 				return result.elements;
-			});
+			}, activeVariant);
 			if (changed) commitProject(project);
 		},
 		groupSelected: () => {
-			const { project: current, selectedIds } = get();
+			const { project: current, selectedIds, activeVariant } = get();
 			if (selectedIds.length < 2) return;
 			const groupId = freshId();
 			let changed = false;
@@ -289,29 +398,29 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 				});
 				changed = result.changed;
 				return result.elements;
-			});
+			}, activeVariant);
 			if (!changed) return;
 			commitProject(project);
 			set({ selectedId: groupId, selectedIds: [groupId] });
 		},
 		ungroupSelected: () => {
-			const { project: current, selectedId } = get();
+			const { project: current, selectedId, activeVariant } = get();
 			if (!selectedId) return;
 			let childIds: string[] = [];
 			const project = updateProjectElements(current, (elements) => {
 				const result = replaceGroupWithChildren(elements, selectedId);
 				childIds = result.children;
 				return result.elements;
-			});
+			}, activeVariant);
 			if (!childIds.length) return;
 			commitProject(project);
 			set({ selectedId: childIds[0], selectedIds: childIds });
 		},
 		alignSelected: (alignment, toArtboard, width, height) => {
-			const { project: current, selectedIds, selectedId } = get();
+			const { project: current, selectedIds, selectedId, activeVariant } = get();
 			const ids = selectedIds.length ? selectedIds : selectedId ? [selectedId] : [];
 			if (!ids.length) return;
-			const elements = ids.map((id) => findElement(current.variants.primary ?? [], id)).filter((element): element is Element => Boolean(element));
+			const elements = ids.map((id) => findElement(current.variants[activeVariant] ?? [], id)).filter((element): element is Element => Boolean(element));
 			if (!elements.length) return;
 			const bounds = {
 				left: Math.min(...elements.map((element) => element.x)),
@@ -332,13 +441,13 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			const project = updateProjectElements(current, (list) => ids.reduce((next, id) => {
 				const patch = patches.get(id);
 				return patch ? mapElements(next, id, (element) => ({ ...element, ...patch })).elements : next;
-			}, list));
+			}, list), activeVariant);
 			commitProject(project);
 		},
 		distributeSelected: (axis) => {
-			const { project: current, selectedIds } = get();
+			const { project: current, selectedIds, activeVariant } = get();
 			if (selectedIds.length < 3) return;
-			const elements = selectedIds.map((id) => findElement(current.variants.primary ?? [], id)).filter((element): element is Element => Boolean(element));
+			const elements = selectedIds.map((id) => findElement(current.variants[activeVariant] ?? [], id)).filter((element): element is Element => Boolean(element));
 			if (elements.length < 3) return;
 			const horizontal = axis === 'horizontal';
 			const sorted = [...elements].sort((a, b) => horizontal ? a.x - b.x : a.y - b.y);
@@ -357,7 +466,7 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			const project = updateProjectElements(current, (list) => sorted.reduce((next, element) => {
 				const patch = patches.get(element.id);
 				return patch ? mapElements(next, element.id, (item) => ({ ...item, ...patch })).elements : next;
-			}, list));
+			}, list), activeVariant);
 			commitProject(project);
 		},
 		undo: () => {
@@ -366,6 +475,7 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			const previous = past[past.length - 1];
 			set({
 				project: previous,
+				activeVariant: previous.variants[get().activeVariant] ? get().activeVariant : 'primary',
 				past: past.slice(0, -1),
 				future: [clone(project), ...future].slice(0, HISTORY_LIMIT),
 				selectedId: null,
@@ -378,6 +488,7 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			const [next, ...remaining] = future;
 			set({
 				project: next,
+				activeVariant: next.variants[get().activeVariant] ? get().activeVariant : 'primary',
 				past: [...past, clone(project)].slice(-HISTORY_LIMIT),
 				future: remaining,
 				selectedId: null,
