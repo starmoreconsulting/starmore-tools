@@ -5,6 +5,7 @@ export type MockupCategory =
 	| 'Packaging'
 	| 'Apparel'
 	| 'Retail'
+	| 'Drinkware'
 	| 'Social'
 	| 'Digital';
 
