@@ -53,6 +53,7 @@ export type ToolComponentName =
 	| 'PhotoAdjustments'
 	| 'ImageColourPicker'
 	| 'ColourPaletteExtractor'
+	| 'FaviconGenerator'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -179,6 +180,23 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ColourPaletteExtractor',
 		icon: '▦',
+		live: false,
+	},
+	{
+		slug: 'favicon-generator',
+		name: 'Favicon Generator',
+		department: 'image',
+		description: 'Generate multi-size PNG favicons, an ICO file, a manifest and an HTML snippet.',
+		seoTitle: 'Favicon Generator: ICO, PNG and Web Manifest | Starmore Tools',
+		seoDescription: 'Create a website favicon from an image, text or emoji, then download PNG icon sizes, a real multi-size ICO, site.webmanifest and HTML snippet in one ZIP.',
+		howTo: ['Choose an image, type short text or enter an emoji.', 'Set the background shape, colours and padding, then preview the icon.', 'Generate the ZIP and use its ICO, PNG, webmanifest and HTML snippet on your site.'],
+		faqs: [
+			{ question: 'Does favicon.ico contain several sizes?', answer: 'Yes. The ICO file contains embedded PNG entries at 16, 32 and 48 px, alongside separate PNG files at 16, 32, 48, 180, 192 and 512 px.' },
+			{ question: 'Are uploaded images sent to a server?', answer: 'No. Your images never leave your device; icon rendering and ZIP creation run locally in your browser.' },
+			{ question: 'Can I use the output on any website?', answer: 'Yes. Copy the included HTML snippet and adjust paths or manifest names to match your site.' },
+		],
+		component: 'FaviconGenerator',
+		icon: '✦',
 		live: false,
 	},
 	{
