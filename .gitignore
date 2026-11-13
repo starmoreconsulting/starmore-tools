@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Local model weights and mask-test images
+models-source/*.onnx
+test-images/*
+!test-images/README.md
+docs/mask-tests/*.png
