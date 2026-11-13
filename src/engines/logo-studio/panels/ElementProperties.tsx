@@ -1,5 +1,5 @@
 import type { Element } from '../model/types';
-import { LOGO_FONT_FAMILIES } from '../library/fonts';
+import { logoFonts } from '../library/fonts';
 
 interface Props {
 	element: Element | null;
@@ -61,7 +61,7 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 			{element.type === 'text' && (
 				<div className="logo-phase-text-options">
 					<label className="logo-phase-field"><span>Text</span><textarea rows={3} value={element.text ?? ''} onChange={(event) => onUpdate({ text: event.target.value })} /></label>
-					<label className="logo-phase-field"><span>Font</span><select value={element.fontFamily ?? 'Inter'} onChange={(event) => onUpdate({ fontFamily: event.target.value })}>{LOGO_FONT_FAMILIES.map((font) => <option key={font} value={font}>{font}</option>)}</select></label>
+					<label className="logo-phase-field"><span>Font</span><select value={element.fontFamily ?? 'Inter'} onChange={(event) => onUpdate({ fontFamily: event.target.value })}>{logoFonts.map((font) => <option key={font.family} value={font.family}>{font.family}</option>)}</select></label>
 					<label className="logo-phase-field"><span>Font size</span><input type="number" min="1" value={element.fontSize ?? 48} onChange={(event) => onUpdate({ fontSize: Math.max(1, numberValue(event.target.value, element.fontSize ?? 48)) })} /></label>
 					<label className="logo-phase-field"><span>Weight</span><select value={element.fontWeight ?? 400} onChange={(event) => onUpdate({ fontWeight: Number(event.target.value) })}><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semibold</option><option value="700">Bold</option><option value="800">Extra bold</option></select></label>
 					<label className="logo-phase-field"><span>Letter spacing</span><input type="number" step="0.5" value={element.letterSpacing ?? 0} onChange={(event) => onUpdate({ letterSpacing: numberValue(event.target.value, element.letterSpacing ?? 0) })} /></label>
