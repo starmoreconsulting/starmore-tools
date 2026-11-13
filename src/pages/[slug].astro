@@ -40,6 +40,11 @@ export function getStaticPaths() {
 		'industry-logo-generator',
 		'icon-logo-generator',
 		'initials-logo-generator',
+		'logo-variation-generator',
+		'black-and-white-logo-generator',
+		'logo-colour-variation-generator',
+		'reference-logo-generator',
+		'logo-redesign-tool',
 	]);
 	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },

@@ -40,6 +40,11 @@ function presetBrief(preset: LogoStudioPreset): LogoBrief {
 		industry: { industry: 'Technology', style: 'Modern', arrangement: 'icon-above-text' },
 		icon: { style: 'Geometric', arrangement: 'icon-above-text' },
 		initials: { style: 'Elegant', arrangement: 'badge' },
+		variation: { style: 'Modern', arrangement: 'icon-above-text' },
+		'black-and-white': { style: 'Minimalist', preferredPalette: 'Black and white', arrangement: 'text-only' },
+		'colour-variation': { style: 'Modern', preferredPalette: 'Pastels', arrangement: 'icon-above-text' },
+		reference: { style: 'Modern', arrangement: 'icon-above-text' },
+		redesign: { style: 'Vintage', arrangement: 'icon-above-text' },
 	};
 	return { ...defaults, ...presets[preset] };
 }
@@ -62,6 +67,7 @@ function findTextElements(elements: Element[]): Element[] {
 }
 
 export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } = {}) {
+	const uploadPreset = preset === 'reference' || preset === 'redesign';
 	const project = useLogoStudioStore((state) => state.project);
 	const activeVariant = useLogoStudioStore((state) => state.activeVariant);
 	const selectedId = useLogoStudioStore((state) => state.selectedId);
@@ -93,12 +99,14 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [zoom, setZoom] = useState(100);
 	const [mobilePanel, setMobilePanel] = useState<MobilePanel>('elements');
 	const [mobileSheetOpen, setMobileSheetOpen] = useState(true);
-	const [status, setStatus] = useState('Your design stays on this device.');
+	const [status, setStatus] = useState(uploadPreset
+		? 'Import an SVG or add a local reference image to start your redesign.'
+		: 'Your design stays on this device.');
 	const [fileError, setFileError] = useState('');
 	const [storageReady, setStorageReady] = useState(false);
 	const [showProjects, setShowProjects] = useState(false);
 	const [showExportCenter, setShowExportCenter] = useState(false);
-	const [showSetup, setShowSetup] = useState(Boolean(preset));
+	const [showSetup, setShowSetup] = useState(Boolean(preset && !uploadPreset));
 	const [showGallery, setShowGallery] = useState(false);
 	const [showVariantComparison, setShowVariantComparison] = useState(false);
 	const [reference, setReference] = useState<ReferenceLayer | null>(null);

@@ -69,7 +69,8 @@ export type LogoStyle =
 	| 'Playful' | 'Professional';
 
 export type LogoArrangement = 'icon-above-text' | 'icon-left' | 'icon-right' | 'text-only' | 'badge';
-export type LogoStudioPreset = 'text' | 'monogram' | 'template' | 'business-name' | 'industry' | 'icon' | 'initials';
+export type LogoStudioPreset = 'text' | 'monogram' | 'template' | 'business-name' | 'industry' | 'icon' | 'initials'
+	| 'variation' | 'black-and-white' | 'colour-variation' | 'reference' | 'redesign';
 
 export interface LogoBrief {
 	businessName: string;
