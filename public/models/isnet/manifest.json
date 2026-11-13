@@ -1,0 +1,53 @@
+{
+  "name": "isnet",
+  "filename": "isnet-general-use-fp16.onnx",
+  "license": "Apache-2.0 weights (DIS); MIT ONNX export (rembg)",
+  "provenance": [
+    "Weights by xuebinqin/DIS under Apache-2.0.",
+    "The fp32 ONNX export is distributed by rembg under MIT.",
+    "fp16 model converted locally from the approved rembg fp32 export; auxiliary outputs removed."
+  ],
+  "sourceUrl": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx",
+  "totalBytes": 90661254,
+  "sha256": "1e00f2f0b23dea1b687ff90652263144fdb98af942aaa0cae8630c49159b18f0",
+  "sourceBytes": 178648008,
+  "sourceSha256": "60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a",
+  "inputSize": {
+    "width": 1024,
+    "height": 1024
+  },
+  "preprocessing": {
+    "color": "RGB",
+    "resize": "1024 x 1024",
+    "scale": "x / 255 - 0.5",
+    "source": "Starmore Tools model configuration supplied for this IS-Net export"
+  },
+  "outputNormalization": "Per-image min-max normalization",
+  "parts": [
+    {
+      "file": "part-000.bin",
+      "bytes": 20971520,
+      "sha256": "77757c67d02b6f4aa56a0faaf8237c2208a7a794a6fd2604ce3dfb4d77ce9d0e"
+    },
+    {
+      "file": "part-001.bin",
+      "bytes": 20971520,
+      "sha256": "6e9a2adf371f95a6c66a3de9aa57ec00bf4aa210f48951c97db63fedb4953cea"
+    },
+    {
+      "file": "part-002.bin",
+      "bytes": 20971520,
+      "sha256": "0356c53704e9a5dc940ad7b40704ea5e9c3afaac7f8bf5e9e203d6e9ddfd0d0a"
+    },
+    {
+      "file": "part-003.bin",
+      "bytes": 20971520,
+      "sha256": "c35eeeb48d55d262b8faed78d75f8907b23a650fc5d31822418be64537ed7006"
+    },
+    {
+      "file": "part-004.bin",
+      "bytes": 6775174,
+      "sha256": "bb91e1a8b4183171275f29235574d013e1090785fe51edd1f7b32a26019dafda"
+    }
+  ]
+}

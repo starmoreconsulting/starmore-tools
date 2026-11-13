@@ -29,3 +29,5 @@ models-source/*.onnx
 test-images/*
 !test-images/README.md
 docs/mask-tests/*.png
+public/models/*/*.onnx
+public/models/*/*.bin

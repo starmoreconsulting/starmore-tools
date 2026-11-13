@@ -19,7 +19,7 @@ The development-only conversion script reads `isnet-general-use-fp32.onnx` and w
 py -3.12 -m venv .venv-models
 .\.venv-models\Scripts\python.exe -m pip install --upgrade pip
 .\.venv-models\Scripts\python.exe -m pip install onnx onnxconverter-common onnxruntime
-.\.venv-models\Scripts\python.exe scripts\convert-isnet-fp16.py
+npm run models:convert
 ```
 
-Python 3.12 must be installed. The `.venv-models/` environment and all model files are local development artifacts and are not committed.
+Python 3.12 must be installed. The verified fp32 source SHA-256 is `60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a`. The `.venv-models/` environment, source weights, converted model, and generated model parts are local development artifacts and are not committed.

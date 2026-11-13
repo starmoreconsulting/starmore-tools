@@ -1,0 +1,9 @@
+U²-Netp model and ONNX export
+
+The model weights originate from U²-Net by Xuebin Qin, Zichen Zhang,
+Chenyang Huang, Masood Dehghan, Osmar R. Zaiane, and Martin Jagersand.
+The weights are licensed under Apache-2.0. See Apache-2.0.txt.
+
+The ONNX export is distributed by rembg v0.0.0 under MIT. See rembg-MIT.txt.
+The preprocessing used by this project is documented in docs/models.md and
+the public model manifest.

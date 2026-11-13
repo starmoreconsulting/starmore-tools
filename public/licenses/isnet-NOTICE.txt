@@ -1,0 +1,11 @@
+IS-Net general-use model and ONNX export
+
+The model weights originate from DIS by Xuebin Qin, Hang Dai, Xiaobin Hu,
+Deng-Ping Fan, Ling Shao, and Luc Van Gool, and are identified for this
+project as Apache-2.0. See Apache-2.0.txt.
+
+The approved fp32 ONNX export is distributed by rembg under MIT. See
+rembg-MIT.txt. The fp16 model served by this project was locally converted
+from the hash-verified rembg fp32 file; auxiliary outputs after the first
+matte output were removed. The conversion and source hashes are recorded in
+docs/models.md.

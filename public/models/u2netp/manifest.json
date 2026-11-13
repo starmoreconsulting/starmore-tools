@@ -1,0 +1,43 @@
+{
+  "name": "u2netp",
+  "filename": "u2netp.onnx",
+  "license": "Apache-2.0 weights (U²-Net); MIT ONNX export (rembg)",
+  "provenance": [
+    "Weights by xuebinqin/U-2-Net under Apache-2.0.",
+    "ONNX export distributed by rembg release v0.0.0 under MIT."
+  ],
+  "sourceUrl": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx",
+  "totalBytes": 4574861,
+  "sha256": "309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8",
+  "inputSize": {
+    "width": 320,
+    "height": 320
+  },
+  "preprocessing": {
+    "color": "RGB",
+    "resize": "320 x 320",
+    "scale": "divide by the per-image maximum (normally 255)",
+    "normalize": {
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ],
+      "formula": "(channel - mean) / std"
+    },
+    "source": "rembg v0.0.0 src/rembg/u2net/detect.py preprocess() and src/rembg/u2net/data_loader.py ToTensorLab(flag=0)"
+  },
+  "outputNormalization": "Per-image min-max normalization",
+  "parts": [
+    {
+      "file": "u2netp.onnx",
+      "bytes": 4574861,
+      "sha256": "309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8"
+    }
+  ]
+}

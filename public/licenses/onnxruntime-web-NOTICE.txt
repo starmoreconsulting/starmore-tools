@@ -1,0 +1,5 @@
+ONNX Runtime Web 1.31.1
+
+Copyright (c) Microsoft Corporation
+
+Licensed under the MIT License. See onnxruntime-web-MIT.txt.
