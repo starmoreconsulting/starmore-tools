@@ -185,6 +185,50 @@ function sharpenImage(id: string, task: Extract<ImageWorkerTask, { type: 'sharpe
 	return new ImageData(output, width, height);
 }
 
+function denoiseImage(id: string, task: Extract<ImageWorkerTask, { type: 'denoise' }>): ImageData {
+	const { data, width, height, luminanceStrength, colorStrength } = task;
+	if (data.length !== width * height * 4) throw new Error('The source pixel data is incomplete.');
+	if (width * height > 48_000_000) throw new Error('This image exceeds the 48 million pixel processing limit. Try a smaller image.');
+	const output = new Uint8ClampedArray(data);
+	const radius = 2;
+	const spatialSigma = 1.6;
+	const lumaSigma = Math.max(2, 10 + luminanceStrength * 45);
+	const colorSigma = Math.max(2, 10 + colorStrength * 45);
+	const totalRows = height;
+	for (let y = 0; y < height; y += 1) {
+		for (let x = 0; x < width; x += 1) {
+			const center = (y * width + x) * 4;
+			const centerLuma = 0.2126 * data[center] + 0.7152 * data[center + 1] + 0.0722 * data[center + 2];
+			const sums = [0, 0, 0];
+			let weightSum = 0;
+			for (let oy = -radius; oy <= radius; oy += 1) {
+				const sy = Math.max(0, Math.min(height - 1, y + oy));
+				for (let ox = -radius; ox <= radius; ox += 1) {
+					const sx = Math.max(0, Math.min(width - 1, x + ox));
+					const sample = (sy * width + sx) * 4;
+					const sampleLuma = 0.2126 * data[sample] + 0.7152 * data[sample + 1] + 0.0722 * data[sample + 2];
+					const lumaDiff = sampleLuma - centerLuma;
+					const spatialWeight = Math.exp(-(ox * ox + oy * oy) / (2 * spatialSigma * spatialSigma));
+					const lumaWeight = luminanceStrength > 0 ? Math.exp(-(lumaDiff * lumaDiff) / (2 * lumaSigma * lumaSigma)) : 1;
+					const colorDistance = ((data[sample] - data[center]) ** 2 + (data[sample + 1] - data[center + 1]) ** 2 + (data[sample + 2] - data[center + 2]) ** 2) / 3;
+					const colorWeight = colorStrength > 0 ? Math.exp(-colorDistance / (2 * colorSigma * colorSigma)) : 1;
+					const weight = spatialWeight * lumaWeight ** luminanceStrength * colorWeight ** colorStrength;
+					weightSum += weight;
+					for (let channel = 0; channel < 3; channel += 1) sums[channel] += data[sample + channel] * weight;
+				}
+			}
+			const mix = Math.max(luminanceStrength, colorStrength) * 0.82;
+			for (let channel = 0; channel < 3; channel += 1) {
+				const filtered = sums[channel] / (weightSum || 1);
+				output[center + channel] = Math.round(data[center + channel] * (1 - mix) + filtered * mix);
+			}
+		}
+		if (y % 12 === 0) emitProgress(id, y, totalRows);
+	}
+	emitProgress(id, totalRows, totalRows);
+	return new ImageData(output, width, height);
+}
+
 function clampRinging(output: Uint8ClampedArray, width: number, height: number, source: Uint8ClampedArray, sourceWidth: number, sourceHeight: number): void {
 	for (let y = 0; y < height; y += 1) {
 		const sy = Math.max(0, Math.min(sourceHeight - 1, Math.round((y + 0.5) * sourceHeight / height - 0.5)));
@@ -233,7 +277,11 @@ function gentleSharpen(data: Uint8ClampedArray, width: number, height: number, a
 workerScope.onmessage = (event: MessageEvent<WorkerRequest>) => {
 	const { id, task } = event.data;
 	try {
-		const imageData = task.type === 'upscale' ? resample(id, task) : sharpenImage(id, task);
+		const imageData = task.type === 'upscale'
+			? resample(id, task)
+			: task.type === 'sharpen'
+				? sharpenImage(id, task)
+				: denoiseImage(id, task);
 		workerScope.postMessage({
 			id,
 			result: { data: imageData.data, width: imageData.width, height: imageData.height },

@@ -49,6 +49,7 @@ export type ToolComponentName =
 	| 'ImageCropper'
 	| 'ImageUpscaler'
 	| 'ImageSharpener'
+	| 'ImageDenoiser'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -109,6 +110,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageSharpener',
 		icon: '✳',
+		live: false,
+	},
+	{
+		slug: 'image-denoiser',
+		name: 'Image Denoiser',
+		department: 'image',
+		description: 'Reduce luminance and colour noise with an edge-preserving filter.',
+		seoTitle: 'Private Image Denoiser | Starmore Tools',
+		seoDescription: 'Reduce luminance and colour noise in photos using an edge-preserving filter that runs locally in your browser, with a zoomed before-and-after crop.',
+		howTo: ['Choose a JPG, PNG, WebP, GIF or BMP image.', 'Adjust luminance and colour noise reduction, then inspect the zoomed crop.', 'Reduce noise, compare the result and download your image.'],
+		faqs: [
+			{ question: 'Does denoising preserve every detail?', answer: 'No. Noise reduction can soften fine texture and small details, especially at stronger settings.' },
+			{ question: 'Do my photos leave this device?', answer: 'No. Your image files never leave your device; processing is performed locally in a background worker.' },
+		],
+		component: 'ImageDenoiser',
+		icon: '◌',
 		live: false,
 	},
 	{
