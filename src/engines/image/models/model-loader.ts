@@ -32,6 +32,7 @@ export interface LoadedModel {
 export interface ModelLoadOptions {
 	onProgress?: (progress: ModelDownloadProgress) => void;
 	requestConsent?: (downloadBytes: number) => Promise<boolean>;
+	signal?: AbortSignal;
 }
 
 interface WorkerMessage {
@@ -63,10 +64,16 @@ export function loadBackgroundModel(
 	return new Promise((resolve, reject) => {
 		const worker = new Worker(new URL('./model-loader.worker.ts', import.meta.url), { type: 'module' });
 		let settled = false;
+		const abort = () => {
+			const error = new Error('Background model loading was cancelled.');
+			error.name = 'AbortError';
+			finish(error);
+		};
 
 		const finish = (error?: Error, result?: LoadedModel) => {
 			if (settled) return;
 			settled = true;
+			options.signal?.removeEventListener('abort', abort);
 			worker.terminate();
 			if (error) reject(error);
 			else if (result) resolve(result);
@@ -108,6 +115,11 @@ export function loadBackgroundModel(
 		worker.onerror = () => {
 			finish(new Error('Background processing stopped unexpectedly. Try a smaller image or Quick mode.'));
 		};
+		if (options.signal?.aborted) {
+			abort();
+			return;
+		}
+		options.signal?.addEventListener('abort', abort, { once: true });
 		worker.postMessage({ type: 'load', model });
 	});
 }

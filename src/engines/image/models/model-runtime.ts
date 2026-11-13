@@ -11,8 +11,9 @@ interface RuntimeMessage {
 export interface ModelWorkerResult {
 	width: number;
 	height: number;
+	maskWidth: number;
+	maskHeight: number;
 	mask: Uint8Array;
-	pixels: Uint8ClampedArray;
 }
 
 export interface ModelRuntimeHandle {
@@ -23,6 +24,7 @@ export interface ModelRuntimeHandle {
 export function initializeModelRuntime(
 	model: BackgroundModelName,
 	loadedModel: LoadedModel,
+	signal?: AbortSignal,
 ): Promise<ModelRuntimeHandle> {
 	return new Promise((resolve, reject) => {
 		const worker = new Worker(new URL('./model-runtime.worker.ts', import.meta.url), { type: 'module' });
@@ -30,6 +32,12 @@ export function initializeModelRuntime(
 		let processing = false;
 		let processResolve: ((result: ModelWorkerResult) => void) | undefined;
 		let processReject: ((error: Error) => void) | undefined;
+		const abort = () => {
+			const error = new Error('Background processing was cancelled.');
+			error.name = 'AbortError';
+			fail(error);
+		};
+		const removeAbortListener = () => signal?.removeEventListener('abort', abort);
 		const fail = (error: Error) => {
 			if (processing) {
 				processing = false;
@@ -39,6 +47,7 @@ export function initializeModelRuntime(
 			}
 			const wasReady = settled;
 			settled = true;
+			removeAbortListener();
 			worker.terminate();
 			if (!wasReady) reject(error);
 		};
@@ -62,6 +71,11 @@ export function initializeModelRuntime(
 				settled = true;
 				resolve({
 					removeBackground: (file) => {
+						if (signal?.aborted) {
+							const error = new Error('Background processing was cancelled.');
+							error.name = 'AbortError';
+							return Promise.reject(error);
+						}
 						if (processing) return Promise.reject(new Error('This model is already processing an image.'));
 						processing = true;
 						return new Promise((resolveResult, rejectResult) => {
@@ -74,6 +88,7 @@ export function initializeModelRuntime(
 						if (processing) {
 							processReject?.(new Error('Background processing was stopped.'));
 						}
+						removeAbortListener();
 						worker.terminate();
 					},
 				});
@@ -87,6 +102,11 @@ export function initializeModelRuntime(
 			}
 		};
 		worker.onerror = () => fail(new Error('The model runtime worker stopped unexpectedly.'));
+		if (signal?.aborted) {
+			abort();
+			return;
+		}
+		signal?.addEventListener('abort', abort, { once: true });
 		worker.postMessage(
 			{ type: 'init', model, manifest: loadedModel.manifest, bytes: loadedModel.bytes },
 			[loadedModel.bytes],
@@ -101,7 +121,7 @@ export async function runBackgroundModel(
 ): Promise<ModelWorkerResult> {
 	getImageInputType(file);
 	const loadedModel = await loadBackgroundModel(model, options);
-	const runtime = await initializeModelRuntime(model, loadedModel);
+	const runtime = await initializeModelRuntime(model, loadedModel, options.signal);
 	try {
 		return await runtime.removeBackground(file);
 	} finally {

@@ -56,6 +56,7 @@ export type ToolComponentName =
 	| 'FaviconGenerator'
 	| 'SocialMediaImageResizer'
 	| 'ImageWatermarkGenerator'
+	| 'BackgroundRemover'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'

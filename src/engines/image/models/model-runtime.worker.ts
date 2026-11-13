@@ -18,8 +18,9 @@ interface WorkerScope {
 interface WorkerResult {
 	width: number;
 	height: number;
+	maskWidth: number;
+	maskHeight: number;
 	mask: Uint8Array;
-	pixels: Uint8ClampedArray;
 }
 
 const scope = self as unknown as WorkerScope;
@@ -159,22 +160,15 @@ async function removeBackground(file: Blob): Promise<WorkerResult> {
 		const outputs = await runtimeSession.run({ [inputName]: tensor });
 		const matteOutput = outputs[outputName];
 		if (!matteOutput) throw new Error('The model did not return its first matte output.');
+		const scale = Math.min(1, 2048 / Math.max(bitmap.width, bitmap.height));
+		const maskWidth = Math.max(1, Math.round(bitmap.width * scale));
+		const maskHeight = Math.max(1, Math.round(bitmap.height * scale));
 		const mask = resizeMaskBilinear(
 			normalizeMatte(matteOutput.data as ArrayLike<number>, matteOutput.dims),
-			bitmap.width,
-			bitmap.height,
+			maskWidth,
+			maskHeight,
 		);
-
-		const originalCanvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-		const originalContext = originalCanvas.getContext('2d', { willReadFrequently: true });
-		if (!originalContext) throw new Error('The browser could not prepare the original image.');
-		originalContext.drawImage(bitmap, 0, 0);
-		const original = originalContext.getImageData(0, 0, bitmap.width, bitmap.height);
-		for (let pixel = 0; pixel < mask.length; pixel += 1) {
-			const alpha = pixel * 4 + 3;
-			original.data[alpha] = Math.round(original.data[alpha] * mask[pixel] / 255);
-		}
-		return { width: bitmap.width, height: bitmap.height, mask, pixels: original.data };
+		return { width: bitmap.width, height: bitmap.height, maskWidth, maskHeight, mask };
 	} finally {
 		bitmap.close();
 	}
@@ -188,7 +182,7 @@ scope.onmessage = (event: MessageEvent<WorkerRequest>) => {
 		}
 		void removeBackground(event.data.file)
 			.then((result) => {
-				scope.postMessage({ type: 'result', result }, [result.mask.buffer, result.pixels.buffer]);
+				scope.postMessage({ type: 'result', result }, [result.mask.buffer]);
 			})
 			.catch((error: unknown) => {
 				scope.postMessage({
