@@ -43,6 +43,23 @@ export type ImageWorkerTask = {
 	height: number;
 	luminanceStrength: number;
 	colorStrength: number;
+} | {
+	type: 'adjust';
+	data: Uint8ClampedArray;
+	width: number;
+	height: number;
+	adjustments: {
+		brightness: number;
+		contrast: number;
+		exposure: number;
+		saturation: number;
+		vibrance: number;
+		temperature: number;
+		tint: number;
+		highlights: number;
+		shadows: number;
+		autoStretch: boolean;
+	};
 };
 
 export interface ImageWorkerResult {

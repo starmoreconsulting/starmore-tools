@@ -229,6 +229,64 @@ function denoiseImage(id: string, task: Extract<ImageWorkerTask, { type: 'denois
 	return new ImageData(output, width, height);
 }
 
+function adjustImage(id: string, task: Extract<ImageWorkerTask, { type: 'adjust' }>): ImageData {
+	const { data, width, height, adjustments } = task;
+	if (data.length !== width * height * 4) throw new Error('The source pixel data is incomplete.');
+	if (width * height > 48_000_000) throw new Error('This image exceeds the 48 million pixel processing limit. Try a smaller image.');
+	let stretchLow = 0;
+	let stretchHigh = 255;
+	if (adjustments.autoStretch) {
+		const histogram = new Uint32Array(256);
+		for (let index = 0; index < data.length; index += 4) {
+			const value = Math.round(0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2]);
+			histogram[value] += 1;
+		}
+		const target = Math.max(1, Math.floor(width * height * 0.01));
+		let lowCount = 0;
+		let highCount = 0;
+		for (let value = 0; value < 256; value += 1) {
+			lowCount += histogram[value];
+			if (lowCount >= target) { stretchLow = value; break; }
+		}
+		for (let value = 255; value >= 0; value -= 1) {
+			highCount += histogram[value];
+			if (highCount >= target) { stretchHigh = value; break; }
+		}
+		if (stretchHigh <= stretchLow) { stretchLow = 0; stretchHigh = 255; }
+	}
+	const contrastFactor = (259 * (adjustments.contrast + 255)) / (255 * (259 - adjustments.contrast));
+	const exposureFactor = 2 ** adjustments.exposure;
+	for (let y = 0; y < height; y += 1) {
+		for (let x = 0; x < width; x += 1) {
+			const index = (y * width + x) * 4;
+			let channels = [data[index], data[index + 1], data[index + 2]].map((value) => adjustments.autoStretch
+				? (value - stretchLow) * 255 / (stretchHigh - stretchLow)
+				: value);
+			channels = channels.map((value) => ((value + adjustments.brightness - 128) * contrastFactor + 128) * exposureFactor);
+			const luma = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+			const saturation = adjustments.saturation / 100;
+			const chromaRange = Math.max(...channels) - Math.min(...channels);
+			const vibranceFactor = 1 + adjustments.vibrance / 100 * (1 - chromaRange / 255);
+			channels = channels.map((value) => luma + (value - luma) * (1 + saturation) * vibranceFactor);
+			const warmth = adjustments.temperature * 0.55;
+			const greenShift = adjustments.tint * 0.35;
+			channels[0] += warmth;
+			channels[1] += greenShift;
+			channels[2] -= warmth;
+			const luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+			const shadowWeight = Math.max(0, 1 - luminance / 255) ** 2;
+			const highlightWeight = Math.max(0, luminance / 255) ** 2;
+			for (let channel = 0; channel < 3; channel += 1) {
+				const value = channels[channel] + adjustments.shadows * shadowWeight + adjustments.highlights * highlightWeight;
+				data[index + channel] = Math.max(0, Math.min(255, Math.round(value)));
+			}
+		}
+		if (y % 96 === 0) emitProgress(id, y, height);
+	}
+	emitProgress(id, height, height);
+	return new ImageData(data, width, height);
+}
+
 function clampRinging(output: Uint8ClampedArray, width: number, height: number, source: Uint8ClampedArray, sourceWidth: number, sourceHeight: number): void {
 	for (let y = 0; y < height; y += 1) {
 		const sy = Math.max(0, Math.min(sourceHeight - 1, Math.round((y + 0.5) * sourceHeight / height - 0.5)));
@@ -281,7 +339,9 @@ workerScope.onmessage = (event: MessageEvent<WorkerRequest>) => {
 			? resample(id, task)
 			: task.type === 'sharpen'
 				? sharpenImage(id, task)
-				: denoiseImage(id, task);
+				: task.type === 'denoise'
+					? denoiseImage(id, task)
+					: adjustImage(id, task);
 		workerScope.postMessage({
 			id,
 			result: { data: imageData.data, width: imageData.width, height: imageData.height },

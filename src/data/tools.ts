@@ -50,6 +50,7 @@ export type ToolComponentName =
 	| 'ImageUpscaler'
 	| 'ImageSharpener'
 	| 'ImageDenoiser'
+	| 'PhotoAdjustments'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -126,6 +127,23 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageDenoiser',
 		icon: '◌',
+		live: false,
+	},
+	{
+		slug: 'photo-colour-correction',
+		name: 'Photo Adjustments',
+		department: 'image',
+		description: 'Tune nine photo controls with a live preview and luminance histogram.',
+		seoTitle: 'Private Photo Colour Correction Tool | Starmore Tools',
+		seoDescription: 'Adjust brightness, contrast, exposure, saturation, vibrance, temperature, tint, highlights and shadows with a local preview and live histogram.',
+		howTo: ['Choose a photo from your device.', 'Adjust the sliders or use Auto improve, then compare the preview and histogram.', 'Prepare the full-resolution image, choose an export format and download it.'],
+		faqs: [
+			{ question: 'Does the preview use full resolution?', answer: 'No. The interactive preview is downscaled for responsiveness. Full-resolution processing happens only when preparing the download.' },
+			{ question: 'Are my photos uploaded?', answer: 'No. Your image files never leave your device; processing is local and uses a background worker.' },
+			{ question: 'What does Auto improve do?', answer: 'It performs a simple luminance histogram stretch. It is not a substitute for manual editing or colour-managed correction.' },
+		],
+		component: 'PhotoAdjustments',
+		icon: '◐',
 		live: false,
 	},
 	{
