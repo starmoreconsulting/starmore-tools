@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { strToU8, zipSync } from 'fflate';
 import { exportSvgPagesToPdf } from '../export/pdf';
 import { downloadBlob, renderSvgToRaster, type RasterScale } from '../export/raster';
@@ -6,6 +6,27 @@ import type { Element, LogoProject } from '../model/types';
 import { createSceneColors, renderMockupSvg, type MockupColors } from './render';
 import { mockupCategories, mockupScenes, type MockupCategory, type MockupScene } from './scenes';
 import './mockups.css';
+
+const scenePreviewCache = new Map<string, { svg: string; notes: string[] }>();
+const projectVariantRevisions = new WeakMap<object, number>();
+let nextVariantRevision = 0;
+
+function getVariantRevision(variants: LogoProject['variants']): number {
+	let revision = projectVariantRevisions.get(variants);
+	if (revision === undefined) {
+		revision = ++nextVariantRevision;
+		projectVariantRevisions.set(variants, revision);
+	}
+	return revision;
+}
+
+function cachePreview(key: string, value: { svg: string; notes: string[] }): void {
+	scenePreviewCache.set(key, value);
+	if (scenePreviewCache.size > 48) {
+		const oldest = scenePreviewCache.keys().next().value;
+		if (oldest) scenePreviewCache.delete(oldest);
+	}
+}
 
 interface Props {
 	project: LogoProject;
@@ -21,33 +42,43 @@ function useRenderedScene(
 	variant: string,
 	includeBackground: boolean,
 	autoContrast: boolean,
+	enabled: boolean,
 ) {
 	const [svg, setSvg] = useState('');
 	const [error, setError] = useState('');
 	const [notes, setNotes] = useState<string[]>([]);
-	const signature = `${scene.id}:${project.id}:${project.updatedAt}:${variant}:${includeBackground}:${JSON.stringify(colors)}:${JSON.stringify(project.variants)}`;
+	const signature = `${scene.id}:${project.id}:${project.updatedAt}:${getVariantRevision(project.variants)}:${variant}:${includeBackground}:${autoContrast}:${JSON.stringify(colors)}`;
 	useEffect(() => {
+		if (!enabled) return undefined;
 		let active = true;
 		setSvg('');
 		setError('');
 		setNotes([]);
+		const cached = scenePreviewCache.get(signature);
+		if (cached) {
+			setSvg(cached.svg);
+			setNotes(cached.notes);
+			return () => { active = false; };
+		}
 		void renderMockupSvg(scene, project, colors, { variant, includeBackground, autoContrast }).then((result) => {
 			if (active) {
 				setSvg(result.svg);
-				setNotes([
+				const nextNotes = [
 					...result.missingVariants.map((missing) => `The ${missing} variant is not available; showing the primary logo instead.`),
 					...result.contrastWarnings,
-				]);
+				];
+				setNotes(nextNotes);
+				cachePreview(signature, { svg: result.svg, notes: nextNotes });
 			}
 		}).catch((cause: unknown) => {
 			if (active) setError(cause instanceof Error ? cause.message : 'This mockup could not be rendered.');
 		});
 		return () => { active = false; };
-	}, [signature, autoContrast]);
+	}, [signature, enabled]);
 	return { svg, error, notes };
 }
 
-function SceneImage({ scene, project, colors, variant, includeBackground, autoContrast = false, showNotes = false }: {
+function SceneImage({ scene, project, colors, variant, includeBackground, autoContrast = false, showNotes = false, lazy = false }: {
 	scene: MockupScene;
 	project: LogoProject;
 	colors: MockupColors;
@@ -55,11 +86,30 @@ function SceneImage({ scene, project, colors, variant, includeBackground, autoCo
 	includeBackground: boolean;
 	autoContrast?: boolean;
 	showNotes?: boolean;
+	lazy?: boolean;
 }) {
-	const { svg, error, notes } = useRenderedScene(scene, project, colors, variant, includeBackground, autoContrast);
-	if (error) return <div className="logo-mockup-image-error" role="alert">{error}</div>;
-	if (!svg) return <div className="logo-mockup-image-loading" aria-label="Preparing mockup" />;
-	return <div className="logo-mockup-preview-wrap">
+	const [visible, setVisible] = useState(!lazy);
+	const rootRef = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		if (!lazy || visible) return undefined;
+		const root = rootRef.current;
+		if (!root || !('IntersectionObserver' in window)) {
+			setVisible(true);
+			return undefined;
+		}
+		const observer = new IntersectionObserver((entries) => {
+			if (entries.some((entry) => entry.isIntersecting)) {
+				setVisible(true);
+				observer.disconnect();
+			}
+		}, { rootMargin: '160px', threshold: 0.01 });
+		observer.observe(root);
+		return () => observer.disconnect();
+	}, [lazy, visible]);
+	const { svg, error, notes } = useRenderedScene(scene, project, colors, variant, includeBackground, autoContrast, !lazy || visible);
+	if (error) return <div ref={rootRef} className="logo-mockup-image-error" role="alert">{error}</div>;
+	if (!svg) return <div ref={rootRef} className="logo-mockup-image-loading" aria-label={visible ? 'Preparing mockup' : 'Mockup preview loads when visible'} />;
+	return <div ref={rootRef} className="logo-mockup-preview-wrap">
 		<div className="logo-mockup-svg" dangerouslySetInnerHTML={{ __html: svg }} />
 		{showNotes && notes.map((note) => <p className="logo-mockup-note" role="status" key={note}>{note}</p>)}
 	</div>;
@@ -277,7 +327,7 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 							const sceneColors = scene.id === selectedSceneId ? colors : createSceneColors(scene);
 							return <article className="logo-mockup-card" key={scene.id}>
 								<button type="button" className="logo-mockup-card-open" onClick={() => setSelectedSceneId(scene.id)} aria-label={`Open ${scene.name}`}>
-									<div className="logo-mockup-card-image"><SceneImage scene={scene} project={project} colors={sceneColors} variant="preferred" includeBackground autoContrast /></div>
+									<div className="logo-mockup-card-image"><SceneImage scene={scene} project={project} colors={sceneColors} variant="preferred" includeBackground autoContrast lazy /></div>
 									<span className="logo-mockup-card-category">{scene.category}</span>
 									<strong>{scene.name}</strong>
 									<span className="logo-mockup-card-description">{scene.description}</span>
