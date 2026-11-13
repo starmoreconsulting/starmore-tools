@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { strToU8, zipSync } from 'fflate';
 import { exportSvgPagesToPdf } from '../export/pdf';
 import { downloadBlob, renderSvgToRaster, type RasterScale } from '../export/raster';
-import type { LogoProject } from '../model/types';
+import type { Element, LogoProject } from '../model/types';
 import { createSceneColors, renderMockupSvg, type MockupColors } from './render';
 import { mockupCategories, mockupScenes, type MockupCategory, type MockupScene } from './scenes';
 import './mockups.css';
@@ -66,7 +66,10 @@ function SceneImage({ scene, project, colors, variant, includeBackground, autoCo
 }
 
 function hasArtwork(project: LogoProject): boolean {
-	return (project.variants.primary ?? []).some((element) => element.visible);
+	const containsVisibleArtwork = (elements: Element[]): boolean => elements.some((element) => (
+		element.visible && (element.type !== 'group' || containsVisibleArtwork(element.children ?? []))
+	));
+	return containsVisibleArtwork(project.variants.primary ?? []);
 }
 
 export default function MockupStudio({ project, initialSceneId, onBack, onAddSample }: Props) {
