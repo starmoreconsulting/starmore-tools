@@ -64,6 +64,62 @@ function printPageSizeLabel(size: TrimSize, preset: PrintPreset, bleedMm: number
 	return `${(size.width + extra).toFixed(2)} × ${(size.height + extra).toFixed(2)} ${size.unit} final page`;
 }
 
+async function buildVariantsSheet(project: LogoProject, includeLabels: boolean): Promise<{ blob: Blob; warnings: string[] }> {
+	const pages: PrintPdfPage[] = [];
+	const warnings = new Set<string>();
+	for (const name of STANDARD_VARIANT_PAGES) {
+		const generated = project.variants[name]
+			? null
+			: createAutomaticVariant(project, name, project.variantColors?.[name] ?? '#111111');
+		const elements = project.variants[name] ?? generated?.elements ?? project.variants.primary ?? [];
+		const background = project.variantBackgrounds?.[name] ?? generated?.background ?? project.artboard.background;
+		const pageProject: LogoProject = {
+			...project,
+			artboard: { ...project.artboard, background },
+			variants: { primary: elements },
+		};
+		if (includeLabels) {
+			const labelColor = background === '#202020' || name === 'white' ? '#ffffff' : '#303030';
+			pageProject.variants.primary = [
+				...elements,
+				{
+					id: `variant-label-${name}`,
+					type: 'text',
+					role: 'other',
+					name: 'Variant label',
+					x: 0,
+					y: Math.max(0, project.artboard.height - 42),
+					width: project.artboard.width,
+					height: 36,
+					rotation: 0,
+					opacity: 1,
+					locked: false,
+					visible: true,
+					text: variantLabel(name),
+					fontFamily: 'Inter',
+					fontSize: Math.max(12, Math.min(24, project.artboard.width / 24)),
+					fontWeight: 600,
+					align: 'center',
+					fill: labelColor,
+				},
+			];
+		}
+		const vector = await exportProjectToSvg(pageProject, { outlineText: true, background: 'transparent' });
+		vector.warnings.forEach((warning) => warnings.add(warning));
+		pages.push({
+			svg: vector.svg,
+			width: project.artboard.width,
+			height: project.artboard.height,
+			unit: 'px',
+			background,
+		});
+	}
+	return {
+		blob: (await exportPrintPdf(pages, { preset: 'screen' })).blob,
+		warnings: [...warnings],
+	};
+}
+
 export default function ExportCenter({ project, activeVariant, reference, onClose }: Props) {
 	const [outlineText, setOutlineText] = useState(true);
 	const [pngTransparent, setPngTransparent] = useState(project.artboard.background === 'transparent');
@@ -79,10 +135,11 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 	const [printPreset, setPrintPreset] = useState<PrintPreset>('screen');
 	const [customBleedMm, setCustomBleedMm] = useState(3);
 	const [printCropMarks, setPrintCropMarks] = useState(false);
-	const [extendBackground, setExtendBackground] = useState(project.artboard.background !== 'transparent');
+	const [extendBackground, setExtendBackground] = useState((project.variantBackgrounds?.[activeVariant] ?? project.artboard.background) !== 'transparent');
 	const [includeVariantLabels, setIncludeVariantLabels] = useState(false);
 	const [includePsdBackground, setIncludePsdBackground] = useState(false);
 	const [simplifyForCanva, setSimplifyForCanva] = useState(false);
+	const [includeNewFormatsInZip, setIncludeNewFormatsInZip] = useState(false);
 	const [busy, setBusy] = useState('');
 	const [error, setError] = useState('');
 	const [warnings, setWarnings] = useState<string[]>([]);
@@ -157,7 +214,7 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 	const exportPdf = () => runExport('PDF', async () => {
 		const result = await exportProjectToSvg(activeProject, {
 			outlineText: true,
-			background: project.artboard.background,
+			background: activeProject.artboard.background,
 		});
 		const blob = await exportSvgToPdf(result.svg, activeProject.artboard.width, activeProject.artboard.height);
 		downloadBlob(blob, `${safeFileName(project.name)}.pdf`);
@@ -180,58 +237,9 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 		return result;
 	});
 	const exportVariantsSheet = () => runExport('Variants sheet', async () => {
-		const pages: PrintPdfPage[] = [];
-		const warnings = new Set<string>();
-		for (const name of STANDARD_VARIANT_PAGES) {
-			const generated = project.variants[name]
-				? null
-				: createAutomaticVariant(project, name, project.variantColors?.[name] ?? '#111111');
-			const elements = project.variants[name] ?? generated?.elements ?? project.variants.primary ?? [];
-			const background = project.variantBackgrounds?.[name] ?? generated?.background ?? project.artboard.background;
-			const pageProject: LogoProject = {
-				...project,
-				artboard: { ...project.artboard, background },
-				variants: { primary: elements },
-			};
-			if (includeVariantLabels) {
-				const labelColor = background === '#202020' || name === 'white' ? '#ffffff' : '#303030';
-				pageProject.variants.primary = [
-					...elements,
-					{
-						id: `variant-label-${name}`,
-						type: 'text',
-						role: 'other',
-						name: 'Variant label',
-						x: 0,
-						y: Math.max(0, project.artboard.height - 42),
-						width: project.artboard.width,
-						height: 36,
-						rotation: 0,
-						opacity: 1,
-						locked: false,
-						visible: true,
-						text: variantLabel(name),
-						fontFamily: 'Inter',
-						fontSize: Math.max(12, Math.min(24, project.artboard.width / 24)),
-						fontWeight: 600,
-						align: 'center',
-						fill: labelColor,
-					},
-				];
-			}
-			const vector = await exportProjectToSvg(pageProject, { outlineText: true, background: 'transparent' });
-			vector.warnings.forEach((warning) => warnings.add(warning));
-			pages.push({
-				svg: vector.svg,
-				width: project.artboard.width,
-				height: project.artboard.height,
-				unit: 'px' as const,
-				background,
-			});
-		}
-		const pdf = await exportPrintPdf(pages, { preset: 'screen' });
-		downloadBlob(pdf.blob, `${safeFileName(project.name)}-variants.pdf`);
-		return { warnings: [...warnings] };
+		const result = await buildVariantsSheet(project, includeVariantLabels);
+		downloadBlob(result.blob, `${safeFileName(project.name)}-variants.pdf`);
+		return { warnings: result.warnings };
 	});
 	const exportPsd = () => runExport('PSD', async () => {
 		const { exportProjectToPsd } = await import('../export/psd');
@@ -268,6 +276,7 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 			'SVG and PDF are vector exports where supported; PNG preserves transparency when enabled in Export Centre.',
 			'JPG uses the selected Export Centre background colour.',
 			'Reference images are never included in exports.',
+			...(includeNewFormatsInZip ? ['Print PDF, variants sheet PDF, Layered PSD, and Canva-ready ZIP are also included.'] : []),
 			'',
 		];
 
@@ -308,9 +317,37 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 			const pdf = await exportSvgToPdf(pdfVector.svg, project.artboard.width, project.artboard.height);
 			files[`PDF/${fileBase}.pdf`] = new Uint8Array(await pdf.arrayBuffer());
 			readme.push(`${variant}: SVG/${fileBase}.svg, PNG/${fileBase}.png, JPG/${fileBase}.jpg, PDF/${fileBase}.pdf`);
+			if (includeNewFormatsInZip) {
+				const printVector = await exportProjectToSvg(variantProject, { outlineText: true, background: 'transparent' });
+				const printPdf = await exportPrintPdf([{
+					svg: printVector.svg,
+					...trimSizeFor(trimPreset, project, customPrintWidth, customPrintHeight, customPrintUnit),
+					background,
+				}], {
+					preset: printPreset,
+					bleedMm: customBleedMm,
+					cropMarks: printCropMarks,
+					extendBackgroundColourIntoBleed: extendBackground,
+				});
+				files[`Print PDF/${fileBase}-print.pdf`] = new Uint8Array(await printPdf.blob.arrayBuffer());
+				const { exportProjectToPsd } = await import('../export/psd');
+				const psd = await exportProjectToPsd(variantProject, { includeArtboardBackground: includePsdBackground });
+				files[`PSD/${fileBase}.psd`] = psd;
+				const { exportCanvaReadyZip } = await import('../export/canva');
+				const canva = await exportCanvaReadyZip(variantProject, simplifyForCanva);
+				files[`Canva-ready/${fileBase}-canva-ready.zip`] = new Uint8Array(await canva.blob.arrayBuffer());
+				printVector.warnings.forEach((warning) => warnings.add(warning));
+				canva.warnings.forEach((warning) => warnings.add(warning));
+				readme.push(`${variant}: Print PDF/${fileBase}-print.pdf, PSD/${fileBase}.psd, Canva-ready/${fileBase}-canva-ready.zip`);
+			}
 			pngVector.warnings.forEach((warning) => warnings.add(warning));
 			jpgVector.warnings.forEach((warning) => warnings.add(warning));
 			pdfVector.warnings.forEach((warning) => warnings.add(warning));
+		}
+		if (includeNewFormatsInZip) {
+			const sheet = await buildVariantsSheet(project, includeVariantLabels);
+			files[`Variants sheet/${safeFileName(project.name)}-variants.pdf`] = new Uint8Array(await sheet.blob.arrayBuffer());
+			sheet.warnings.forEach((warning) => warnings.add(warning));
 		}
 		files['README.txt'] = strToU8(readme.join('\n'));
 		const archive = zipSync(files, { level: 6 });
@@ -414,7 +451,7 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 
 					<section className="logo-export-format">
 						<div><h3>Layered PSD</h3><p>Each element is an image layer; text is not live-editable. Raster layers are rendered at 2× and hidden layers remain hidden.</p></div>
-						<label className="logo-export-check"><input type="checkbox" checked={includePsdBackground} onChange={(event) => setIncludePsdBackground(event.target.checked)} /> Include artboard background as its own layer</label>
+						<label className="logo-export-check"><input type="checkbox" checked={includePsdBackground} disabled={activeProject.artboard.background === 'transparent'} onChange={(event) => setIncludePsdBackground(event.target.checked)} /> Include artboard background as its own layer</label>
 						<p className="logo-export-size">The PSD stays transparent when this option is off. Export is capped at 64 million 2× layer pixels.</p>
 						<button type="button" onClick={() => void exportPsd()} disabled={Boolean(busy)}>{busy === 'PSD' ? 'Preparing…' : 'Download Layered PSD'}</button>
 					</section>
@@ -434,6 +471,7 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 
 					<section className="logo-export-format">
 						<div><h3>All variants</h3><p>Download every saved variant in SVG, PNG, JPG, and PDF folders, plus a README. References are excluded.</p></div>
+						<label className="logo-export-check"><input type="checkbox" checked={includeNewFormatsInZip} onChange={(event) => setIncludeNewFormatsInZip(event.target.checked)} /> Also include Print PDF, variants sheet, Layered PSD, and Canva-ready ZIP</label>
 						<button type="button" onClick={() => void exportAllVariants()} disabled={Boolean(busy)}>{busy === 'All variants' ? 'Preparing ZIP…' : 'Export all variants (ZIP)'}</button>
 					</section>
 
