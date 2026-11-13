@@ -1,0 +1,19 @@
+---
+import ToolLayout from '../components/ToolLayout.astro';
+import LogoStudioApp from '../engines/logo-studio/panels/LogoStudioApp';
+---
+
+<ToolLayout
+	title="Logo Studio — Free SVG Logo Editor"
+	description="Create and edit a logo in a private, browser-based SVG editor. Arrange text and shapes on a scalable artboard."
+>
+	<section class="tool-page logo-phase-page">
+		<a class="back-link" href="/#tool-library">← All tools</a>
+		<header class="tool-page-header">
+			<p class="eyebrow">LOGO DESIGN</p>
+			<h1>Logo Studio</h1>
+			<p>Create and arrange text and shapes on a scalable vector artboard. Your document stays in your browser.</p>
+		</header>
+		<LogoStudioApp client:only="react" />
+	</section>
+</ToolLayout>

@@ -10,6 +10,7 @@ export const GET: APIRoute = ({ site }) => {
 
 	const routes = [
 		'',
+		'/logo-studio/',
 		...departments.map((department) => `/departments/${department.slug}/`),
 		...liveTools.map((tool) => `/${tool.slug}/`),
 	];

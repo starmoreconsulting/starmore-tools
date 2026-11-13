@@ -4,6 +4,7 @@ import { getElementBounds, movedElement, resizedElement, rotationFromPointer, ty
 
 interface Props {
 	project: LogoProject;
+	zoom: number;
 	selectedId: string | null;
 	onSelect: (id: string | null) => void;
 	onUpdate: (id: string, patch: Partial<Element>, recordHistory?: boolean) => void;
@@ -78,7 +79,7 @@ function SvgElement({
 	const selected = element.id === selectedId;
 	const content = element.type === 'text' ? (
 		<text
-			x={element.width / 2}
+			x={element.align === 'left' ? 0 : element.align === 'right' ? element.width : element.width / 2}
 			y={element.height / 2}
 			fill={element.fill ?? '#203b32'}
 			fontFamily={element.fontFamily ?? 'Arial'}
@@ -87,10 +88,9 @@ function SvgElement({
 			letterSpacing={element.letterSpacing ?? 0}
 			textAnchor={element.align === 'left' ? 'start' : element.align === 'right' ? 'end' : 'middle'}
 			dominantBaseline="middle"
-			pointerEvents="none"
 		>
 			{(element.text ?? '').split('\n').map((line, index) => (
-				<tspan key={`${element.id}-${index}`} x={element.width / 2} dy={index === 0 ? 0 : `${element.lineHeight ?? 1.16}em`}>{line}</tspan>
+				<tspan key={`${element.id}-${index}`} x={element.align === 'left' ? 0 : element.align === 'right' ? element.width : element.width / 2} dy={index === 0 ? 0 : `${element.lineHeight ?? 1.16}em`}>{line}</tspan>
 			))}
 		</text>
 	) : element.type === 'shape' ? (
@@ -175,7 +175,7 @@ function pointInSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x: 
 	return { x: transformed.x, y: transformed.y };
 }
 
-export default function SvgArtboard({ project, selectedId, onSelect, onUpdate, onBackgroundChange }: Props) {
+export default function SvgArtboard({ project, zoom, selectedId, onSelect, onUpdate, onBackgroundChange }: Props) {
 	const svgRef = useRef<SVGSVGElement>(null);
 	const actionRef = useRef<PointerAction | null>(null);
 	const movedRef = useRef(false);
@@ -274,7 +274,7 @@ export default function SvgArtboard({ project, selectedId, onSelect, onUpdate, o
 						onSelect(null);
 					}
 				}}
-				style={{ background: background === 'transparent' ? 'transparent' : background, touchAction: 'none' }}
+				style={{ width: `${zoom}%`, background: background === 'transparent' ? 'transparent' : background, touchAction: 'none' }}
 			>
 				<rect data-artboard="background" width="100%" height="100%" fill={background === 'transparent' ? 'transparent' : background} />
 				{(project.variants.primary ?? []).map((element) => (

@@ -1,6 +1,3 @@
-import type { Canvas } from 'fabric';
-import type { MutableRefObject } from 'react';
-
 export type ElementType = 'text' | 'shape' | 'icon' | 'image' | 'group';
 
 export interface Element {
@@ -40,22 +37,6 @@ export interface LogoProject {
 	updatedAt: number;
 	artboard: { width: number; height: number; background: string };
 	variants: Record<string, Element[]>;
-}
-
-export type LogoElement = Element;
-export type LogoElementType = ElementType;
-export type LogoStudioMode = 'text' | 'monogram';
-
-export interface LogoTemplate {
-	id: string;
-	name: string;
-	mode: LogoStudioMode;
-}
-
-export interface LogoCanvasProps {
-	canvasRef: MutableRefObject<Canvas | null>;
-	transparent: boolean;
-	onReady: (canvas: Canvas) => void;
 }
 
 function createId(): string {

@@ -29,7 +29,8 @@ const { title, description } = Astro.props;
 				</a>
 				<nav class="main-nav" aria-label="Main navigation">
 					<a href="/#tool-library">All tools</a>
-					{departments.map((department) => (
+					<a href="/logo-studio/">Logo Studio</a>
+					{departments.filter((department) => department.slug !== 'logo').map((department) => (
 						<a href={`/departments/${department.slug}`}>{department.name}</a>
 					))}
 				</nav>
@@ -51,7 +52,6 @@ const { title, description } = Astro.props;
 </html>
 
 <style is:global>
-	@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 	:root {
 		font-family: 'DM Sans', sans-serif;
