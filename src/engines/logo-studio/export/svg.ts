@@ -1,5 +1,6 @@
 import type { Element, LogoProject } from '../model/types';
 import { outlineProjectText } from './outline';
+import { loadLucideLibrary, renderLucideNodesToSvg } from '../library/icons';
 
 export interface SvgExportOptions {
 	outlineText?: boolean;
@@ -57,7 +58,7 @@ function renderText(element: Element, pathData?: string): string {
 	return `<text x="${x}" y="${element.height / 2}" fill="${escapeXml(element.fill ?? '#203b32')}" font-family="${escapeXml(element.fontFamily ?? 'Inter')}" font-size="${Math.max(1, element.fontSize ?? 48)}" font-weight="${Math.max(100, element.fontWeight ?? 400)}" letter-spacing="${element.letterSpacing ?? 0}" text-anchor="${element.align === 'left' ? 'start' : element.align === 'right' ? 'end' : 'middle'}" dominant-baseline="middle">${lines}</text>`;
 }
 
-function renderElement(element: Element, outlines: Map<string, string>, warnings: string[]): string {
+function renderElement(element: Element, outlines: Map<string, string>, icons: Record<string, import('../library/icons').LucideNode[]>, warnings: string[]): string {
 	if (!element.visible) return '';
 
 	let content = '';
@@ -66,11 +67,14 @@ function renderElement(element: Element, outlines: Map<string, string>, warnings
 	} else if (element.type === 'shape') {
 		content = renderShape(element);
 	} else if (element.type === 'group') {
-		content = (element.children ?? []).map((child) => renderElement(child, outlines, warnings)).join('');
+		content = (element.children ?? []).map((child) => renderElement(child, outlines, icons, warnings)).join('');
 	} else if (element.type === 'image' && element.src?.startsWith('data:image/')) {
 		content = `<image href="${escapeXml(element.src)}" width="${element.width}" height="${element.height}"/>`;
-	} else if (element.type === 'icon' && typeof element.pathData === 'string') {
-		content = `<path d="${escapeXml(element.pathData)}" fill="${escapeXml(element.fill ?? '#203b32')}"/>`;
+	} else if (element.type === 'icon' && element.iconName && icons[element.iconName]) {
+		content = `<svg width="${element.width}" height="${element.height}" viewBox="0 0 24 24" fill="${escapeXml(element.fill ?? 'none')}" stroke="${escapeXml(element.stroke ?? '#203b32')}" stroke-width="${Math.max(0, element.strokeWidth ?? 2)}" stroke-linecap="round" stroke-linejoin="round" preserveAspectRatio="xMidYMid meet">${renderLucideNodesToSvg(icons[element.iconName])}</svg>`;
+	} else if (element.type === 'icon') {
+		warnings.push(`Skipped unavailable Lucide icon “${escapeXml(element.iconName ?? 'unknown')}”.`);
+		return '';
 	} else {
 		warnings.push(`Skipped unsupported ${element.type} element in SVG export.`);
 		return '';
@@ -85,6 +89,13 @@ export async function exportProjectToSvg(
 ): Promise<SvgExportResult> {
 	const warnings: string[] = [];
 	const outlines = new Map<string, string>();
+	let icons: Record<string, import('../library/icons').LucideNode[]> = {};
+	const iconElements = (elements: Element[]): boolean => elements.some((element) => element.type === 'icon' || Boolean(element.children && iconElements(element.children)));
+	const projectElements = Object.values(project.variants).flat();
+	if (iconElements(projectElements)) {
+		const library = await loadLucideLibrary();
+		icons = library.icons;
+	}
 	if (options.outlineText !== false) {
 		const result = await outlineProjectText(project);
 		for (const [id, outline] of result.outlines) outlines.set(id, outline.pathData);
@@ -95,9 +106,8 @@ export async function exportProjectToSvg(
 	const backgroundMarkup = background === 'transparent'
 		? ''
 		: `<rect width="${project.artboard.width}" height="${project.artboard.height}" fill="${escapeXml(background)}"/>`;
-	const artwork = Object.values(project.variants)
-		.flat()
-		.map((element) => renderElement(element, outlines, warnings))
+	const artwork = projectElements
+		.map((element) => renderElement(element, outlines, icons, warnings))
 		.join('');
 	const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${project.artboard.width}" height="${project.artboard.height}" viewBox="0 0 ${project.artboard.width} ${project.artboard.height}"><title>${escapeXml(project.name)}</title>${backgroundMarkup}${artwork}</svg>`;
 	return { svg, warnings };

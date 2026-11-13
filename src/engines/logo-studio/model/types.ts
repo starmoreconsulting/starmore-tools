@@ -72,8 +72,10 @@ export function createDefaultElement(type: ElementType, overrides: Partial<Eleme
 	} else if (type === 'group') {
 		defaults.children = [];
 	} else if (type === 'icon') {
-		defaults.iconName = '';
-		defaults.fill = '#203b32';
+		defaults.iconName = 'sparkles';
+		defaults.fill = 'none';
+		defaults.stroke = '#203b32';
+		defaults.strokeWidth = 2;
 	} else if (type === 'image') {
 		defaults.src = '';
 	}

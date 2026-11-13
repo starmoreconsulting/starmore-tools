@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { createDefaultElement, type Element } from '../model/types';
+const IconLibrary = lazy(() => import('./IconLibrary'));
 
 const shapes = ['rectangle', 'circle', 'triangle', 'star', 'line'] as const;
 
@@ -9,6 +10,7 @@ interface Props {
 
 export default function ElementSidebar({ onAdd }: Props) {
 	const [shape, setShape] = useState<(typeof shapes)[number]>('rectangle');
+	const [tab, setTab] = useState<'elements' | 'icons'>('elements');
 
 	const addText = () => onAdd(createDefaultElement('text', {
 		x: 90,
@@ -30,7 +32,16 @@ export default function ElementSidebar({ onAdd }: Props) {
 
 	return (
 		<aside className="logo-phase-panel logo-element-sidebar" aria-label="Add elements">
-			<h2>Elements</h2>
+			<h2>Library</h2>
+			<div className="logo-library-tabs" role="tablist" aria-label="Libraries">
+				<button type="button" role="tab" aria-selected={tab === 'elements'} onClick={() => setTab('elements')}>Elements</button>
+				<button type="button" role="tab" aria-selected={tab === 'icons'} onClick={() => setTab('icons')}>Icons</button>
+			</div>
+			{tab === 'icons' ? (
+				<Suspense fallback={<p className="logo-phase-hint">Loading icon browser…</p>}>
+					<IconLibrary onAdd={onAdd} />
+				</Suspense>
+			) : <>
 			<button className="logo-phase-primary" type="button" onClick={addText}>Add text</button>
 			<label className="logo-phase-field">
 				<span>Shape</span>
@@ -43,6 +54,7 @@ export default function ElementSidebar({ onAdd }: Props) {
 			</label>
 			<button type="button" onClick={addShape}>Add shape</button>
 			<p className="logo-phase-hint">Drag elements on the artboard to position them.</p>
+			</>}
 		</aside>
 	);
 }

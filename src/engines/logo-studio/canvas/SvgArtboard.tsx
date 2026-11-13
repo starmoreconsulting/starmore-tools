@@ -1,6 +1,7 @@
-import { useRef, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import type { Element, LogoProject } from '../model/types';
 import { getElementBounds, movedElement, resizedElement, rotationFromPointer, type ResizeHandle } from './geometry';
+import { loadLucideLibrary, type LucideIconNodes } from '../library/icons';
 
 interface Props {
 	project: LogoProject;
@@ -36,6 +37,32 @@ function findElement(elements: Element[], id: string): Element | null {
 	return null;
 }
 
+function containsIcon(elements: Element[]): boolean {
+	return elements.some((element) => element.type === 'icon' || Boolean(element.children && containsIcon(element.children)));
+}
+
+function renderIcon(element: Element, icons: LucideIconNodes | null): ReactNode {
+	const nodes = element.iconName ? icons?.[element.iconName] : undefined;
+	if (!nodes) return null;
+	return (
+		<svg x="0" y="0" width={element.width} height={element.height} viewBox="0 0 24 24" fill={element.fill ?? 'none'} stroke={element.stroke ?? '#203b32'} strokeWidth={element.strokeWidth ?? 2} strokeLinecap="round" strokeLinejoin="round" preserveAspectRatio="xMidYMid meet" vectorEffect="non-scaling-stroke">
+			{nodes.map(([tag, attributes], index) => {
+				const key = `${element.id}-${index}`;
+				switch (tag) {
+					case 'path': return <path key={key} d={String(attributes.d ?? '')} />;
+					case 'circle': return <circle key={key} cx={Number(attributes.cx)} cy={Number(attributes.cy)} r={Number(attributes.r)} />;
+					case 'ellipse': return <ellipse key={key} cx={Number(attributes.cx)} cy={Number(attributes.cy)} rx={Number(attributes.rx)} ry={Number(attributes.ry)} />;
+					case 'line': return <line key={key} x1={Number(attributes.x1)} y1={Number(attributes.y1)} x2={Number(attributes.x2)} y2={Number(attributes.y2)} />;
+					case 'polygon': return <polygon key={key} points={String(attributes.points ?? '')} />;
+					case 'polyline': return <polyline key={key} points={String(attributes.points ?? '')} />;
+					case 'rect': return <rect key={key} x={Number(attributes.x ?? 0)} y={Number(attributes.y ?? 0)} width={Number(attributes.width ?? 0)} height={Number(attributes.height ?? 0)} rx={Number(attributes.rx ?? 0)} />;
+					default: return null;
+				}
+			})}
+		</svg>
+	);
+}
+
 function starPoints(width: number, height: number) {
 	const cx = width / 2;
 	const cy = height / 2;
@@ -69,11 +96,13 @@ function renderShape(element: Element): ReactNode {
 
 function SvgElement({
 	element, selectedId, onSelect, onPointerStart,
+	iconNodes,
 }: {
 	element: Element;
 	selectedId: string | null;
 	onSelect: (id: string | null) => void;
 	onPointerStart: (event: ReactPointerEvent<SVGGElement>, element: Element) => void;
+	iconNodes: LucideIconNodes | null;
 }) {
 	if (!element.visible) return null;
 	const selected = element.id === selectedId;
@@ -104,9 +133,12 @@ function SvgElement({
 					selectedId={selectedId}
 					onSelect={onSelect}
 					onPointerStart={onPointerStart}
+					iconNodes={iconNodes}
 				/>
 			))}
 		</g>
+	) : element.type === 'icon' ? (
+		renderIcon(element, iconNodes)
 	) : null;
 
 	return (
@@ -179,7 +211,18 @@ export default function SvgArtboard({ project, zoom, selectedId, onSelect, onUpd
 	const svgRef = useRef<SVGSVGElement>(null);
 	const actionRef = useRef<PointerAction | null>(null);
 	const movedRef = useRef(false);
+	const [iconNodes, setIconNodes] = useState<LucideIconNodes | null>(null);
 	const background = project.artboard.background;
+	const elements = project.variants.primary ?? [];
+
+	useEffect(() => {
+		if (!containsIcon(elements) || iconNodes) return;
+		let active = true;
+		void loadLucideLibrary().then(({ icons }) => {
+			if (active) setIconNodes(icons);
+		});
+		return () => { active = false; };
+	}, [elements, iconNodes]);
 
 	const startPointerAction = (event: ReactPointerEvent<SVGGElement>, element: Element) => {
 		const svg = svgRef.current;
@@ -284,6 +327,7 @@ export default function SvgArtboard({ project, zoom, selectedId, onSelect, onUpd
 						selectedId={selectedId}
 						onSelect={onSelect}
 						onPointerStart={startPointerAction}
+						iconNodes={iconNodes}
 					/>
 				))}
 			</svg>
