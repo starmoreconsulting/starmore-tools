@@ -52,6 +52,7 @@ export type ToolComponentName =
 	| 'ImageDenoiser'
 	| 'PhotoAdjustments'
 	| 'ImageColourPicker'
+	| 'ColourPaletteExtractor'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -162,6 +163,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageColourPicker',
 		icon: '◉',
+		live: false,
+	},
+	{
+		slug: 'colour-palette-extractor',
+		name: 'Colour Palette Extractor',
+		department: 'image',
+		description: 'Extract three to ten dominant colours and export a palette image or JSON.',
+		seoTitle: 'Image Colour Palette Extractor | Starmore Tools',
+		seoDescription: 'Extract and sort three to ten dominant image colours by share, copy HEX values, and download the palette as a PNG or JSON file in your browser.',
+		howTo: ['Choose a JPG, PNG, WebP, GIF or BMP image.', 'Select 3 to 10 colours and extract the palette from a downscaled copy.', 'Copy individual or all HEX values, or download the palette as PNG and JSON.'],
+		faqs: [
+			{ question: 'How are dominant colours estimated?', answer: 'A median-cut colour quantizer groups colours from a downscaled image and sorts the results by the share of sampled visible pixels.' },
+			{ question: 'Are my photos uploaded?', answer: 'No. The image is sampled and analysed locally on your device.' },
+		],
+		component: 'ColourPaletteExtractor',
+		icon: '▦',
 		live: false,
 	},
 	{

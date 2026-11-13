@@ -61,12 +61,19 @@ export type ImageWorkerTask = {
 		shadows: number;
 		autoStretch: boolean;
 	};
+} | {
+	type: 'palette';
+	data: Uint8ClampedArray;
+	width: number;
+	height: number;
+	colorCount: number;
 };
 
 export interface ImageWorkerResult {
 	data: Uint8ClampedArray;
 	width: number;
 	height: number;
+	palette?: { hex: string; percentage: number }[];
 }
 
 const MIME_BY_EXTENSION: Record<string, ImageInputType> = {

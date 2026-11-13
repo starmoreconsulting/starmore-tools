@@ -34,6 +34,7 @@ import ImageSharpener from '../components/tools/ImageSharpener';
 import ImageDenoiser from '../components/tools/ImageDenoiser';
 import PhotoAdjustments from '../components/tools/PhotoAdjustments';
 import ImageColourPicker from '../components/tools/ImageColourPicker';
+import ColourPaletteExtractor from '../components/tools/ColourPaletteExtractor';
 import MarkdownEditor from '../components/tools/MarkdownEditor';
 import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
 import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
@@ -70,6 +71,7 @@ export function getStaticPaths() {
 		'brightness-contrast-editor',
 		'blurry-photo-enhancer',
 		'image-colour-picker',
+		'colour-palette-extractor',
 	]);
 	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },
@@ -129,6 +131,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'ImageDenoiser' && <ImageDenoiser client:load />}
 			{tool.component === 'PhotoAdjustments' && <PhotoAdjustments client:load preset={tool.imagePreset} />}
 			{tool.component === 'ImageColourPicker' && <ImageColourPicker client:load />}
+			{tool.component === 'ColourPaletteExtractor' && <ColourPaletteExtractor client:load />}
 			{tool.component === 'MarkdownEditor' && <MarkdownEditor client:load />}
 			{tool.component === 'TextLogoGenerator' && <TextLogoGenerator client:load />}
 			{tool.component === 'MonogramLogoGenerator' && <MonogramLogoGenerator client:load />}

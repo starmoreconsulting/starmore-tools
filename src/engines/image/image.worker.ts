@@ -289,6 +289,73 @@ function adjustImage(id: string, task: Extract<ImageWorkerTask, { type: 'adjust'
 	return new ImageData(data, width, height);
 }
 
+function extractPalette(id: string, task: Extract<ImageWorkerTask, { type: 'palette' }>): { hex: string; percentage: number }[] {
+	const { data, width, height, colorCount } = task;
+	if (data.length !== width * height * 4) throw new Error('The preview pixels are incomplete.');
+	const bins = new Map<number, { red: number; green: number; blue: number; count: number }>();
+	let total = 0;
+	for (let index = 0; index < data.length; index += 4) {
+		if (data[index + 3] < 32) continue;
+		const red = data[index] >> 3;
+		const green = data[index + 1] >> 3;
+		const blue = data[index + 2] >> 3;
+		const key = (red << 10) | (green << 5) | blue;
+		const bin = bins.get(key);
+		if (bin) bin.count += 1;
+		else bins.set(key, { red: (red << 3) + 4, green: (green << 3) + 4, blue: (blue << 3) + 4, count: 1 });
+		total += 1;
+	}
+	if (!total) throw new Error('This image has no visible pixels to sample.');
+	type Color = { red: number; green: number; blue: number; count: number };
+	type Box = { colors: Color[] };
+	const boxes: Box[] = [{ colors: [...bins.values()] }];
+	while (boxes.length < colorCount) {
+		let selected = -1;
+		let selectedScore = -1;
+		for (let index = 0; index < boxes.length; index += 1) {
+			const colors = boxes[index].colors;
+			if (colors.length < 2) continue;
+			const ranges = [0, 1, 2].map((channel) => {
+				const values = colors.map((color) => channel === 0 ? color.red : channel === 1 ? color.green : color.blue);
+				return Math.max(...values) - Math.min(...values);
+			});
+			const score = Math.max(...ranges) * colors.reduce((sum, color) => sum + color.count, 0);
+			if (score > selectedScore) { selected = index; selectedScore = score; }
+		}
+		if (selected < 0) break;
+		const box = boxes[selected];
+		const ranges = [0, 1, 2].map((channel) => {
+			const values = box.colors.map((color) => channel === 0 ? color.red : channel === 1 ? color.green : color.blue);
+			return Math.max(...values) - Math.min(...values);
+		});
+		const channel = ranges.indexOf(Math.max(...ranges));
+		box.colors.sort((a, b) => (channel === 0 ? a.red - b.red : channel === 1 ? a.green - b.green : a.blue - b.blue));
+		const half = box.colors.reduce((sum, color) => sum + color.count, 0) / 2;
+		let weight = 0;
+		let split = 1;
+		for (; split < box.colors.length; split += 1) {
+			weight += box.colors[split - 1].count;
+			if (weight >= half) break;
+		}
+		boxes.splice(selected, 1, { colors: box.colors.slice(0, split) }, { colors: box.colors.slice(split) });
+		emitProgress(id, boxes.length, colorCount);
+	}
+	return boxes.map(({ colors }) => {
+		let red = 0;
+		let green = 0;
+		let blue = 0;
+		let count = 0;
+		for (const color of colors) {
+			red += color.red * color.count;
+			green += color.green * color.count;
+			blue += color.blue * color.count;
+			count += color.count;
+		}
+		const hex = `#${[red, green, blue].map((value) => Math.round(value / count).toString(16).padStart(2, '0')).join('')}`.toUpperCase();
+		return { hex, percentage: count * 100 / total };
+	}).sort((a, b) => b.percentage - a.percentage);
+}
+
 function clampRinging(output: Uint8ClampedArray, width: number, height: number, source: Uint8ClampedArray, sourceWidth: number, sourceHeight: number): void {
 	for (let y = 0; y < height; y += 1) {
 		const sy = Math.max(0, Math.min(sourceHeight - 1, Math.round((y + 0.5) * sourceHeight / height - 0.5)));
@@ -337,6 +404,11 @@ function gentleSharpen(data: Uint8ClampedArray, width: number, height: number, a
 workerScope.onmessage = (event: MessageEvent<WorkerRequest>) => {
 	const { id, task } = event.data;
 	try {
+		if (task.type === 'palette') {
+			const palette = extractPalette(id, task);
+			workerScope.postMessage({ id, result: { data: new Uint8ClampedArray(), width: 0, height: 0, palette } });
+			return;
+		}
 		const imageData = task.type === 'upscale'
 			? resample(id, task)
 			: task.type === 'sharpen'
