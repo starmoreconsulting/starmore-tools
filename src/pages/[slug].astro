@@ -83,6 +83,8 @@ export function getStaticPaths() {
 		'image-watermark-generator',
 		'background-remover',
 		'background-changer',
+		'logo-background-remover',
+		'logo-transparency-editor',
 	]);
 	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },
