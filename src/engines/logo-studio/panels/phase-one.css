@@ -65,6 +65,10 @@
 .logo-swatch { width: 28px; min-height: 28px !important; height: 28px; padding: 0 !important; border: 1px solid #cfd4c7 !important; border-radius: 50% !important; }
 .logo-color-controls { display: grid; gap: 8px; }
 .logo-color-channel-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.logo-fields-panel { display: grid; gap: 9px; }
+.logo-fields-list { display: grid; gap: 10px; }
+.logo-fields-list small { display: block; color: #788177; font-size: 9px; font-weight: 500; }
+.logo-fields-preview { display: block; width: 100%; aspect-ratio: 1; border: 1px solid #e6e5dc; border-radius: 4px; background-color: white; object-fit: contain; }
 .logo-gradient-stop-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
 .logo-font-list { display: grid; max-height: 380px; gap: 5px; overflow-y: auto; margin: 10px 0; }
 .logo-font-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 3px; padding: 8px !important; text-align: left; }

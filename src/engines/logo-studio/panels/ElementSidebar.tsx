@@ -4,6 +4,7 @@ const IconLibrary = lazy(() => import('./IconLibrary'));
 const ColorLibrary = lazy(() => import('./ColorLibrary'));
 const FontBrowser = lazy(() => import('./FontBrowser'));
 const LayersPanel = lazy(() => import('./LayersPanel'));
+const FieldsPanel = lazy(() => import('./FieldsPanel'));
 
 const shapes = ['rectangle', 'rounded-rectangle', 'circle', 'triangle', 'polygon', 'star', 'arrow', 'line', 'ring', 'hexagon', 'diamond', 'shield', 'leaf', 'drop', 'bolt'] as const;
 
@@ -24,6 +25,8 @@ interface Props {
 	artboardHeight?: number;
 	onAlign?: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom', toArtboard: boolean) => void;
 	onDistribute?: (axis: 'horizontal' | 'vertical') => void;
+	project?: import('../model/types').LogoProject;
+	activeVariant?: string;
 }
 
 export default function ElementSidebar({
@@ -43,9 +46,11 @@ export default function ElementSidebar({
 	artboardHeight = 600,
 	onAlign = () => undefined,
 	onDistribute = () => undefined,
+	project,
+	activeVariant = 'primary',
 }: Props) {
 	const [shape, setShape] = useState<(typeof shapes)[number]>('rectangle');
-	const [tab, setTab] = useState<'elements' | 'icons' | 'colors' | 'fonts' | 'layers'>('elements');
+	const [tab, setTab] = useState<'elements' | 'icons' | 'colors' | 'fonts' | 'layers' | 'fields'>('elements');
 
 	const addText = () => onAdd(createDefaultElement('text', {
 		x: 90,
@@ -75,6 +80,7 @@ export default function ElementSidebar({
 				<button type="button" role="tab" aria-selected={tab === 'colors'} onClick={() => setTab('colors')}>Colours</button>
 				<button type="button" role="tab" aria-selected={tab === 'fonts'} onClick={() => setTab('fonts')}>Fonts</button>
 				<button type="button" role="tab" aria-selected={tab === 'layers'} onClick={() => setTab('layers')}>Layers</button>
+				<button type="button" role="tab" aria-selected={tab === 'fields'} onClick={() => setTab('fields')}>Fields</button>
 			</div>
 			{tab === 'icons' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading icon browser…</p>}>
@@ -91,6 +97,10 @@ export default function ElementSidebar({
 			) : tab === 'layers' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading layers…</p>}>
 					<LayersPanel elements={elements} selectedIds={selectedIds} artboardWidth={artboardWidth} artboardHeight={artboardHeight} onSelect={onSelect} onUpdate={onLayerUpdate} onReorder={onReorder} onGroup={onGroup} onUngroup={onUngroup} onAlign={onAlign} onDistribute={onDistribute} />
+				</Suspense>
+			) : tab === 'fields' ? (
+				<Suspense fallback={<p className="logo-phase-hint">Loading fields…</p>}>
+					{project ? <FieldsPanel project={project} activeVariant={activeVariant} /> : <p className="logo-phase-hint">Field preview is unavailable.</p>}
 				</Suspense>
 			) : <>
 			<button className="logo-phase-primary" type="button" onClick={addText}>Add text</button>

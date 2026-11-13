@@ -203,6 +203,8 @@ function SvgElement({
 		</g>
 	) : element.type === 'icon' ? (
 		renderIcon(element, iconNodes)
+	) : element.type === 'image' && element.src?.startsWith('data:image/') ? (
+		<image href={element.src} width={element.width} height={element.height} preserveAspectRatio={`xMidYMid ${element.fit === 'cover' ? 'slice' : 'meet'}`} />
 	) : null;
 
 	return (

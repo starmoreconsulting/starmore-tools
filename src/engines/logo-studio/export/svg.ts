@@ -88,7 +88,7 @@ function renderElement(element: Element, outlines: Map<string, TextOutline>, ico
 	} else if (element.type === 'group') {
 		content = (element.children ?? []).map((child) => renderElement(child, outlines, icons, warnings)).join('');
 	} else if (element.type === 'image' && element.src?.startsWith('data:image/')) {
-		content = `<image href="${escapeXml(element.src)}" width="${element.width}" height="${element.height}"/>`;
+		content = `<image href="${escapeXml(element.src)}" width="${element.width}" height="${element.height}" preserveAspectRatio="xMidYMid ${element.fit === 'cover' ? 'slice' : 'meet'}"/>`;
 	} else if (element.type === 'icon' && element.iconName && icons[element.iconName]) {
 		const fill = element.gradient ? `url(#${getElementGradientId(element)})` : escapeXml(element.fill ?? 'none');
 		const stroke = element.gradient && element.stroke ? fill : escapeXml(element.stroke ?? '#203b32');

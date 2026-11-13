@@ -34,6 +34,18 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 					<option value="other">Other</option>
 				</select>
 			</label>
+			{(element.type === 'text' || element.type === 'image') && (
+				<label className="logo-phase-field">
+					<span>Field name</span>
+					<input
+						aria-label="Field name"
+						value={element.fieldName ?? ''}
+						maxLength={100}
+						placeholder={element.type === 'text' ? 'e.g. name or tagline' : 'e.g. product-image'}
+						onChange={(event) => onUpdate({ fieldName: event.target.value.trim() ? event.target.value : undefined })}
+					/>
+				</label>
+			)}
 			<div className="logo-phase-number-grid">
 				<label className="logo-phase-field"><span>X</span><input type="number" value={element.x} onChange={(event) => onUpdate({ x: numberValue(event.target.value, element.x) })} /></label>
 				<label className="logo-phase-field"><span>Y</span><input type="number" value={element.y} onChange={(event) => onUpdate({ y: numberValue(event.target.value, element.y) })} /></label>
@@ -93,6 +105,15 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 					<label className="logo-phase-field"><span>Curve: {element.curve ?? 0}</span><input type="range" min={-100} max={100} step={1} value={element.curve ?? 0} onChange={(event) => onUpdate({ curve: Number(event.target.value) })} /></label>
 					<label className="logo-phase-field"><span>Text colour</span><input type="color" value={element.fill && /^#[\da-f]{6}$/i.test(element.fill) ? element.fill : '#203b32'} onChange={(event) => onUpdate({ fill: event.target.value })} /></label>
 				</div>
+			)}
+			{element.type === 'image' && (
+				<label className="logo-phase-field">
+					<span>Image fit</span>
+					<select value={element.fit ?? 'contain'} onChange={(event) => onUpdate({ fit: event.target.value as Element['fit'] })}>
+						<option value="contain">Contain</option>
+						<option value="cover">Cover</option>
+					</select>
+				</label>
 			)}
 		</aside>
 	);

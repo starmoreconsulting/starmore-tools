@@ -1,10 +1,12 @@
 export type ElementType = 'text' | 'shape' | 'icon' | 'image' | 'group' | 'path';
 export type ElementRole = 'icon' | 'name' | 'tagline' | 'decor' | 'other';
+export type ImageFit = 'contain' | 'cover';
 
 export interface Element {
 	id: string;
 	type: ElementType;
 	role?: ElementRole;
+	fieldName?: string;
 	name?: string;
 	x: number;
 	y: number;
@@ -32,6 +34,7 @@ export interface Element {
 	radius?: number;
 	children?: Element[];
 	src?: string;
+	fit?: ImageFit;
 	pathData?: string | number[][];
 	d?: string;
 	fillRule?: 'nonzero' | 'evenodd';
@@ -149,7 +152,7 @@ export function createDefaultElement(type: ElementType, overrides: Partial<Eleme
 		defaults.stroke = '#203b32';
 		defaults.strokeWidth = 2;
 	} else if (type === 'image') {
-		defaults.src = '';
+		Object.assign(defaults, { src: '', fit: 'contain' as ImageFit });
 	} else if (type === 'path') {
 		Object.assign(defaults, { d: '', fill: '#203b32', fillRule: 'nonzero' });
 	}

@@ -369,6 +369,8 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 		artboardHeight={project.artboard.height}
 		onAlign={(alignment, toArtboard) => alignSelected(alignment, toArtboard, project.artboard.width, project.artboard.height)}
 		onDistribute={distributeSelected}
+		project={project}
+		activeVariant={activeVariant}
 		onUpdate={(patch) => {
 			if (selectedId) updateElement(selectedId, patch);
 		}}

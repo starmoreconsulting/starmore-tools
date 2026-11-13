@@ -85,9 +85,16 @@ function validateElement(value: unknown, depth: number, count: { value: number }
 	}
 
 	for (const key of ['fill', 'stroke', 'text', 'fontFamily', 'shape', 'iconName', 'src'] as const) {
-		const result = optionalString(value, key);
+		const result = optionalString(value, key, key === 'src' ? Math.ceil(10 * 1024 * 1024 * 4 / 3) + 1024 : 10000);
 		if (result !== undefined) element[key] = result;
 	}
+	const fieldName = optionalString(value, 'fieldName', 100);
+	if (fieldName !== undefined && (type === 'text' || type === 'image')) element.fieldName = fieldName;
+	if (value.fit !== undefined && type === 'image') {
+		if (value.fit !== 'contain' && value.fit !== 'cover') throw new Error('An image element has an invalid fit rule.');
+		element.fit = value.fit;
+	}
+	if (type === 'image') element.fit ??= 'contain';
 	const path = optionalString(value, 'd', 1_000_000);
 	if (path !== undefined) element.d = path;
 	if (value.fillRule !== undefined) {
