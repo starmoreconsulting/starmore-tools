@@ -23,7 +23,7 @@ import { importCustomSvgIcon, importSvg } from '../import/svg-import';
 import MockupStudio from '../mockups/MockupStudio';
 import BrandKitsScreen from './BrandKitsScreen';
 import { getActiveBrandKit } from '../store/brand-kits';
-import type { BrandKit } from '../brand/kit';
+import { restoreBrandKitFonts, type BrandKit } from '../brand/kit';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -149,6 +149,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 		if (!file) return;
 		try {
 			const imported = await readProjectFileWithReference(file);
+			setCustomFonts(await listCustomFonts());
 			loadProject(imported.project);
 			await saveLocalProject(imported.project);
 			await deleteLocalReference(imported.project.id);
@@ -301,8 +302,13 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 
 	useEffect(() => {
 		let active = true;
-		void getActiveBrandKit().then((kit) => {
-			if (active) setActiveBrandKit(kit);
+		void getActiveBrandKit().then(async (kit) => {
+			if (kit) await restoreBrandKitFonts(kit);
+			const storedFonts = await listCustomFonts();
+			if (active) {
+				setActiveBrandKit(kit);
+				setCustomFonts(storedFonts);
+			}
 		}).catch((cause: unknown) => {
 			if (active) setStatus(`Brand kit restore failed: ${cause instanceof Error ? cause.message : 'The active brand kit could not be loaded.'}`);
 		});
@@ -544,7 +550,10 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			{showBrandKits && <BrandKitsScreen
 				project={project}
 				activeKitId={activeBrandKit?.id ?? null}
-				onActiveChange={setActiveBrandKit}
+				onActiveChange={(kit) => {
+					setActiveBrandKit(kit);
+					void refreshCustomFonts().catch((error: unknown) => setStatus(`Custom fonts could not be refreshed: ${error instanceof Error ? error.message : 'local font storage is unavailable.'}`));
+				}}
 				onBack={() => setShowBrandKits(false)}
 			/>}
 			{showVariantComparison && <CompareVariants project={project} onClose={() => setShowVariantComparison(false)} />}

@@ -1,10 +1,14 @@
 import type { Element, ElementRole, ElementType, LogoArrangement, LogoIndustry, LogoProject, LogoStyle } from '../model/types';
 import { sanitizeReferenceSvg, type ReferenceLayer } from '../store/references';
+import { getCustomFont, saveCustomFont } from '../store/custom-fonts';
+import { inspectCustomFont } from '../library/custom-fonts';
 
 const MAX_FILE_BYTES = 16 * 1024 * 1024;
 const MAX_REFERENCE_BYTES = 10 * 1024 * 1024;
 const MAX_ELEMENTS = 5000;
 const MAX_GROUP_DEPTH = 30;
+const MAX_PROJECT_FONT_BYTES = 10 * 1024 * 1024;
+const MAX_CUSTOM_FONTS = 30;
 const FONT_MIME_TYPES = new Set(['font/ttf', 'font/otf', 'font/woff']);
 const elementTypes = new Set<ElementType>(['text', 'shape', 'icon', 'image', 'group', 'path']);
 const elementRoles = new Set<ElementRole>(['icon', 'name', 'tagline', 'decor', 'other']);
@@ -324,10 +328,6 @@ export function validateLogoProject(value: unknown): LogoProject {
 	};
 }
 
-export function createProjectFile(project: LogoProject): Blob {
-	return new Blob([`${JSON.stringify(project, null, 2)}\n`], { type: 'application/json' });
-}
-
 function blobToBase64(blob: Blob): Promise<string> {
 	return blob.arrayBuffer().then((buffer) => {
 		const bytes = new Uint8Array(buffer);
@@ -339,8 +339,54 @@ function blobToBase64(blob: Blob): Promise<string> {
 	});
 }
 
+async function projectWithEmbeddedFonts(project: LogoProject): Promise<Record<string, unknown>> {
+	const embedded: { family: string; filename: string; mime: string; data: string }[] = [];
+	let totalBytes = 0;
+	const metadata = new Map((project.customFonts ?? []).map((font) => [font.family.toLocaleLowerCase(), font]));
+	const usedFamilies = new Set(metadata.keys());
+	const visit = (elements: Element[]) => {
+		for (const element of elements) {
+			if (element.type === 'text' && element.fontFamily) usedFamilies.add(element.fontFamily.toLocaleLowerCase());
+			if (element.children) visit(element.children);
+		}
+	};
+	Object.values(project.variants).forEach(visit);
+	for (const key of usedFamilies) {
+		const font = metadata.get(key);
+		const stored = await getCustomFont(font?.family ?? key);
+		if (!stored && font) throw new Error(`Missing font: “${font.family}”. Re-upload it before saving this project file.`);
+		if (!stored) continue;
+		totalBytes += stored.blob.size;
+		if (totalBytes > MAX_PROJECT_FONT_BYTES) throw new Error('Custom fonts in a project file cannot exceed 10 MB total.');
+		metadata.set(key, { family: stored.family, filename: stored.filename, mime: stored.mime });
+		embedded.push({
+			family: stored.family,
+			filename: stored.filename,
+			mime: stored.mime,
+			data: await blobToBase64(stored.blob),
+		});
+	}
+	return {
+		...project,
+		...(metadata.size ? { customFonts: [...metadata.values()] } : {}),
+		...(embedded.length ? { fontFiles: embedded } : {}),
+	};
+}
+
+export async function createProjectFile(project: LogoProject): Promise<Blob> {
+	const serialized = `${JSON.stringify(await projectWithEmbeddedFonts(project), null, 2)}\n`;
+	const file = new Blob([serialized], { type: 'application/json' });
+	if (file.size > MAX_FILE_BYTES) throw new Error('The project file exceeds the 16 MB size limit.');
+	return file;
+}
+
 export async function createProjectFileWithReference(project: LogoProject, reference: ReferenceLayer | null): Promise<Blob> {
-	if (!reference) return createProjectFile(project);
+	const payload = await projectWithEmbeddedFonts(project);
+	if (!reference) {
+		const file = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' });
+		if (file.size > MAX_FILE_BYTES) throw new Error('The project file exceeds the 16 MB size limit.');
+		return file;
+	}
 	const referenceData = {
 		name: reference.name,
 		x: reference.x,
@@ -353,7 +399,9 @@ export async function createProjectFileWithReference(project: LogoProject, refer
 		type: reference.blob.type,
 		data: await blobToBase64(reference.blob),
 	};
-	return new Blob([`${JSON.stringify({ ...project, reference: referenceData }, null, 2)}\n`], { type: 'application/json' });
+	const file = new Blob([`${JSON.stringify({ ...payload, reference: referenceData }, null, 2)}\n`], { type: 'application/json' });
+	if (file.size > MAX_FILE_BYTES) throw new Error('The project file exceeds the 16 MB size limit.');
+	return file;
 }
 
 export function parseProjectFile(contents: string): LogoProject {
@@ -413,6 +461,51 @@ function parseEmbeddedReference(value: unknown): ReferenceLayer | null {
 	};
 }
 
+async function restoreEmbeddedCustomFonts(value: unknown, project: LogoProject): Promise<void> {
+	if (!isRecord(value) || value.fontFiles === undefined) return;
+	if (!Array.isArray(value.fontFiles) || value.fontFiles.length > MAX_CUSTOM_FONTS) {
+		throw new Error('The project file contains too many embedded custom fonts.');
+	}
+	const projectFonts = new Map((project.customFonts ?? []).map((font) => [font.family.toLocaleLowerCase(), font]));
+	const restored: Awaited<ReturnType<typeof inspectCustomFont>>[] = [];
+	const seen = new Set<string>();
+	let totalBytes = 0;
+	for (const entry of value.fontFiles) {
+		if (!isRecord(entry)
+			|| typeof entry.family !== 'string'
+			|| typeof entry.filename !== 'string'
+			|| typeof entry.mime !== 'string'
+			|| typeof entry.data !== 'string'
+			|| entry.data.length === 0
+			|| entry.data.length > Math.ceil(MAX_PROJECT_FONT_BYTES * 4 / 3) + 4
+			|| !/^[\da-z+/]+=*$/i.test(entry.data)) {
+			throw new Error('The project file contains invalid embedded custom font data.');
+		}
+		const family = entry.family.trim();
+		const key = family.toLocaleLowerCase();
+		const metadata = projectFonts.get(key);
+		if (!metadata || seen.has(key) || metadata.filename !== entry.filename || metadata.mime !== entry.mime) {
+			throw new Error('An embedded font does not match the project font list.');
+		}
+		seen.add(key);
+		let binary: string;
+		try {
+			binary = atob(entry.data);
+		} catch {
+			throw new Error(`The embedded font “${family}” is not valid base64.`);
+		}
+		totalBytes += binary.length;
+		if (totalBytes > MAX_PROJECT_FONT_BYTES) throw new Error('Embedded custom fonts cannot exceed 10 MB total.');
+		const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+		const inspected = await inspectCustomFont(new Blob([bytes], { type: entry.mime }), entry.filename);
+		if (inspected.family.toLocaleLowerCase() !== key || inspected.mime !== entry.mime) {
+			throw new Error(`The embedded font data does not match “${family}”.`);
+		}
+		restored.push(inspected);
+	}
+	await Promise.all(restored.map(saveCustomFont));
+}
+
 export async function readProjectFileWithReference(file: File): Promise<{ project: LogoProject; reference: ReferenceLayer | null }> {
 	if (file.size > MAX_FILE_BYTES) throw new Error('Project files must be 16 MB or smaller.');
 	const contents = await file.text();
@@ -422,10 +515,21 @@ export async function readProjectFileWithReference(file: File): Promise<{ projec
 	} catch {
 		throw new Error('The selected file is not valid JSON. Choose a Logo Studio .json project file.');
 	}
-	return { project: validateLogoProject(parsed), reference: parseEmbeddedReference(parsed) };
+	const project = validateLogoProject(parsed);
+	const reference = parseEmbeddedReference(parsed);
+	await restoreEmbeddedCustomFonts(parsed, project);
+	return { project, reference };
 }
 
 export async function readProjectFile(file: File): Promise<LogoProject> {
 	if (file.size > MAX_FILE_BYTES) throw new Error('Project files must be 16 MB or smaller.');
-	return parseProjectFile(await file.text());
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(await file.text());
+	} catch {
+		throw new Error('The selected file is not valid JSON. Choose a Logo Studio .json project file.');
+	}
+	const project = validateLogoProject(parsed);
+	await restoreEmbeddedCustomFonts(parsed, project);
+	return project;
 }

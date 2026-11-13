@@ -259,7 +259,7 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 	const exportProjectFile = () => runExport('Project file', async () => {
 		const file = includeReference
 			? await createProjectFileWithReference(project, reference)
-			: createProjectFile(project);
+			: await createProjectFile(project);
 		downloadBlob(file, `${safeFileName(project.name)}.json`);
 		return {};
 	});

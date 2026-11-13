@@ -47,6 +47,14 @@ export default function MyProjects({ onBack, onOpen, onImport }: Props) {
 			setError(cause instanceof Error ? cause.message : 'That project action could not be completed.');
 		}
 	};
+	const exportProject = async (project: LogoProject) => {
+		try {
+			downloadBlob(await createProjectFile(project), `${project.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'logo-project'}.json`);
+			setError('');
+		} catch (cause) {
+			setError(cause instanceof Error ? cause.message : 'The project file could not be exported.');
+		}
+	};
 
 	return (
 		<section className="logo-projects-screen" aria-labelledby="logo-projects-title">
@@ -86,7 +94,7 @@ export default function MyProjects({ onBack, onOpen, onImport }: Props) {
 									<button type="button" className="logo-phase-primary" onClick={() => onOpen(project)}>Open</button>
 									<button type="button" onClick={() => void perform(() => renameLocalProject(project.id, names[project.id] ?? project.name))}>Rename</button>
 									<button type="button" onClick={() => void perform(async () => { await duplicateLocalProject(project); })}>Duplicate</button>
-									<button type="button" onClick={() => downloadBlob(createProjectFile(project), `${project.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'logo-project'}.json`)}>Export</button>
+									<button type="button" onClick={() => void exportProject(project)}>Export</button>
 									<button
 										type="button"
 										className="logo-project-delete"

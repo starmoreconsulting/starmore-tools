@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { createBrandKitFromProject, exportKit, importKit, type BrandKit } from '../brand/kit';
+import { createBrandKitFromProject, exportKit, importKit, restoreBrandKitFonts, type BrandKit } from '../brand/kit';
 import type { LogoProject } from '../model/types';
 import { deleteBrandKit, listBrandKits, saveBrandKit, setActiveBrandKitId } from '../store/brand-kits';
 import { downloadBlob } from '../export/raster';
@@ -44,7 +44,7 @@ export default function BrandKitsScreen({ project, activeKitId, onActiveChange, 
 
 	const create = async () => {
 		try {
-			const kit = createBrandKitFromProject(project);
+			const kit = await createBrandKitFromProject(project);
 			await saveBrandKit(kit);
 			await refresh();
 			setNotice(`Created “${kit.name}” from the current logo.`);
@@ -56,6 +56,7 @@ export default function BrandKitsScreen({ project, activeKitId, onActiveChange, 
 
 	const activate = async (kit: BrandKit | null) => {
 		try {
+			if (kit) await restoreBrandKitFonts(kit);
 			await setActiveBrandKitId(kit?.id ?? null);
 			onActiveChange(kit);
 			setNotice(kit ? `“${kit.name}” colours and fonts are active.` : 'Brand kit colours and fonts are inactive.');

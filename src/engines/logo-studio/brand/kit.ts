@@ -1,6 +1,8 @@
 import { validateLogoProject } from '../export/project-file';
 import type { LogoProject } from '../model/types';
 import { sanitizeReferenceSvg } from '../store/references';
+import { getCustomFont, saveCustomFont } from '../store/custom-fonts';
+import { inspectCustomFont } from '../library/custom-fonts';
 
 export interface BrandKit {
 	starmore_brand_kit: 1;
@@ -184,10 +186,53 @@ export async function importKit(file: File): Promise<BrandKit> {
 	} catch {
 		throw new Error('This brand kit is not valid JSON.');
 	}
-	return validateBrandKit(parsed);
+	const kit = validateBrandKit(parsed);
+	await validateKitFonts(kit);
+	return kit;
 }
 
-export function createBrandKitFromProject(project: LogoProject, name = project.name): BrandKit {
+async function decodeKitFont(font: NonNullable<BrandKit['customFonts']>[number]): Promise<Blob> {
+	const [, encoded] = font.dataUri.split(',', 2);
+	let binary: string;
+	try {
+		binary = atob(encoded);
+	} catch {
+		throw new Error(`The custom font “${font.family}” has invalid embedded data.`);
+	}
+	if (binary.length > MAX_KIT_BYTES) throw new Error(`The custom font “${font.family}” exceeds the 10 MB limit.`);
+	return new Blob([Uint8Array.from(binary, (character) => character.charCodeAt(0))], { type: font.mime });
+}
+
+async function validateKitFonts(kit: BrandKit): Promise<void> {
+	for (const font of kit.customFonts ?? []) {
+		const inspected = await inspectCustomFont(await decodeKitFont(font), font.filename);
+		if (inspected.family.toLocaleLowerCase() !== font.family.toLocaleLowerCase() || inspected.mime !== font.mime) {
+			throw new Error(`The embedded data does not match the “${font.family}” custom font.`);
+		}
+	}
+}
+
+export async function restoreBrandKitFonts(kit: BrandKit): Promise<void> {
+	const restored = await Promise.all((kit.customFonts ?? []).map(async (font) => {
+		const inspected = await inspectCustomFont(await decodeKitFont(font), font.filename);
+		if (inspected.family.toLocaleLowerCase() !== font.family.toLocaleLowerCase() || inspected.mime !== font.mime) {
+			throw new Error(`The embedded data does not match the “${font.family}” custom font.`);
+		}
+		return inspected;
+	}));
+	await Promise.all(restored.map(saveCustomFont));
+}
+
+async function blobToDataUri(blob: Blob): Promise<string> {
+	const bytes = new Uint8Array(await blob.arrayBuffer());
+	let binary = '';
+	for (let index = 0; index < bytes.length; index += 0x8000) {
+		binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+	}
+	return `data:${blob.type};base64,${btoa(binary)}`;
+}
+
+export async function createBrandKitFromProject(project: LogoProject, name = project.name): Promise<BrandKit> {
 	const colors = new Map<string, { name: string; hex: string }>();
 	const fonts: string[] = [];
 	let heading: string | undefined;
@@ -212,6 +257,23 @@ export function createBrandKitFromProject(project: LogoProject, name = project.n
 	addColor(project.artboard.background);
 	Object.values(project.variants).forEach(visit);
 	const now = Date.now();
+	const metadata = new Map((project.customFonts ?? []).map((font) => [font.family.toLocaleLowerCase(), font]));
+	const customFonts: NonNullable<BrandKit['customFonts']> = [];
+	for (const family of new Set([...metadata.keys(), ...fonts.map((font) => font.toLocaleLowerCase())])) {
+		const fontMetadata = metadata.get(family);
+		const stored = await getCustomFont(fontMetadata?.family ?? family);
+		if (!stored && fontMetadata) throw new Error(`Missing font: “${fontMetadata.family}”. Re-upload it before creating a brand kit.`);
+		if (!stored) continue;
+		const customFont = {
+			family: stored.family,
+			filename: stored.filename,
+			mime: stored.mime,
+			dataUri: await blobToDataUri(stored.blob),
+		};
+		customFonts.push(customFont);
+		metadata.set(family, { family: stored.family, filename: stored.filename, mime: stored.mime });
+	}
+	const kitProject = { ...project, ...(metadata.size ? { customFonts: [...metadata.values()] } : {}) };
 	return validateBrandKit({
 		starmore_brand_kit: 1,
 		id: globalThis.crypto?.randomUUID?.() ?? `brand-${now}-${Math.random().toString(36).slice(2)}`,
@@ -224,7 +286,8 @@ export function createBrandKitFromProject(project: LogoProject, name = project.n
 			subheading: subheading ?? fonts[1] ?? heading ?? fonts[0] ?? 'Inter',
 			body: fonts.at(-1) ?? 'Inter',
 		},
-		logo: project,
+		logo: kitProject,
+		...(customFonts.length ? { customFonts } : {}),
 	});
 }
 
