@@ -182,7 +182,7 @@ export default function ImageUpscaler() {
 				<button className="tool-button secondary" type="button" disabled={!output || !file} onClick={() => output && file && downloadImage(output, `starmore-upscaled.${outputType === 'image/jpeg' ? 'jpg' : outputType.slice(6)}`)}>Download image</button>
 			</div>
 			{busy && <progress aria-label="Upscaling progress" max={100} value={progress} style={{ display: 'block', width: '100%', height: 10, marginTop: 12, accentColor: '#55744d' }} />}
-			{source && outputUrl && <div className="tool-preview" style={{ display: 'block', padding: 12 }}>
+			{source && inputUrl && outputUrl && <div className="tool-preview" style={{ display: 'block', padding: 12 }}>
 				<div style={{ position: 'relative', width: '100%', height: 'min(60vw, 360px)', minHeight: 160, overflow: 'hidden', background: 'repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 16px 16px' }}>
 					<img src={outputUrl} alt="Upscaled image comparison" style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', objectFit: 'contain' }} />
 					<div style={{ position: 'absolute', inset: 0, overflow: 'hidden', clipPath: `inset(0 ${100 - compare}% 0 0)` }}>

@@ -418,6 +418,41 @@ async function applyWatermark(task: Extract<ImageWorkerTask, { type: 'watermark'
 	return canvas.convertToBlob({ type: outputType, quality: outputType === 'image/png' ? undefined : quality / 100 });
 }
 
+async function resizeForSocial(task: Extract<ImageWorkerTask, { type: 'social-resize' }>): Promise<Blob> {
+	const { source, width, height, fit, background, focus, outputType, quality } = task;
+	if (width * height > 48_000_000) throw new Error('This output exceeds the 48 million pixel processing limit. Choose a smaller preset.');
+	if (width > 12_000 || height > 12_000) throw new Error('This output exceeds the 12,000 px side limit.');
+	const canvas = new OffscreenCanvas(width, height);
+	const context = canvas.getContext('2d');
+	if (!context) throw new Error('The browser could not prepare the resized image.');
+	if (fit !== 'cover' || outputType === 'image/jpeg') {
+		context.fillStyle = background;
+		context.fillRect(0, 0, width, height);
+	}
+	if (fit === 'cover') {
+		const scale = Math.max(width / source.width, height / source.height);
+		const scaledWidth = source.width * scale;
+		const scaledHeight = source.height * scale;
+		const cropX = Math.max(0, Math.min(scaledWidth - width, focus.x * (scaledWidth - width)));
+		const cropY = Math.max(0, Math.min(scaledHeight - height, focus.y * (scaledHeight - height)));
+		context.drawImage(source, -cropX, -cropY, scaledWidth, scaledHeight);
+	} else {
+		if (fit === 'blurred') {
+			const scale = Math.max(width / source.width, height / source.height);
+			const blur = Math.max(5, Math.min(45, Math.round(Math.min(width, height) * 0.035)));
+			context.save();
+			context.filter = `blur(${blur}px)`;
+			context.drawImage(source, -blur, -blur, source.width * scale + blur * 2, source.height * scale + blur * 2);
+			context.restore();
+		}
+		const scale = Math.min(width / source.width, height / source.height);
+		const drawWidth = source.width * scale;
+		const drawHeight = source.height * scale;
+		context.drawImage(source, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+	}
+	return canvas.convertToBlob({ type: outputType, quality: outputType === 'image/png' ? undefined : quality / 100 });
+}
+
 function clampRinging(output: Uint8ClampedArray, width: number, height: number, source: Uint8ClampedArray, sourceWidth: number, sourceHeight: number): void {
 	for (let y = 0; y < height; y += 1) {
 		const sy = Math.max(0, Math.min(sourceHeight - 1, Math.round((y + 0.5) * sourceHeight / height - 0.5)));
@@ -474,6 +509,11 @@ workerScope.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 		if (task.type === 'watermark') {
 			const blob = await applyWatermark(task);
 			workerScope.postMessage({ id, result: { data: new Uint8ClampedArray(), width: task.source.width, height: task.source.height, blob } });
+			return;
+		}
+		if (task.type === 'social-resize') {
+			const blob = await resizeForSocial(task);
+			workerScope.postMessage({ id, result: { data: new Uint8ClampedArray(), width: task.width, height: task.height, blob } });
 			return;
 		}
 		const imageData = task.type === 'upscale'

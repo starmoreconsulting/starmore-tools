@@ -149,7 +149,7 @@ export default function ImageSharpener({ preset }: { preset?: 'blurry-photo' }) 
 				<button className="tool-button secondary" type="button" disabled={!source} onPointerDown={originalDown} onPointerUp={originalUp} onPointerLeave={originalUp} onPointerCancel={originalUp} onKeyDown={(event) => { if (event.key === ' ' || event.key === 'Enter') originalDown(); }} onKeyUp={originalUp}>Hold to compare original</button>
 			</div>
 			{busy && <progress aria-label="Sharpening progress" max={100} value={progress} />}
-			{source && <div className="tool-preview" style={{ display: 'block' }}>
+			{source && inputUrl && <div className="tool-preview" style={{ display: 'block' }}>
 				<div style={{ position: 'relative', width: '100%', height: 'min(60vw, 360px)', minHeight: 160, overflow: 'hidden', background: 'repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 16px 16px' }}>
 					<img src={holdingOriginal || !outputUrl ? inputUrl : outputUrl} alt={holdingOriginal || !outputUrl ? 'Original image' : 'Sharpened image'} style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', objectFit: 'contain', transform: `scale(${zoom})` }} />
 					{outputUrl && !holdingOriginal && <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', clipPath: `inset(0 ${100 - compare}% 0 0)` }}>

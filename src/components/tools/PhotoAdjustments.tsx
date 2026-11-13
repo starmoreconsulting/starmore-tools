@@ -254,7 +254,7 @@ export default function PhotoAdjustments({ preset }: { preset?: 'brightness-cont
 				</div>
 			</>}
 			{busy && <progress aria-label="Full resolution processing progress" max={100} value={progress} />}
-			{source && <div className="tool-preview" style={{ display: 'block' }}>
+			{source && inputUrl && <div className="tool-preview" style={{ display: 'block' }}>
 				<div style={{ position: 'relative', width: '100%', height: 'min(60vw, 360px)', minHeight: 160, overflow: 'hidden', background: 'repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 16px 16px' }}>
 					<img src={previewUrl || inputUrl} alt={previewUrl ? 'Adjusted preview' : 'Original image preview'} style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', objectFit: 'contain' }} />
 					{previewUrl && <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', clipPath: `inset(0 ${100 - compare}% 0 0)` }}>

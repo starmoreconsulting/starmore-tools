@@ -43,16 +43,20 @@ export default function ImageColourPicker() {
 	const [history, setHistory] = useState<Pick[]>([]);
 	const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
 	const [message, setMessage] = useState('Choose an image and tap or click any pixel to inspect its colour.');
+	const [eyeDropperAvailable, setEyeDropperAvailable] = useState(false);
 	const imageCanvas = useRef<HTMLCanvasElement>(null);
 	const loupeCanvas = useRef<HTMLCanvasElement>(null);
 
+	useEffect(() => {
+		setEyeDropperAvailable('EyeDropper' in window);
+	}, []);
 	useEffect(() => () => image?.bitmap.close(), [image]);
 	useEffect(() => {
 		if (!image) { setImageUrl(''); return; }
 		const canvas = document.createElement('canvas');
 		canvas.width = image.width;
 		canvas.height = image.height;
-		const context = canvas.getContext('2d');
+		const context = canvas.getContext('2d', { willReadFrequently: true });
 		if (!context) { setMessage('Your browser could not prepare the image preview.'); return; }
 		context.drawImage(image.bitmap, 0, 0);
 		canvas.toBlob((blob) => {
@@ -75,7 +79,7 @@ export default function ImageColourPicker() {
 		if (!canvas || !image) return;
 		canvas.width = image.width;
 		canvas.height = image.height;
-		const context = canvas.getContext('2d');
+		const context = canvas.getContext('2d', { willReadFrequently: true });
 		if (context) context.drawImage(image.bitmap, 0, 0);
 	}, [image]);
 
@@ -98,7 +102,7 @@ export default function ImageColourPicker() {
 
 	const rememberPick = (color: Pick) => {
 		setPicked(color);
-		setHistory((previous) => [color, ...previous.filter((item) => item.hex !== color.hex)].slice(0, 10));
+		setHistory((previous) => [color, ...previous].slice(0, 10));
 		setMessage(`Picked ${color.hex}.`);
 	};
 
@@ -183,13 +187,13 @@ export default function ImageColourPicker() {
 				</div>
 			</div>}
 			<div className="tool-actions">
-				{typeof window !== 'undefined' && 'EyeDropper' in window && <button className="tool-button secondary" type="button" onClick={() => void pickWithEyeDropper()}>Use browser EyeDropper</button>}
+				{eyeDropperAvailable && <button className="tool-button secondary" type="button" onClick={() => void pickWithEyeDropper()}>Use browser EyeDropper</button>}
 				{picked && <span className="inline-note" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><span style={{ width: 20, height: 20, border: '1px solid #777', background: picked.hex }} />Current sample</span>}
 			</div>
 			{history.length > 0 && <div style={{ marginTop: 18 }}>
 				<h3>Recent picks</h3>
 				<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-					{history.map((item) => <button key={item.hex} type="button" title={item.hex} aria-label={`Pick ${item.hex}`} onClick={() => rememberPick(item)} style={{ width: 42, height: 42, border: '1px solid #758075', background: item.hex, cursor: 'pointer' }} />)}
+					{history.map((item, index) => <button key={`${item.hex}-${index}`} type="button" title={item.hex} aria-label={`Pick ${item.hex}`} onClick={() => rememberPick(item)} style={{ width: 42, height: 42, border: '1px solid #758075', background: item.hex, cursor: 'pointer' }} />)}
 				</div>
 			</div>}
 			<p className="tool-message" role="status">{message}</p>

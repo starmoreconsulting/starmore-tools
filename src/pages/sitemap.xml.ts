@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { departments, liveTools } from '../data/tools';
+import { departments, liveTools, tools } from '../data/tools';
 import { industryTemplateCategories } from '../engines/logo-studio/templates/industry-catalog';
 import { mockupCategoryPages } from '../engines/logo-studio/mockups/categories';
 
@@ -10,7 +10,7 @@ function escapeXml(value: string) {
 export const GET: APIRoute = ({ site }) => {
 	if (!site) throw new Error('Set the Astro site URL to generate the sitemap.');
 
-	const routes = [
+	const routes = [...new Set([
 		'',
 		'/about/',
 		'/privacy/',
@@ -23,7 +23,8 @@ export const GET: APIRoute = ({ site }) => {
 		...mockupCategoryPages.map((category) => `/logo-studio/mockups/${category.slug}/`),
 		...departments.map((department) => `/departments/${department.slug}/`),
 		...liveTools.map((tool) => `/${tool.slug}/`),
-	];
+		...tools.filter((tool) => tool.department === 'image').map((tool) => `/${tool.slug}/`),
+	])];
 	const entries = routes.map((route) => `  <url><loc>${escapeXml(new URL(route, site).href)}</loc></url>`).join('\n');
 	const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>`;
 

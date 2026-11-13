@@ -2,13 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { zipSync } from 'fflate';
 import { socialSizePresets, socialSizesLastChecked, type SocialSizePreset } from '../../data/social-sizes';
 import {
-	canvasToBlob,
-	createCanvas,
+	checkImageDimensions,
 	decodeImageFile,
 	downloadImage,
 	estimateImageBytes,
-	exportImage,
 	formatImageBytes,
+	runImageWorker,
 	type DecodedImage,
 	type ImageOutputType,
 } from '../../engines/image/toolkit';
@@ -126,7 +125,7 @@ export default function SocialMediaImageResizer() {
 	};
 
 	const makeOutput = async (selectedPresets: SocialSizePreset[]) => {
-		if (!source) { setMessage('Choose an image before resizing.'); return; }
+		if (!source || !file) { setMessage('Choose an image before resizing.'); return; }
 		setBusy(true);
 		setOutput(null);
 		setMessage(selectedPresets.length > 1 ? `Creating ${selectedPresets.length} local image sizes…` : 'Creating a local resized image…');
@@ -134,13 +133,23 @@ export default function SocialMediaImageResizer() {
 			const archive: Record<string, Uint8Array> = {};
 			let single: Blob | null = null;
 			for (const item of selectedPresets) {
-				const canvas = document.createElement('canvas');
-				renderSocial(canvas, source, item, fit, background, focus, format);
-				const blob = await exportImage(canvas, format, quality / 100, background);
+				checkImageDimensions(item.width, item.height);
+				const sourceCopy = await decodeImageFile(file);
+				const result = await runImageWorker({
+					type: 'social-resize',
+					source: sourceCopy.bitmap,
+					width: item.width,
+					height: item.height,
+					fit,
+					background,
+					focus,
+					outputType: format,
+					quality,
+				});
+				const blob = result.blob;
+				if (!blob) throw new Error('The resize worker returned no image.');
 				if (selectedPresets.length === 1) single = blob;
 				else archive[`${item.platform.toLowerCase()}-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.${format === 'image/jpeg' ? 'jpg' : format.slice(6)}`] = new Uint8Array(await blob.arrayBuffer());
-				canvas.width = 0;
-				canvas.height = 0;
 			}
 			if (single) {
 				setOutput(single);
@@ -209,7 +218,7 @@ export default function SocialMediaImageResizer() {
 				<button className="tool-button" type="button" disabled={!source || busy} onClick={() => void makeOutput([preset])}>Download this size</button>
 				<button className="tool-button secondary" type="button" disabled={!output || busy} onClick={() => output && downloadImage(output, `${preset.id}.${format === 'image/jpeg' ? 'jpg' : format.slice(6)}`)}>Save resized image</button>
 			</div>
-			{output && inputUrl && <div className="tool-preview" style={{ display: 'block' }}>
+			{outputUrl && inputUrl && <div className="tool-preview" style={{ display: 'block' }}>
 				<div style={{ position: 'relative', width: '100%', height: 'min(60vw, 360px)', minHeight: 160, overflow: 'hidden' }}>
 					<img src={outputUrl} alt="Resized image result" style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', objectFit: 'contain' }} />
 					<div style={{ position: 'absolute', inset: 0, overflow: 'hidden', clipPath: `inset(0 ${100 - compare}% 0 0)` }}><img src={inputUrl} alt="Original image comparison" style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', objectFit: 'contain' }} /></div>

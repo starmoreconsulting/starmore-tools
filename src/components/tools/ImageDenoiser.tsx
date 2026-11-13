@@ -130,7 +130,7 @@ export default function ImageDenoiser() {
 				<button className="tool-button secondary" type="button" disabled={!result || !file} onClick={() => result && file && downloadImage(result, `starmore-denoised.${format === 'image/jpeg' ? 'jpg' : format.slice(6)}`)}>Download image</button>
 			</div>
 			{busy && <progress aria-label="Noise reduction progress" max={100} value={progress} />}
-			{source && <div className="tool-preview" style={{ display: 'block' }}>
+			{source && inputUrl && <div className="tool-preview" style={{ display: 'block' }}>
 				<div style={{ position: 'relative', width: '100%', height: 'min(60vw, 360px)', minHeight: 160, overflow: 'hidden', background: 'repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 16px 16px' }}>
 					<img src={resultUrl || inputUrl} alt={resultUrl ? 'Denoised image' : 'Original image'} style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', objectFit: 'contain', transform: `scale(${zoom})` }} />
 					{resultUrl && <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', clipPath: `inset(0 ${100 - compare}% 0 0)` }}>

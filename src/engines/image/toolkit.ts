@@ -84,6 +84,16 @@ export type ImageWorkerTask = {
 	outputType: ImageOutputType;
 	quality: number;
 	jpgBackground: string;
+} | {
+	type: 'social-resize';
+	source: ImageBitmap;
+	width: number;
+	height: number;
+	fit: 'cover' | 'contain' | 'blurred';
+	background: string;
+	focus: { x: number; y: number };
+	outputType: ImageOutputType;
+	quality: number;
 };
 
 export interface ImageWorkerResult {
@@ -273,7 +283,9 @@ export function runImageWorker(task: ImageWorkerTask, onProgress?: (progress: Wo
 		};
 		const transferables = task.type === 'watermark'
 			? [task.source, ...(task.logo ? [task.logo] : [])]
-			: [task.data.buffer];
+			: task.type === 'social-resize'
+				? [task.source]
+				: [task.data.buffer];
 		worker.postMessage({ id, task }, transferables);
 	});
 }

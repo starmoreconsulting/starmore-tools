@@ -5,7 +5,6 @@ import {
 	createCanvas,
 	decodeImageFile,
 	downloadImage,
-	estimateImageBytes,
 	formatImageBytes,
 	runImageWorker,
 	type DecodedImage,
@@ -126,7 +125,7 @@ export default function ColourPaletteExtractor() {
 				<label htmlFor="palette-file">Choose image</label>
 				<input className="image-file-input" id="palette-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,.jpg,.jpeg,.png,.webp,.gif,.bmp,.heic,.heif" onChange={(event) => { void chooseFile(event.currentTarget.files?.[0]); }} />
 			</div>
-			{source && <p className="inline-note">Source: {source.width.toLocaleString()} × {source.height.toLocaleString()} px · {file ? formatImageBytes(file.size) : ''} · estimated palette PNG {formatImageBytes(estimateImageBytes(700, Math.max(140, count * 82 + 32), 'image/png', 1))}</p>}
+			{source && <p className="inline-note">Source: {source.width.toLocaleString()} × {source.height.toLocaleString()} px · {file ? formatImageBytes(file.size) : ''} · estimated palette PNG {formatImageBytes(6000 + count * 1500)}</p>}
 			<div className="calc-fields" style={{ marginTop: 14 }}>
 				<div className="calc-field">
 					<label htmlFor="palette-count">Number of colours: {count}</label>
