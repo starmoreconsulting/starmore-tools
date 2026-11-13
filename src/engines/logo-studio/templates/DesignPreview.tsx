@@ -21,15 +21,15 @@ function renderIcon(element: Element, icons: LucideIconNodes | null) {
 	if (!nodes) return null;
 	return <svg x="0" y="0" width={element.width} height={element.height} viewBox="0 0 24 24" fill={element.fill ?? 'none'} stroke={element.stroke ?? '#203b32'} strokeWidth={element.strokeWidth ?? 2} strokeLinecap="round" strokeLinejoin="round">
 		{nodes.map(([tag, attributes], index) => {
-			const props = { key: `${element.id}-${index}` };
+			const key = `${element.id}-${index}`;
 			switch (tag) {
-				case 'path': return <path {...props} d={String(attributes.d ?? '')} />;
-				case 'circle': return <circle {...props} cx={Number(attributes.cx)} cy={Number(attributes.cy)} r={Number(attributes.r)} />;
-				case 'ellipse': return <ellipse {...props} cx={Number(attributes.cx)} cy={Number(attributes.cy)} rx={Number(attributes.rx)} ry={Number(attributes.ry)} />;
-				case 'line': return <line {...props} x1={Number(attributes.x1)} y1={Number(attributes.y1)} x2={Number(attributes.x2)} y2={Number(attributes.y2)} />;
-				case 'polygon': return <polygon {...props} points={String(attributes.points ?? '')} />;
-				case 'polyline': return <polyline {...props} points={String(attributes.points ?? '')} />;
-				case 'rect': return <rect {...props} x={Number(attributes.x ?? 0)} y={Number(attributes.y ?? 0)} width={Number(attributes.width ?? 0)} height={Number(attributes.height ?? 0)} rx={Number(attributes.rx ?? 0)} />;
+				case 'path': return <path key={key} d={String(attributes.d ?? '')} />;
+				case 'circle': return <circle key={key} cx={Number(attributes.cx)} cy={Number(attributes.cy)} r={Number(attributes.r)} />;
+				case 'ellipse': return <ellipse key={key} cx={Number(attributes.cx)} cy={Number(attributes.cy)} rx={Number(attributes.rx)} ry={Number(attributes.ry)} />;
+				case 'line': return <line key={key} x1={Number(attributes.x1)} y1={Number(attributes.y1)} x2={Number(attributes.x2)} y2={Number(attributes.y2)} />;
+				case 'polygon': return <polygon key={key} points={String(attributes.points ?? '')} />;
+				case 'polyline': return <polyline key={key} points={String(attributes.points ?? '')} />;
+				case 'rect': return <rect key={key} x={Number(attributes.x ?? 0)} y={Number(attributes.y ?? 0)} width={Number(attributes.width ?? 0)} height={Number(attributes.height ?? 0)} rx={Number(attributes.rx ?? 0)} />;
 				default: return null;
 			}
 		})}
