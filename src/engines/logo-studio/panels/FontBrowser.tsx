@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { loadBrowserFont, logoFonts, type LogoFontCategory } from '../library/fonts';
 import type { Element } from '../model/types';
 import type { BrandKit } from '../brand/kit';
+import type { StoredCustomFont } from '../store/custom-fonts';
 
 const categories: { id: 'all' | LogoFontCategory; label: string }[] = [
 	{ id: 'all', label: 'All' },
@@ -24,6 +25,9 @@ interface Props {
 	element: Element | null;
 	onUpdate: (patch: Partial<Element>) => void;
 	brandFonts?: BrandKit['fonts'];
+	customFonts?: Pick<StoredCustomFont, 'family' | 'filename'>[];
+	onUploadFont?: (file: File) => void;
+	onRemoveFont?: (family: string) => void;
 }
 
 function FontPreview({ family, text, selected, disabled, onSelect }: {
@@ -75,9 +79,10 @@ function FontPreview({ family, text, selected, disabled, onSelect }: {
 	);
 }
 
-export default function FontBrowser({ element, onUpdate, brandFonts }: Props) {
+export default function FontBrowser({ element, onUpdate, brandFonts, customFonts = [], onUploadFont, onRemoveFont }: Props) {
 	const [category, setCategory] = useState<'all' | LogoFontCategory>('all');
 	const [sample, setSample] = useState('Your brand');
+	const uploadRef = useRef<HTMLInputElement>(null);
 	const fontGroups = useMemo(() => (
 		categories.filter((item) => item.id !== 'all' && (category === 'all' || category === item.id))
 			.map((item) => ({
@@ -115,6 +120,33 @@ export default function FontBrowser({ element, onUpdate, brandFonts }: Props) {
 					</div>
 				</section>
 			)}
+			<section aria-label="My custom fonts">
+				<h3 className="logo-library-subheading">My fonts</h3>
+				{customFonts.length > 0 ? (
+					<div className="logo-font-list">
+						{customFonts.map((font) => (
+							<div className="logo-custom-font-card" key={font.family}>
+								<FontPreview
+									family={font.family}
+									text={sample || 'Sample'}
+									selected={element?.fontFamily === font.family}
+									disabled={!canApply}
+									onSelect={() => onUpdate({ fontFamily: font.family })}
+								/>
+								<small>{font.filename}</small>
+								{onRemoveFont && <button type="button" onClick={() => onRemoveFont(font.family)}>Remove</button>}
+							</div>
+						))}
+					</div>
+				) : <p className="logo-phase-hint">Uploaded fonts stay in this browser.</p>}
+				<button type="button" onClick={() => uploadRef.current?.click()}>Upload font</button>
+				<input ref={uploadRef} className="visually-hidden" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff" aria-label="Upload TTF, OTF or WOFF font" onChange={(event) => {
+						const file = event.currentTarget.files?.[0];
+						if (file) onUploadFont?.(file);
+						event.currentTarget.value = '';
+					}} />
+				<p className="logo-phase-hint">Upload TTF, OTF or WOFF files up to 10 MB. WOFF2 isn't supported for logo export. Only upload fonts you have the right to use.</p>
+			</section>
 			{fontGroups.map(({ category: group, fonts }) => (
 				<section key={group.id} aria-label={`${group.label} fonts`}>
 					<h3 className="logo-library-subheading">{group.label}</h3>

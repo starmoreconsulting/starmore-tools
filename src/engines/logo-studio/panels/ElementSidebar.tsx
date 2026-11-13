@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { createDefaultElement, type Element } from '../model/types';
 import type { BrandKit } from '../brand/kit';
+import type { StoredCustomFont } from '../store/custom-fonts';
 const IconLibrary = lazy(() => import('./IconLibrary'));
 const ColorLibrary = lazy(() => import('./ColorLibrary'));
 const FontBrowser = lazy(() => import('./FontBrowser'));
@@ -29,6 +30,9 @@ interface Props {
 	project?: import('../model/types').LogoProject;
 	activeVariant?: string;
 	brandKit?: BrandKit | null;
+	customFonts?: Pick<StoredCustomFont, 'family' | 'filename'>[];
+	onUploadFont?: (file: File) => void;
+	onRemoveFont?: (family: string) => void;
 }
 
 export default function ElementSidebar({
@@ -51,6 +55,9 @@ export default function ElementSidebar({
 	project,
 	activeVariant = 'primary',
 	brandKit = null,
+	customFonts = [],
+	onUploadFont,
+	onRemoveFont,
 }: Props) {
 	const [shape, setShape] = useState<(typeof shapes)[number]>('rectangle');
 	const [tab, setTab] = useState<'elements' | 'icons' | 'colors' | 'fonts' | 'layers' | 'fields'>('elements');
@@ -95,7 +102,7 @@ export default function ElementSidebar({
 				</Suspense>
 			) : tab === 'fonts' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading font browser…</p>}>
-					<FontBrowser element={element} onUpdate={onUpdate} brandFonts={brandKit?.fonts} />
+					<FontBrowser element={element} onUpdate={onUpdate} brandFonts={brandKit?.fonts} customFonts={customFonts} onUploadFont={onUploadFont} onRemoveFont={onRemoveFont} />
 				</Suspense>
 			) : tab === 'layers' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading layers…</p>}>

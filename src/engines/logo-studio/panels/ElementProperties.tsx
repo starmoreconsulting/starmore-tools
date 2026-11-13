@@ -2,11 +2,15 @@ import type { Element } from '../model/types';
 import { logoFonts } from '../library/fonts';
 import type { BrandKit } from '../brand/kit';
 import BrandColorSwatches from './BrandColorSwatches';
+import type { StoredCustomFont } from '../store/custom-fonts';
 
 interface Props {
 	element: Element | null;
 	onUpdate: (patch: Partial<Element>) => void;
 	brandColors?: BrandKit['colors'];
+	customFonts?: Pick<StoredCustomFont, 'family'>[];
+	missingCustomFont?: boolean;
+	onUploadFont?: () => void;
 }
 
 function numberValue(value: string, fallback: number): number {
@@ -14,7 +18,7 @@ function numberValue(value: string, fallback: number): number {
 	return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-export default function ElementProperties({ element, onUpdate, brandColors = [] }: Props) {
+export default function ElementProperties({ element, onUpdate, brandColors = [], customFonts = [], missingCustomFont = false, onUploadFont }: Props) {
 	if (!element) {
 		return (
 			<aside className="logo-phase-panel logo-properties" aria-label="Properties">
@@ -101,7 +105,12 @@ export default function ElementProperties({ element, onUpdate, brandColors = [] 
 			{element.type === 'text' && (
 				<div className="logo-phase-text-options">
 					<label className="logo-phase-field"><span>Text</span><textarea rows={3} value={element.text ?? ''} onChange={(event) => onUpdate({ text: event.target.value })} /></label>
-					<label className="logo-phase-field"><span>Font</span><select value={element.fontFamily ?? 'Inter'} onChange={(event) => onUpdate({ fontFamily: event.target.value })}>{logoFonts.map((font) => <option key={font.family} value={font.family}>{font.family}</option>)}</select></label>
+					<label className="logo-phase-field"><span>Font</span><select value={element.fontFamily ?? 'Inter'} onChange={(event) => onUpdate({ fontFamily: event.target.value })}>
+						{element.fontFamily && !logoFonts.some((font) => font.family === element.fontFamily) && !customFonts.some((font) => font.family === element.fontFamily) && <option value={element.fontFamily}>{element.fontFamily} (missing)</option>}
+						{logoFonts.map((font) => <option key={font.family} value={font.family}>{font.family}</option>)}
+						{customFonts.map((font) => <option key={font.family} value={font.family}>{font.family} (custom)</option>)}
+					</select></label>
+					{missingCustomFont && <p className="logo-phase-error" role="alert">Missing font: {element.fontFamily}. <button type="button" onClick={onUploadFont}>Re-upload font</button></p>}
 					<label className="logo-phase-field"><span>Font size</span><input type="number" min="1" value={element.fontSize ?? 48} onChange={(event) => onUpdate({ fontSize: Math.max(1, numberValue(event.target.value, element.fontSize ?? 48)) })} /></label>
 					<label className="logo-phase-field"><span>Weight</span><select value={element.fontWeight ?? 400} onChange={(event) => onUpdate({ fontWeight: Number(event.target.value) })}><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semibold</option><option value="700">Bold</option><option value="800">Extra bold</option></select></label>
 					<label className="logo-phase-field"><span>Letter spacing</span><input type="number" step="0.5" value={element.letterSpacing ?? 0} onChange={(event) => onUpdate({ letterSpacing: numberValue(event.target.value, element.letterSpacing ?? 0) })} /></label>

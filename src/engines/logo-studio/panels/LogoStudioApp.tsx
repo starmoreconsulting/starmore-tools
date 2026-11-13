@@ -5,7 +5,9 @@ import { useLogoStudioStore } from '../store/store';
 import ElementProperties from './ElementProperties';
 import ElementSidebar from './ElementSidebar';
 import PhaseOneToolbar from './PhaseOneToolbar';
-import { loadBrowserFont } from '../library/fonts';
+import { getLogoFont, loadBrowserFont } from '../library/fonts';
+import { importCustomFont } from '../library/custom-fonts';
+import { listCustomFonts, removeCustomFont, type StoredCustomFont } from '../store/custom-fonts';
 import { readProjectFileWithReference } from '../export/project-file';
 import MyProjects from './MyProjects';
 import ExportCenter from './ExportCenter';
@@ -104,6 +106,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const undo = useLogoStudioStore((state) => state.undo);
 	const redo = useLogoStudioStore((state) => state.redo);
 	const loadProject = useLogoStudioStore((state) => state.loadProject);
+	const updateProjectMetadata = useLogoStudioStore((state) => state.updateProjectMetadata);
 	const setActiveVariant = useLogoStudioStore((state) => state.setActiveVariant);
 	const createFromPrimary = useLogoStudioStore((state) => state.createFromPrimary);
 	const duplicateCurrentVariant = useLogoStudioStore((state) => state.duplicateCurrentVariant);
@@ -120,6 +123,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [showProjects, setShowProjects] = useState(false);
 	const [showBrandKits, setShowBrandKits] = useState(false);
 	const [activeBrandKit, setActiveBrandKit] = useState<BrandKit | null>(null);
+	const [customFonts, setCustomFonts] = useState<StoredCustomFont[]>([]);
 	const [showExportCenter, setShowExportCenter] = useState(false);
 	const [showSetup, setShowSetup] = useState(Boolean(preset && !uploadPreset && !mockupPreset && preset !== 'export-centre'));
 	const [showGallery, setShowGallery] = useState(false);
@@ -133,6 +137,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const referenceInputRef = useRef<HTMLInputElement>(null);
 	const svgInputRef = useRef<HTMLInputElement>(null);
 	const iconInputRef = useRef<HTMLInputElement>(null);
+	const fontInputRef = useRef<HTMLInputElement>(null);
 	const elements = project.variants[activeVariant] ?? [];
 	const primaryElements = project.variants.primary ?? [];
 	const primaryChanged = activeVariant !== 'primary'
@@ -215,6 +220,39 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			setStatus(`Reference removal failed: ${message}`);
 		});
 	};
+	const refreshCustomFonts = async () => {
+		setCustomFonts(await listCustomFonts());
+	};
+	const uploadCustomFont = async (file: File) => {
+		try {
+			const stored = await importCustomFont(file, file.name);
+			const current = useLogoStudioStore.getState().project.customFonts ?? [];
+			const customFont = { family: stored.family, filename: stored.filename, mime: stored.mime };
+			updateProjectMetadata({
+				customFonts: [...current.filter((font) => font.family.toLocaleLowerCase() !== stored.family.toLocaleLowerCase()), customFont],
+			});
+			await refreshCustomFonts();
+			setFileError('');
+			setStatus(`Font “${stored.family}” was added locally. Only use fonts you have the right to use.`);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'The font could not be imported.';
+			setFileError(message);
+			setStatus(message);
+		}
+	};
+	const deleteCustomFont = async (family: string) => {
+		if (!window.confirm(`Remove “${family}” from this browser? Projects using it will need the font re-uploaded.`)) return;
+		try {
+			await removeCustomFont(family);
+			updateProjectMetadata({ customFonts: (useLogoStudioStore.getState().project.customFonts ?? []).filter((font) => font.family !== family) });
+			await refreshCustomFonts();
+			setStatus(`Font “${family}” was removed from this browser.`);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'The font could not be removed.';
+			setFileError(message);
+			setStatus(message);
+		}
+	};
 
 	useEffect(() => {
 		let active = true;
@@ -250,6 +288,16 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 		});
 		return () => { active = false; };
 	}, [loadProject]);
+
+	useEffect(() => {
+		let active = true;
+		void listCustomFonts().then((stored) => {
+			if (active) setCustomFonts(stored);
+		}).catch((error: unknown) => {
+			if (active) setStatus(`Custom fonts could not be loaded: ${error instanceof Error ? error.message : 'local font storage is unavailable.'}`);
+		});
+		return () => { active = false; };
+	}, []);
 
 	useEffect(() => {
 		let active = true;
@@ -362,9 +410,17 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 		return () => document.removeEventListener('keydown', onKeyDown);
 	}, [copySelected, duplicateSelected, paste, project, redo, removeSelected, selectedElement, selectedId, undo, updateElement]);
 
+	const selectedFontFamily = selectedElement?.type === 'text' ? selectedElement.fontFamily : undefined;
+	const missingCustomFont = Boolean(selectedFontFamily
+		&& !getLogoFont(selectedFontFamily)
+		&& !customFonts.some((font) => font.family.toLocaleLowerCase() === selectedFontFamily.toLocaleLowerCase()));
+	const customFontSummaries = customFonts.map(({ family, filename }) => ({ family, filename }));
 	const propertiesPanel = <ElementProperties
 		element={selectedElement}
 		brandColors={activeBrandKit?.colors}
+		customFonts={customFontSummaries}
+		missingCustomFont={missingCustomFont}
+		onUploadFont={() => fontInputRef.current?.click()}
 		onUpdate={(patch) => {
 			if (selectedId) updateElement(selectedId, patch);
 		}}
@@ -388,6 +444,9 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 		project={project}
 		activeVariant={activeVariant}
 		brandKit={activeBrandKit}
+		customFonts={customFontSummaries}
+		onUploadFont={uploadCustomFont}
+		onRemoveFont={(family) => void deleteCustomFont(family)}
 		onUpdate={(patch) => {
 			if (selectedId) updateElement(selectedId, patch);
 		}}
@@ -433,6 +492,18 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				aria-label="Open Logo Studio project file"
 				onChange={(event) => {
 					void openProjectFile(event.currentTarget.files?.[0]);
+					event.currentTarget.value = '';
+				}}
+			/>
+			<input
+				ref={fontInputRef}
+				type="file"
+				accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff"
+				className="visually-hidden"
+				aria-label="Upload a custom font"
+				onChange={(event) => {
+					const file = event.currentTarget.files?.[0];
+					if (file) void uploadCustomFont(file);
 					event.currentTarget.value = '';
 				}}
 			/>

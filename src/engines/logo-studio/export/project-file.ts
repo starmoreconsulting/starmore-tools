@@ -5,6 +5,7 @@ const MAX_FILE_BYTES = 16 * 1024 * 1024;
 const MAX_REFERENCE_BYTES = 10 * 1024 * 1024;
 const MAX_ELEMENTS = 5000;
 const MAX_GROUP_DEPTH = 30;
+const FONT_MIME_TYPES = new Set(['font/ttf', 'font/otf', 'font/woff']);
 const elementTypes = new Set<ElementType>(['text', 'shape', 'icon', 'image', 'group', 'path']);
 const elementRoles = new Set<ElementRole>(['icon', 'name', 'tagline', 'decor', 'other']);
 const industries = new Set<LogoIndustry>(['Technology', 'Business', 'Fashion', 'Construction', 'Food', 'Transport', 'Education', 'Health', 'Creative', 'General']);
@@ -291,6 +292,21 @@ export function validateLogoProject(value: unknown): LogoProject {
 			...(typeof value.brief.customColor === 'string' ? { customColor: value.brief.customColor } : {}),
 		};
 	}
+	let customFonts: LogoProject['customFonts'];
+	if (value.customFonts !== undefined) {
+		if (!Array.isArray(value.customFonts) || value.customFonts.length > 30) {
+			throw new Error('The project file contains too many custom fonts.');
+		}
+		customFonts = value.customFonts.map((font) => {
+			if (!isRecord(font)
+				|| typeof font.family !== 'string' || !font.family.trim() || font.family.length > 100
+				|| typeof font.filename !== 'string' || !font.filename.trim() || font.filename.length > 180
+				|| typeof font.mime !== 'string' || !FONT_MIME_TYPES.has(font.mime)) {
+				throw new Error('The project file contains invalid custom font information.');
+			}
+			return { family: font.family.trim(), filename: font.filename.trim(), mime: font.mime };
+		});
+	}
 
 	return {
 		version: 1,
@@ -304,6 +320,7 @@ export function validateLogoProject(value: unknown): LogoProject {
 		...(variantColors ? { variantColors } : {}),
 		...(generation ? { generation } : {}),
 		...(brief ? { brief } : {}),
+		...(customFonts ? { customFonts } : {}),
 	};
 }
 

@@ -60,6 +60,7 @@ export interface LogoProject {
 		icon: string;
 	};
 	brief?: LogoBrief;
+	customFonts?: { family: string; filename: string; mime: string }[];
 }
 
 export type LogoIndustry =

@@ -48,6 +48,7 @@ import robotoSlabRegular from '@fontsource/roboto-slab/files/roboto-slab-latin-4
 import sourceSansBold from '@fontsource/source-sans-3/files/source-sans-3-latin-700-normal.woff?url';
 import sourceSansRegular from '@fontsource/source-sans-3/files/source-sans-3-latin-400-normal.woff?url';
 import workSansBold from '@fontsource/work-sans/files/work-sans-latin-700-normal.woff?url';
+import { loadStoredCustomFont } from './custom-fonts';
 import workSansRegular from '@fontsource/work-sans/files/work-sans-latin-400-normal.woff?url';
 
 export type LogoFontCategory = 'sans' | 'serif' | 'display' | 'script' | 'rounded' | 'condensed';
@@ -102,7 +103,7 @@ const browserFontPromises = new Map<string, Promise<void>>();
 
 export function loadBrowserFont(family: string, weight: number): Promise<void> {
 	const definition = getLogoFont(family);
-	if (!definition) return Promise.reject(new Error(`The font “${family}” is not in the local font library.`));
+	if (!definition) return loadStoredCustomFont(family, weight);
 
 	const actualWeight = weight >= 600 ? 700 : 400;
 	const key = `${family}:${actualWeight}`;

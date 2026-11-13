@@ -1,6 +1,7 @@
 import opentype from 'opentype.js';
 import type { Element, LogoProject } from '../model/types';
 import { getLogoFont, logoFonts } from '../library/fonts';
+import { getCustomFont } from '../store/custom-fonts';
 
 export interface TextOutline {
 	elementId: string;
@@ -30,20 +31,23 @@ const textFontCache = new Map<string, Promise<{ font: opentype.Font; family: str
 
 function getOpenTypeFont(family: string, weight: number): Promise<opentype.Font> {
 	const definition = getLogoFont(family);
-	if (!definition) return Promise.reject(new Error(`“${family}” is not in the bundled font library.`));
 
 	const actualWeight = weight >= 600 ? 700 : 400;
 	const key = `${family}:${actualWeight}`;
 	const cached = parsedFonts.get(key);
 	if (cached) return cached;
 
-	const src = actualWeight === 700 ? definition.bold : definition.regular;
-	const loading = fetch(src)
-		.then((response) => {
-			if (!response.ok) throw new Error(`Font request failed (${response.status}).`);
-			return response.arrayBuffer();
-		})
-		.then((buffer) => opentype.parse(buffer));
+	const loading = definition
+		? fetch(actualWeight === 700 ? definition.bold : definition.regular)
+			.then((response) => {
+				if (!response.ok) throw new Error(`Font request failed (${response.status}).`);
+				return response.arrayBuffer();
+			})
+			.then((buffer) => opentype.parse(buffer))
+		: getCustomFont(family).then((stored) => {
+			if (!stored) throw new Error(`Missing custom font: “${family}”. Upload it again to outline this text.`);
+			return stored.blob.arrayBuffer().then((buffer) => opentype.parse(buffer));
+		});
 	parsedFonts.set(key, loading);
 	loading.catch(() => parsedFonts.delete(key));
 	return loading;
@@ -73,7 +77,8 @@ function getFontForText(family: string, weight: number, text: string): Promise<{
 		try {
 			preferred = await getOpenTypeFont(family, weight);
 			if (fontContainsText(preferred, text)) return { font: preferred, family };
-		} catch {
+		} catch (cause) {
+			if (!getLogoFont(family)) throw cause;
 			preferred = undefined;
 		}
 
@@ -200,6 +205,8 @@ export async function outlineProjectText(project: LogoProject, curvedOnly = fals
 			const text = escapeWarningText(element.text ?? 'text');
 			if (cause instanceof Error && cause.message === 'No bundled font contains every character.') {
 				warnings.push(`No bundled font contains every character in “${text}”. The text remains editable and the browser's system fallback will be used.`);
+			} else if (cause instanceof Error && cause.message.startsWith('Missing custom font:')) {
+				warnings.push(`${cause.message} The text remains editable, but its font was not silently substituted.`);
 			} else {
 				warnings.push(`Could not load a bundled font for “${text}”. This text remains editable and the browser's font fallback will be used.`);
 			}

@@ -148,6 +148,7 @@ interface LogoStudioState {
 	future: LogoProject[];
 	clipboard: Element | null;
 	loadProject: (project: LogoProject) => void;
+	updateProjectMetadata: (patch: Partial<LogoProject>) => void;
 	setActiveVariant: (name: string) => void;
 	createFromPrimary: (name: string) => void;
 	duplicateCurrentVariant: () => void;
@@ -199,6 +200,10 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 			future: [],
 			clipboard: null,
 		}),
+		updateProjectMetadata: (patch) => {
+			const current = get().project;
+			commitProject({ ...current, ...patch, updatedAt: Date.now() });
+		},
 		setActiveVariant: (name) => {
 			const state = get();
 			if (state.project.variants[name]) {
