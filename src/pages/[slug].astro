@@ -80,6 +80,8 @@ export function getStaticPaths() {
 		'favicon-generator',
 		'social-media-image-resizer',
 		'image-watermark-generator',
+		'background-remover',
+		'background-changer',
 	]);
 	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },
@@ -151,6 +153,8 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'LogoStudioApp' && <LogoStudioApp client:only="react" preset={tool.preset} />}
 		</div>
 		<section class="tool-guide" aria-labelledby="how-to-use">
+			{tool.limitations && <p class="inline-note">{tool.limitations}</p>}
+			{tool.privacyNote && <p class="privacy-note">{tool.privacyNote}</p>}
 			<h2 id="how-to-use">How to use {tool.name}</h2>
 			<ol>
 				{tool.howTo.map((step) => <li>{step}</li>)}

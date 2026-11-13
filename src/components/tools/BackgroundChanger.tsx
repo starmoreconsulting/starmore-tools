@@ -33,7 +33,6 @@ export default function BackgroundChanger() {
 	const [file, setFile] = useState<File | null>(null);
 	const [source, setSource] = useState<DecodedImage | null>(null);
 	const [inputUrl, setInputUrl] = useState('');
-	const [backgroundUrl, setBackgroundUrl] = useState('');
 	const [previewUrl, setPreviewUrl] = useState('');
 	const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
 	const [baseMask, setBaseMask] = useState<Uint8Array | null>(null);
@@ -91,28 +90,20 @@ export default function BackgroundChanger() {
 		setInputUrl(url);
 		return () => URL.revokeObjectURL(url);
 	}, [file]);
-	useEffect(() => {
-		if (!backgroundFile) {
-			setBackgroundUrl('');
-			return;
-		}
-		const url = URL.createObjectURL(backgroundFile);
-		setBackgroundUrl(url);
-		return () => URL.revokeObjectURL(url);
-	}, [backgroundFile]);
-
 	const outputSize = (): { width: number; height: number } | null => {
 		if (!source) return null;
 		if (preset === 'original') return { width: source.width, height: source.height };
 		if (preset === 'custom') return { width: Math.round(customWidth), height: Math.round(customHeight) };
 		const ratio = preset === 'square' ? 1 : preset === 'portrait' ? 4 / 5 : 16 / 9;
-		const maxSide = limits.maxSide;
-		const maxPixels = limits.maxPixels;
-		let width = ratio >= 1 ? ratio : 1;
-		let height = ratio >= 1 ? 1 : 1 / ratio;
-		const scale = Math.min(maxSide / Math.max(width, height), Math.sqrt(maxPixels / (width * height)));
-		width = Math.max(1, Math.floor(width * scale));
-		height = Math.max(1, Math.floor(height * scale));
+		const ratioWidth = ratio >= 1 ? ratio : 1;
+		const ratioHeight = ratio >= 1 ? 1 : 1 / ratio;
+		const scale = Math.min(
+			Math.max(source.width, source.height) / Math.max(ratioWidth, ratioHeight),
+			limits.maxSide / Math.max(ratioWidth, ratioHeight),
+			Math.sqrt(limits.maxPixels / (ratioWidth * ratioHeight)),
+		);
+		const width = Math.max(1, Math.floor(ratioWidth * scale));
+		const height = Math.max(1, Math.floor(ratioHeight * scale));
 		return { width, height };
 	};
 
@@ -132,7 +123,7 @@ export default function BackgroundChanger() {
 	};
 
 	useEffect(() => {
-		if (!file || !source || !mask || !maskSize.width || !maskSize.height) {
+		if (!file || !source || !mask || !maskSize.width || !maskSize.height || (fillKind === 'image' && !backgroundFile)) {
 			setPreviewUrl('');
 			return;
 		}
@@ -219,7 +210,10 @@ export default function BackgroundChanger() {
 	const chooseBackground = (selected?: File) => {
 		setBackgroundFile(selected ?? null);
 		setFocus({ x: 0.5, y: 0.5 });
-		if (selected) setFillKind('image');
+		if (selected) {
+			setFillKind('image');
+			setMessage('Background image ready. Choose Move background image in the preview to reposition it.');
+		}
 	};
 
 	const runModel = async (selectedModel: BackgroundModelName) => {

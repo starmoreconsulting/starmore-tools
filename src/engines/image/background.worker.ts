@@ -220,6 +220,7 @@ async function fillBackground(
 		throw new Error('The selected background image could not be decoded. Choose a JPG, PNG, WebP, GIF or BMP image.');
 	}
 	try {
+		checkImageDimensions(background.width, background.height);
 		const rect = coverRect(background.width, background.height, width, height, fill.focusX, fill.focusY);
 		context.drawImage(background, rect[0], rect[1], rect[2], rect[3]);
 	} finally {
@@ -236,6 +237,7 @@ async function exportImage(request: WorkerRequest, data: Uint8Array, maskWidth: 
 		const height = request.options.outputHeight ?? bitmap.height;
 		checkImageDimensions(width, height);
 		const fill = request.options.format === 'image/jpeg'
+			&& (!request.options.fill || request.options.fill.kind === 'transparent')
 			? { kind: 'solid' as const, color: request.options.backgroundColor }
 			: request.options.fill;
 		const output = new OffscreenCanvas(width, height);

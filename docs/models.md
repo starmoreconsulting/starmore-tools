@@ -29,7 +29,7 @@ npm run models:test
 
 The script saves masks, transparent cutouts, and side-by-side IS-Net fp32/fp16 masks under `docs/mask-tests/`, and reports inference time, raw tensor min/max, and mean/max absolute fp32-vs-fp16 mask difference.
 
-- TODO: add the three approved local test images and record the measured timings and mask differences.
+- The local mask script can be run with development fixtures, but synthetic fixtures do not establish segmentation quality for real hair, fur, products, or portraits. Use approved real photos for quality review.
 - TODO: confirm the final production hosting URL after deployment.
 
 ## Browser WASM smoke test

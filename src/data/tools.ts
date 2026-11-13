@@ -79,6 +79,8 @@ export interface ToolDefinition {
 	seoDescription: string;
 	howTo: [string, string, string];
 	faqs: { question: string; answer: string }[];
+	limitations?: string;
+	privacyNote?: string;
 	component: ToolComponentName;
 	icon: string;
 	live: boolean;
@@ -236,6 +238,44 @@ export const tools: ToolDefinition[] = [
 		component: 'ImageWatermarkGenerator',
 		icon: '◈',
 		live: true,
+	},
+	{
+		slug: 'background-remover',
+		name: 'Background Remover',
+		department: 'image',
+		description: 'Remove a photo background privately with a quick cutout or a higher-quality model.',
+		seoTitle: 'Private Background Remover for Photos | Starmore Tools',
+		seoDescription: 'Remove image backgrounds on your device with Quick U²-Netp or optional High quality IS-Net. Refine edges with erase and restore brushes, then export a transparent PNG or WebP.',
+		howTo: ['Choose a JPG, PNG, WebP, GIF or BMP photo; Quick mode makes the first cutout without a large model download.', 'Review the transparent preview, use Erase or Restore and tune feather or edge shift; choose High quality if you want a cleaner edge.', 'Compare before and after, then download a transparent PNG or WebP, a colour-backed JPG, or the mask PNG.'],
+		faqs: [
+			{ question: 'Does Quick mode need the large model download?', answer: 'No. Quick uses the smaller U²-Netp model. High quality uses an approximately 87 MiB model download after you consent and is cached on this device.' },
+			{ question: 'Will it cut out every kind of subject perfectly?', answer: 'No. It works best with clear subjects; glass, smoke, and hair or fur against similar colours can be difficult. Use the brushes to correct the mask.' },
+			{ question: 'Are my photos uploaded?', answer: 'No. The photo is processed in a worker on your device. Only the optional model files are downloaded from this site.' },
+		],
+		limitations: 'Works best on clear subjects. It may struggle with glass, smoke, and hair or fur against similar colours; use the brushes to fix the mask. Quick mode is faster, while High quality can give cleaner edges.',
+		privacyNote: 'Your image never leaves your device. The model is downloaded from this site once and saved on this device.',
+		component: 'BackgroundRemover',
+		icon: '◌',
+		live: false,
+	},
+	{
+		slug: 'background-changer',
+		name: 'Background Changer',
+		department: 'image',
+		description: 'Replace a photo background with a colour, gradient, blur or another image, all in your browser.',
+		seoTitle: 'Private Photo Background Changer | Starmore Tools',
+		seoDescription: 'Change photo backgrounds locally with a solid colour, gradient, blurred original or uploaded image. Refine the cutout, reposition the background and choose a new canvas size.',
+		howTo: ['Choose a photo and create a Quick cutout; optionally request High quality for cleaner edges.', 'Choose a colour, gradient, blurred original, transparent background or upload an image and drag to reposition it.', 'Refine the subject, select original, square, 4:5, 16:9 or custom dimensions, then download.'],
+		faqs: [
+			{ question: 'Can I reposition an uploaded background?', answer: 'Yes. Choose Move background image in the preview interaction control, then drag the image to adjust its cover crop.' },
+			{ question: 'Can I keep a transparent background?', answer: 'Yes. Select Transparent and export as PNG or WebP. JPG exports use the selected solid background colour.' },
+			{ question: 'Are my images uploaded?', answer: 'No. Your subject and background images are decoded, composited and exported on your device; model downloads come from this site.' },
+		],
+		limitations: 'Works best on clear subjects. Glass, smoke, and hair or fur against similar colours may need brush corrections. Quick mode is faster; High quality can give cleaner edges, but neither can guarantee a perfect cutout.',
+		privacyNote: 'Your images never leave your device. Models are downloaded from this site once and saved on this device.',
+		component: 'BackgroundChanger',
+		icon: '▧',
+		live: false,
 	},
 	{
 		slug: 'brightness-contrast-editor',
