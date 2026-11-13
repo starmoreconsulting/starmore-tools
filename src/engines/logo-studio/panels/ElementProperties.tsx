@@ -80,6 +80,7 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 					<label className="logo-phase-field"><span>Font size</span><input type="number" min="1" value={element.fontSize ?? 48} onChange={(event) => onUpdate({ fontSize: Math.max(1, numberValue(event.target.value, element.fontSize ?? 48)) })} /></label>
 					<label className="logo-phase-field"><span>Weight</span><select value={element.fontWeight ?? 400} onChange={(event) => onUpdate({ fontWeight: Number(event.target.value) })}><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semibold</option><option value="700">Bold</option><option value="800">Extra bold</option></select></label>
 					<label className="logo-phase-field"><span>Letter spacing</span><input type="number" step="0.5" value={element.letterSpacing ?? 0} onChange={(event) => onUpdate({ letterSpacing: numberValue(event.target.value, element.letterSpacing ?? 0) })} /></label>
+					<label className="logo-phase-field"><span>Curve: {element.curve ?? 0}</span><input type="range" min={-100} max={100} step={1} value={element.curve ?? 0} onChange={(event) => onUpdate({ curve: Number(event.target.value) })} /></label>
 					<label className="logo-phase-field"><span>Text colour</span><input type="color" value={element.fill && /^#[\da-f]{6}$/i.test(element.fill) ? element.fill : '#203b32'} onChange={(event) => onUpdate({ fill: event.target.value })} /></label>
 				</div>
 			)}

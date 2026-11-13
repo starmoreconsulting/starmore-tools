@@ -3,6 +3,7 @@ import { getElementGradientId, getElementShadowId, type Element, type LogoProjec
 import { getElementBounds, movedElement, resizedElement, rotationFromPointer, type ResizeHandle } from './geometry';
 import { loadLucideLibrary, type LucideIconNodes } from '../library/icons';
 import { getShapeGeometry } from '../library/shapes';
+import { outlineProjectText, type TextOutline } from '../export/outline';
 
 interface Props {
 	project: LogoProject;
@@ -81,6 +82,29 @@ function containsIcon(elements: Element[]): boolean {
 	return elements.some((element) => element.type === 'icon' || Boolean(element.children && containsIcon(element.children)));
 }
 
+function getTextElements(elements: Element[]): Element[] {
+	return elements.flatMap((element) => [
+		...(element.type === 'text' ? [element] : []),
+		...(element.children ? getTextElements(element.children) : []),
+	]);
+}
+
+function getTextLayoutKey(elements: Element[]): string {
+	return JSON.stringify(getTextElements(elements).map((element) => ({
+		id: element.id,
+		text: element.text,
+		fontFamily: element.fontFamily,
+		fontWeight: element.fontWeight,
+		fontSize: element.fontSize,
+		letterSpacing: element.letterSpacing,
+		lineHeight: element.lineHeight,
+		align: element.align,
+		curve: element.curve,
+		width: element.width,
+		height: element.height,
+	})));
+}
+
 function renderIcon(element: Element, icons: LucideIconNodes | null): ReactNode {
 	const nodes = element.iconName ? icons?.[element.iconName] : undefined;
 	if (!nodes) return null;
@@ -121,7 +145,7 @@ function renderShape(element: Element): ReactNode {
 
 function SvgElement({
 	element, selectedId, selectedIds, onSelect, onPointerStart,
-	iconNodes,
+	iconNodes, textOutlines,
 }: {
 	element: Element;
 	selectedId: string | null;
@@ -129,11 +153,15 @@ function SvgElement({
 	onSelect: (id: string | null, extend?: boolean) => void;
 	onPointerStart: (event: ReactPointerEvent<SVGGElement>, element: Element) => void;
 	iconNodes: LucideIconNodes | null;
+	textOutlines: Map<string, TextOutline>;
 }) {
 	if (!element.visible) return null;
 	const selected = selectedIds.includes(element.id);
+	const outline = element.type === 'text' ? textOutlines.get(element.id) : undefined;
 	const content = element.type === 'text' ? (
-		<text
+		outline ? (
+			<g>{outline.paths.map((path, index) => <path key={`${element.id}-glyph-${index}`} d={path.d} transform={path.transform} />)}</g>
+		) : <text
 			x={element.align === 'left' ? 0 : element.align === 'right' ? element.width : element.width / 2}
 			y={element.height / 2}
 			fill={element.gradient ? `url(#${getElementGradientId(element)})` : element.fill ?? '#203b32'}
@@ -161,6 +189,7 @@ function SvgElement({
 					onSelect={onSelect}
 					onPointerStart={onPointerStart}
 					iconNodes={iconNodes}
+					textOutlines={textOutlines}
 				/>
 			))}
 		</g>
@@ -173,6 +202,7 @@ function SvgElement({
 			transform={`translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})`}
 			opacity={element.opacity}
 			filter={element.shadow ? `url(#${getElementShadowId(element)})` : undefined}
+			fill={element.gradient ? `url(#${getElementGradientId(element)})` : element.fill}
 			onPointerDown={(event) => {
 				if (element.locked) return;
 				event.stopPropagation();
@@ -246,9 +276,12 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 	const actionRef = useRef<PointerAction | null>(null);
 	const movedRef = useRef(false);
 	const [iconNodes, setIconNodes] = useState<LucideIconNodes | null>(null);
+	const [textOutlines, setTextOutlines] = useState<Map<string, TextOutline>>(() => new Map());
+	const [outlineWarning, setOutlineWarning] = useState('');
 	const [centerGuides, setCenterGuides] = useState<CenterGuides>({ vertical: false, horizontal: false });
 	const background = project.artboard.background;
 	const elements = project.variants.primary ?? [];
+	const textLayoutKey = getTextLayoutKey(elements);
 
 	useEffect(() => {
 		if (!containsIcon(elements) || iconNodes) return;
@@ -258,6 +291,24 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 		});
 		return () => { active = false; };
 	}, [elements, iconNodes]);
+
+	useEffect(() => {
+		if (!textLayoutKey || textLayoutKey === '[]') {
+			setTextOutlines(new Map());
+			setOutlineWarning('');
+			return undefined;
+		}
+		let active = true;
+		void outlineProjectText(project).then((result) => {
+			if (!active) return;
+			setTextOutlines(new Map(Array.from(result.outlines, ([id, outline]) => [id, outline])));
+			setOutlineWarning(result.warnings.join(' '));
+		}).catch((cause: unknown) => {
+			if (!active) return;
+			setOutlineWarning(cause instanceof Error ? cause.message : 'Text layout could not be calculated.');
+		});
+		return () => { active = false; };
+	}, [textLayoutKey]);
 
 	const startPointerAction = (event: ReactPointerEvent<SVGGElement>, element: Element) => {
 		const svg = svgRef.current;
@@ -379,6 +430,7 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 						onSelect={onSelect}
 						onPointerStart={startPointerAction}
 						iconNodes={iconNodes}
+						textOutlines={textOutlines}
 					/>
 				))}
 				{(centerGuides.vertical || centerGuides.horizontal) && (
@@ -388,6 +440,7 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 					</g>
 				)}
 			</svg>
+			{outlineWarning && <p className="logo-phase-error" role="status">{outlineWarning}</p>}
 		</div>
 	);
 }

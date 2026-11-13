@@ -1,5 +1,6 @@
 import { getElementGradientId, getElementShadowId, type Element, type LogoProject } from '../model/types';
 import { outlineProjectText } from './outline';
+import type { TextOutline } from './outline';
 import { loadLucideLibrary, renderLucideNodesToSvg } from '../library/icons';
 import { getShapeGeometry } from '../library/shapes';
 
@@ -42,9 +43,9 @@ function renderShape(element: Element): string {
 	}
 }
 
-function renderText(element: Element, pathData?: string): string {
+function renderText(element: Element, outline?: TextOutline): string {
 	const fill = element.gradient ? `url(#${getElementGradientId(element)})` : escapeXml(element.fill ?? '#203b32');
-	if (pathData !== undefined) return pathData ? `<path d="${escapeXml(pathData)}" fill="${fill}"/>` : '';
+	if (outline) return `<g fill="${fill}">${outline.markup}</g>`;
 	const x = element.align === 'left' ? 0 : element.align === 'right' ? element.width : element.width / 2;
 	const lines = (element.text ?? '').split('\n').map((line, index) => (
 		`<tspan x="${x}"${index ? ` dy="${element.lineHeight ?? 1.16}em"` : ''}>${escapeXml(line)}</tspan>`
@@ -74,7 +75,7 @@ function collectEffectMarkup(elements: Element[]): string {
 	return elements.map((element) => `${renderGradient(element)}${renderShadow(element)}${element.children ? collectEffectMarkup(element.children) : ''}`).join('');
 }
 
-function renderElement(element: Element, outlines: Map<string, string>, icons: Record<string, import('../library/icons').LucideNode[]>, warnings: string[]): string {
+function renderElement(element: Element, outlines: Map<string, TextOutline>, icons: Record<string, import('../library/icons').LucideNode[]>, warnings: string[]): string {
 	if (!element.visible) return '';
 
 	let content = '';
@@ -117,7 +118,7 @@ export async function exportProjectToSvg(
 	}
 	if (options.outlineText !== false) {
 		const result = await outlineProjectText(project);
-		for (const [id, outline] of result.outlines) outlines.set(id, outline.pathData);
+		for (const [id, outline] of result.outlines) outlines.set(id, outline);
 		warnings.push(...result.warnings);
 	}
 

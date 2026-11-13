@@ -5,6 +5,16 @@ import { getLogoFont } from '../library/fonts';
 export interface TextOutline {
 	elementId: string;
 	pathData: string;
+	markup: string;
+	paths: { d: string; transform: string }[];
+}
+
+export interface TextGlyphPlacement {
+	glyph: opentype.Glyph;
+	centerX: number;
+	centerY: number;
+	rotation: number;
+	advance: number;
 }
 
 export interface OutlineResult {
@@ -39,51 +49,71 @@ function escapeWarningText(value: string): string {
 	return value.replace(/[\r\n]+/g, ' ').slice(0, 60);
 }
 
-function linePath(
-	font: opentype.Font,
-	text: string,
-	fontSize: number,
-	letterSpacing: number,
-	startX: number,
-	baseline: number,
-): { pathData: string; width: number } {
-	const glyphs = Array.from(text, (character) => font.charToGlyph(character));
-	const scale = fontSize / font.unitsPerEm;
-	let x = startX;
-	let pathData = '';
-
-	for (let index = 0; index < glyphs.length; index += 1) {
-		const glyph = glyphs[index];
-		const nextGlyph = glyphs[index + 1];
-		pathData += glyph.getPath(x, baseline, fontSize).toPathData(3);
-		x += (glyph.advanceWidth ?? font.unitsPerEm) * scale;
-		if (nextGlyph) {
-			x += font.getKerningValue(glyph, nextGlyph) * scale + letterSpacing;
-		}
-	}
-
-	return { pathData, width: x - startX };
-}
-
-async function outlineText(element: Element): Promise<TextOutline> {
+export function layoutTextGlyphs(element: Element, font: opentype.Font): TextGlyphPlacement[] {
 	const fontSize = Math.max(1, element.fontSize ?? 48);
-	const font = await getOpenTypeFont(element.fontFamily ?? 'Inter', element.fontWeight ?? 400);
 	const lines = (element.text ?? '').split('\n');
 	const lineHeight = Math.max(0, element.lineHeight ?? 1.16) * fontSize;
 	const scale = fontSize / font.unitsPerEm;
 	const baselineOffset = ((font.ascender + font.descender) / 2) * scale;
 	const firstBaseline = element.height / 2 + baselineOffset - ((lines.length - 1) * lineHeight) / 2;
-	const paths = lines.map((line, index) => {
-		const measured = linePath(font, line, fontSize, element.letterSpacing ?? 0, 0, firstBaseline + index * lineHeight);
-		const startX = element.align === 'left'
-			? 0
-			: element.align === 'right'
-				? element.width - measured.width
-				: (element.width - measured.width) / 2;
-		return linePath(font, line, fontSize, element.letterSpacing ?? 0, startX, firstBaseline + index * lineHeight).pathData;
-	}).join('');
+	const letterSpacing = element.letterSpacing ?? 0;
+	const curve = Math.min(100, Math.max(-100, element.curve ?? 0)) / 100;
+	const placements: TextGlyphPlacement[] = [];
 
-	return { elementId: element.id, pathData: paths };
+	lines.forEach((line, lineIndex) => {
+		const glyphs = Array.from(line, (character) => font.charToGlyph(character));
+		const advances = glyphs.map((glyph, index) => {
+			const next = glyphs[index + 1];
+			const advance = (glyph.advanceWidth ?? font.unitsPerEm) * scale;
+			return advance + (next ? font.getKerningValue(glyph, next) * scale + letterSpacing : 0);
+		});
+		const lineWidth = advances.reduce((total, advance) => total + advance, 0);
+		const startX = element.align === 'left' ? 0
+			: element.align === 'right' ? element.width - lineWidth
+				: (element.width - lineWidth) / 2;
+		const baseline = firstBaseline + lineIndex * lineHeight;
+		const totalAngle = Math.abs(curve) * Math.PI;
+		const radius = totalAngle > 0.0001 ? Math.max(1, lineWidth / totalAngle) : 0;
+		let cursor = startX;
+
+		glyphs.forEach((glyph, index) => {
+			const advance = advances[index] - (glyphs[index + 1] ? font.getKerningValue(glyph, glyphs[index + 1]) * scale + letterSpacing : 0);
+			const centerInLine = cursor - startX + advance / 2;
+			if (radius === 0) {
+				placements.push({ glyph, centerX: cursor + advance / 2, centerY: baseline, rotation: 0, advance });
+			} else {
+				const theta = (centerInLine - lineWidth / 2) / radius;
+				const sign = Math.sign(curve);
+				placements.push({
+					glyph,
+					centerX: startX + lineWidth / 2 + radius * Math.sin(theta),
+					centerY: baseline + sign * radius * (1 - Math.cos(theta)),
+					rotation: sign * theta * 180 / Math.PI,
+					advance,
+				});
+			}
+			cursor += advances[index];
+		});
+	});
+
+	return placements;
+}
+
+async function outlineText(element: Element): Promise<TextOutline> {
+	const font = await getOpenTypeFont(element.fontFamily ?? 'Inter', element.fontWeight ?? 400);
+	const placements = layoutTextGlyphs(element, font);
+	const paths = placements.map(({ glyph, centerX, centerY, rotation, advance }) => {
+		const d = glyph.getPath(0, 0, Math.max(1, element.fontSize ?? 48)).toPathData(3);
+		const transform = `translate(${centerX} ${centerY}) rotate(${rotation}) translate(${-advance / 2} 0)`;
+		return { d, transform };
+	});
+	const pathData = paths.map((path) => path.d).join('');
+	return {
+		elementId: element.id,
+		pathData,
+		markup: paths.map((path) => `<path d="${path.d}" transform="${path.transform}"/>`).join(''),
+		paths,
+	};
 }
 
 function visitElements(elements: Element[], visit: (element: Element) => Promise<void>): Promise<void[]> {
