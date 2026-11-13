@@ -101,7 +101,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageUpscaler',
 		icon: '↗',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'image-sharpener',
@@ -117,7 +117,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageSharpener',
 		icon: '✳',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'image-denoiser',
@@ -133,7 +133,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageDenoiser',
 		icon: '◌',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'photo-colour-correction',
@@ -150,7 +150,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PhotoAdjustments',
 		icon: '◐',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'image-colour-picker',
@@ -166,7 +166,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageColourPicker',
 		icon: '◉',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'colour-palette-extractor',
@@ -182,7 +182,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ColourPaletteExtractor',
 		icon: '▦',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'favicon-generator',
@@ -199,7 +199,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'FaviconGenerator',
 		icon: '✦',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'social-media-image-resizer',
@@ -216,7 +216,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'SocialMediaImageResizer',
 		icon: '▣',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'image-watermark-generator',
@@ -233,7 +233,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageWatermarkGenerator',
 		icon: '◈',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brightness-contrast-editor',
@@ -250,7 +250,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PhotoAdjustments',
 		icon: '◑',
-		live: false,
+		live: true,
 		imagePreset: 'brightness-contrast',
 	},
 	{
@@ -268,7 +268,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageSharpener',
 		icon: '✳',
-		live: false,
+		live: true,
 		imagePreset: 'blurry-photo',
 	},
 	{
