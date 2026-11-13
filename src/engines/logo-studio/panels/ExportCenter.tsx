@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { strToU8, zipSync } from 'fflate';
 import { createProjectFile, createProjectFileWithReference } from '../export/project-file';
 import { downloadBlob, renderSvgToRaster, type RasterScale } from '../export/raster';
 import { exportSvgToPdf } from '../export/pdf';
@@ -112,6 +113,71 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 		downloadBlob(file, `${safeFileName(project.name)}.json`);
 		return {};
 	});
+	const exportAllVariants = () => runExport('All variants', async () => {
+		const variants = Object.entries(project.variants);
+		if (!variants.length) throw new Error('There are no logo variants to export.');
+		if (project.artboard.width * project.artboard.height > 16_000_000) {
+			throw new Error('The artboard is too large to export every variant safely. Reduce the artboard dimensions and try again.');
+		}
+		const files: Record<string, Uint8Array> = {};
+		const warnings = new Set<string>();
+		const usedNames = new Set<string>();
+		const readme = [
+			`${project.name} — all logo variants`,
+			'',
+			'Each format folder contains every saved variant. Raster exports use 1× artboard size.',
+			'SVG and PDF are vector exports where supported; PNG preserves transparency when enabled in Export Centre.',
+			'JPG uses the selected Export Centre background colour.',
+			'Reference images are never included in exports.',
+			'',
+		];
+
+		for (const [variant, elements] of variants) {
+			let slug = safeFileName(variant).toLowerCase().replace(/\s+/g, '-');
+			if (usedNames.has(slug)) slug = `${slug}-${usedNames.size + 1}`;
+			usedNames.add(slug);
+			const background = project.variantBackgrounds?.[variant] ?? project.artboard.background;
+			const variantProject: LogoProject = {
+				...project,
+				artboard: { ...project.artboard, background },
+				variants: { primary: elements },
+			};
+			const vector = await exportProjectToSvg(variantProject, { outlineText, background });
+			vector.warnings.forEach((warning) => warnings.add(warning));
+			const fileBase = `${safeFileName(project.name)}-${slug}`;
+			files[`SVG/${fileBase}.svg`] = strToU8(vector.svg);
+			const pngBackground = pngTransparent ? 'transparent' : background === 'transparent' ? '#ffffff' : background;
+			const pngVector = await exportProjectToSvg(variantProject, { outlineText, background: pngBackground });
+			const png = await renderSvgToRaster(pngVector.svg, {
+				width: project.artboard.width,
+				height: project.artboard.height,
+				format: 'png',
+				scale: 1,
+			});
+			files[`PNG/${fileBase}.png`] = new Uint8Array(await png.blob.arrayBuffer());
+			const jpgVector = await exportProjectToSvg(variantProject, { outlineText, background: 'transparent' });
+			const jpg = await renderSvgToRaster(jpgVector.svg, {
+				width: project.artboard.width,
+				height: project.artboard.height,
+				format: 'jpg',
+				scale: 1,
+				background: jpgBackground,
+				quality: jpgQuality,
+			});
+			files[`JPG/${fileBase}.jpg`] = new Uint8Array(await jpg.blob.arrayBuffer());
+			const pdfVector = await exportProjectToSvg(variantProject, { outlineText: true, background });
+			const pdf = await exportSvgToPdf(pdfVector.svg, project.artboard.width, project.artboard.height);
+			files[`PDF/${fileBase}.pdf`] = new Uint8Array(await pdf.arrayBuffer());
+			readme.push(`${variant}: SVG/${fileBase}.svg, PNG/${fileBase}.png, JPG/${fileBase}.jpg, PDF/${fileBase}.pdf`);
+			pngVector.warnings.forEach((warning) => warnings.add(warning));
+			jpgVector.warnings.forEach((warning) => warnings.add(warning));
+			pdfVector.warnings.forEach((warning) => warnings.add(warning));
+		}
+		files['README.txt'] = strToU8(readme.join('\n'));
+		const archive = zipSync(files, { level: 6 });
+		downloadBlob(new Blob([new Uint8Array(archive)], { type: 'application/zip' }), `${safeFileName(project.name)}-all-variants.zip`);
+		return { warnings: Array.from(warnings) };
+	});
 
 	return (
 		<div
@@ -166,6 +232,11 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 						<div><h3>Project file</h3><p>Save an editable JSON backup of this design.</p></div>
 						<label className="logo-export-check"><input type="checkbox" checked={includeReference} disabled={!reference} onChange={(event) => setIncludeReference(event.target.checked)} /> Include the local reference image (off by default)</label>
 						<button type="button" onClick={() => void exportProjectFile()} disabled={Boolean(busy)}>{busy === 'Project file' ? 'Preparing…' : 'Save project file'}</button>
+					</section>
+
+					<section className="logo-export-format">
+						<div><h3>All variants</h3><p>Download every saved variant in SVG, PNG, JPG, and PDF folders, plus a README. References are excluded.</p></div>
+						<button type="button" onClick={() => void exportAllVariants()} disabled={Boolean(busy)}>{busy === 'All variants' ? 'Preparing ZIP…' : 'Export all variants (ZIP)'}</button>
 					</section>
 
 					<section className="logo-export-format logo-export-coming-soon" aria-label="More formats coming soon">
