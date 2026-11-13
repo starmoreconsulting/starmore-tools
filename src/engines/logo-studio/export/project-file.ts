@@ -106,6 +106,23 @@ function validateElement(value: unknown, depth: number, count: { value: number }
 			stops,
 		};
 	}
+	if (value.shadow !== undefined) {
+		if (!isRecord(value.shadow)
+			|| !finiteNumber(value.shadow.offsetX)
+			|| !finiteNumber(value.shadow.offsetY)
+			|| !finiteNumber(value.shadow.blur)
+			|| value.shadow.blur < 0
+			|| typeof value.shadow.color !== 'string'
+			|| !/^#[\da-f]{6}$/i.test(value.shadow.color)) {
+			throw new Error('An element has an invalid shadow effect.');
+		}
+		element.shadow = {
+			offsetX: value.shadow.offsetX,
+			offsetY: value.shadow.offsetY,
+			blur: value.shadow.blur,
+			color: value.shadow.color,
+		};
+	}
 	if (value.align !== undefined) {
 		if (value.align !== 'left' && value.align !== 'center' && value.align !== 'right') {
 			throw new Error('An element has an invalid text alignment.');

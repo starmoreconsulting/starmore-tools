@@ -58,6 +58,21 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 					<input type="number" min={0} value={element.radius ?? 0} onChange={(event) => onUpdate({ radius: Math.max(0, numberValue(event.target.value, element.radius ?? 0)) })} />
 				</label>
 			)}
+			<section className="logo-effect-panel" aria-label="Shadow effect">
+				<label className="logo-effect-toggle"><input type="checkbox" checked={Boolean(element.shadow)} onChange={(event) => onUpdate({
+					shadow: event.target.checked
+						? (element.shadow ?? { offsetX: 4, offsetY: 4, blur: 8, color: '#000000' })
+						: undefined,
+				})} /> Shadow</label>
+				{element.shadow && (
+					<div className="logo-phase-number-grid">
+						<label className="logo-phase-field"><span>Offset X</span><input type="number" min={-100} max={100} value={element.shadow.offsetX} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, offsetX: numberValue(event.target.value, element.shadow!.offsetX) } })} /></label>
+						<label className="logo-phase-field"><span>Offset Y</span><input type="number" min={-100} max={100} value={element.shadow.offsetY} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, offsetY: numberValue(event.target.value, element.shadow!.offsetY) } })} /></label>
+						<label className="logo-phase-field"><span>Blur</span><input type="number" min={0} max={80} value={element.shadow.blur} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, blur: Math.max(0, numberValue(event.target.value, element.shadow!.blur)) } })} /></label>
+						<label className="logo-phase-field"><span>Shadow colour</span><input type="color" value={element.shadow.color} onChange={(event) => onUpdate({ shadow: { ...element.shadow!, color: event.target.value } })} /></label>
+					</div>
+				)}
+			</section>
 			{element.type === 'text' && (
 				<div className="logo-phase-text-options">
 					<label className="logo-phase-field"><span>Text</span><textarea rows={3} value={element.text ?? ''} onChange={(event) => onUpdate({ text: event.target.value })} /></label>

@@ -32,6 +32,7 @@ export interface Element {
 	src?: string;
 	pathData?: string | number[][];
 	gradient?: GradientFill;
+	shadow?: ShadowEffect;
 }
 
 export interface LogoProject {
@@ -54,8 +55,19 @@ export interface GradientFill {
 	stops: GradientStop[];
 }
 
+export interface ShadowEffect {
+	offsetX: number;
+	offsetY: number;
+	blur: number;
+	color: string;
+}
+
 export function getElementGradientId(element: Pick<Element, 'id'>): string {
 	return `logo-gradient-${element.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+}
+
+export function getElementShadowId(element: Pick<Element, 'id'>): string {
+	return `logo-shadow-${element.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 }
 
 function createId(): string {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
-import { getElementGradientId, type Element, type GradientFill, type LogoProject } from '../model/types';
+import { getElementGradientId, getElementShadowId, type Element, type LogoProject } from '../model/types';
 import { getElementBounds, movedElement, resizedElement, rotationFromPointer, type ResizeHandle } from './geometry';
 import { loadLucideLibrary, type LucideIconNodes } from '../library/icons';
 import { getShapeGeometry } from '../library/shapes';
@@ -35,10 +35,20 @@ function gradientElement(element: Element): ReactNode {
 	return <linearGradient key={id} id={id} x1={`${50 - x}%`} y1={`${50 - y}%`} x2={`${50 + x}%`} y2={`${50 + y}%`}>{stops}</linearGradient>;
 }
 
-function collectGradients(elements: Element[]): ReactNode[] {
+function shadowElement(element: Element): ReactNode {
+	if (!element.shadow) return null;
+	return (
+		<filter key={getElementShadowId(element)} id={getElementShadowId(element)} x="-50%" y="-50%" width="200%" height="200%" colorInterpolationFilters="sRGB">
+			<feDropShadow dx={element.shadow.offsetX} dy={element.shadow.offsetY} stdDeviation={element.shadow.blur} floodColor={element.shadow.color} />
+		</filter>
+	);
+}
+
+function collectEffects(elements: Element[]): ReactNode[] {
 	return elements.flatMap((element) => [
 		...(element.gradient ? [gradientElement(element)] : []),
-		...(element.children ? collectGradients(element.children) : []),
+		...(element.shadow ? [shadowElement(element)] : []),
+		...(element.children ? collectEffects(element.children) : []),
 	]);
 }
 
@@ -162,6 +172,7 @@ function SvgElement({
 		<g
 			transform={`translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})`}
 			opacity={element.opacity}
+			filter={element.shadow ? `url(#${getElementShadowId(element)})` : undefined}
 			onPointerDown={(event) => {
 				if (element.locked) return;
 				event.stopPropagation();
@@ -358,7 +369,7 @@ export default function SvgArtboard({ project, zoom, selectedId, selectedIds, on
 				style={{ width: `${zoom}%`, background: background === 'transparent' ? 'transparent' : background, touchAction: 'none' }}
 			>
 				<rect data-artboard="background" width="100%" height="100%" fill={background === 'transparent' ? 'transparent' : background} />
-				<defs>{collectGradients(elements)}</defs>
+				<defs>{collectEffects(elements)}</defs>
 				{elements.map((element) => (
 					<SvgElement
 						key={element.id}

@@ -1,4 +1,4 @@
-import { getElementGradientId, type Element, type LogoProject } from '../model/types';
+import { getElementGradientId, getElementShadowId, type Element, type LogoProject } from '../model/types';
 import { outlineProjectText } from './outline';
 import { loadLucideLibrary, renderLucideNodesToSvg } from '../library/icons';
 import { getShapeGeometry } from '../library/shapes';
@@ -64,8 +64,14 @@ function renderGradient(element: Element): string {
 	return `<linearGradient id="${id}" x1="${50 - x}%" y1="${50 - y}%" x2="${50 + x}%" y2="${50 + y}%">${stops}</linearGradient>`;
 }
 
-function collectGradientMarkup(elements: Element[]): string {
-	return elements.map((element) => `${renderGradient(element)}${element.children ? collectGradientMarkup(element.children) : ''}`).join('');
+function renderShadow(element: Element): string {
+	if (!element.shadow) return '';
+	const shadow = element.shadow;
+	return `<filter id="${getElementShadowId(element)}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB"><feDropShadow dx="${shadow.offsetX}" dy="${shadow.offsetY}" stdDeviation="${shadow.blur}" flood-color="${escapeXml(shadow.color)}"/></filter>`;
+}
+
+function collectEffectMarkup(elements: Element[]): string {
+	return elements.map((element) => `${renderGradient(element)}${renderShadow(element)}${element.children ? collectEffectMarkup(element.children) : ''}`).join('');
 }
 
 function renderElement(element: Element, outlines: Map<string, string>, icons: Record<string, import('../library/icons').LucideNode[]>, warnings: string[]): string {
@@ -92,7 +98,8 @@ function renderElement(element: Element, outlines: Map<string, string>, icons: R
 		return '';
 	}
 
-	return `<g transform="translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})" opacity="${Math.min(1, Math.max(0, element.opacity))}">${content}</g>`;
+	const filter = element.shadow ? ` filter="url(#${getElementShadowId(element)})"` : '';
+	return `<g transform="translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})" opacity="${Math.min(1, Math.max(0, element.opacity))}"${filter}>${content}</g>`;
 }
 
 export async function exportProjectToSvg(
@@ -121,7 +128,14 @@ export async function exportProjectToSvg(
 	const artwork = projectElements
 		.map((element) => renderElement(element, outlines, icons, warnings))
 		.join('');
-	const gradientMarkup = `<defs>${collectGradientMarkup(projectElements)}</defs>`;
+	const gradientMarkup = `<defs>${collectEffectMarkup(projectElements)}</defs>`;
+	if (projectElements.some((element) => containsShadow(element))) {
+		warnings.push('This design uses shadows. PDF export will use a local raster fallback so shadows remain visible.');
+	}
 	const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${project.artboard.width}" height="${project.artboard.height}" viewBox="0 0 ${project.artboard.width} ${project.artboard.height}"><title>${escapeXml(project.name)}</title>${gradientMarkup}${backgroundMarkup}${artwork}</svg>`;
 	return { svg, warnings };
+}
+
+function containsShadow(element: Element): boolean {
+	return Boolean(element.shadow) || Boolean(element.children?.some(containsShadow));
 }

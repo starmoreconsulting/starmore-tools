@@ -1,4 +1,5 @@
 import type { Svg2pdfOptions } from 'svg2pdf.js';
+import { renderSvgToRaster } from './raster';
 
 export async function exportSvgToPdf(svg: string, width: number, height: number): Promise<Blob> {
 	if (!Number.isFinite(width) || width < 1 || !Number.isFinite(height) || height < 1) {
@@ -22,6 +23,18 @@ export async function exportSvgToPdf(svg: string, width: number, height: number)
 	});
 
 	const options: Svg2pdfOptions = { x: 0, y: 0, width, height };
-	await pdf.svg(svgElement, options);
+	if (document.querySelector('filter feDropShadow')) {
+		const scale = width * 2 <= 4000 && height * 2 <= 4000 ? 2 : 1;
+		const { blob } = await renderSvgToRaster(svg, { width, height, format: 'png', scale });
+		const dataUri = await new Promise<string>((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('The PDF shadow fallback could not read the raster image.'));
+			reader.onerror = () => reject(new Error('The PDF shadow fallback could not read the raster image.'));
+			reader.readAsDataURL(blob);
+		});
+		pdf.addImage(dataUri, 'PNG', 0, 0, width, height);
+	} else {
+		await pdf.svg(svgElement, options);
+	}
 	return pdf.output('blob');
 }
