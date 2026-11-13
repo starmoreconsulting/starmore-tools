@@ -123,6 +123,68 @@ function resample(id: string, task: Extract<ImageWorkerTask, { type: 'upscale' }
 	return new ImageData(output, outputWidth, outputHeight);
 }
 
+function sharpenImage(id: string, task: Extract<ImageWorkerTask, { type: 'sharpen' }>): ImageData {
+	const { data, width, height, amount, radius, threshold } = task;
+	if (data.length !== width * height * 4) throw new Error('The source pixel data is incomplete.');
+	if (width * height > 48_000_000) throw new Error('This image exceeds the 48 million pixel processing limit. Try a smaller image.');
+	if (width * height * 32 > 384 * 1024 * 1024) throw new Error('This image needs too much working memory for safe browser processing. Try a smaller image.');
+	const output = new Uint8ClampedArray(data);
+	const horizontal = new Float32Array(width * height * 3);
+	const blur = new Float32Array(width * height * 3);
+	const kernelRadius = Math.max(1, Math.min(8, Math.round(radius)));
+	const sigma = Math.max(0.5, kernelRadius / 1.5);
+	const weights: number[] = [];
+	let weightTotal = 0;
+	for (let offset = -kernelRadius; offset <= kernelRadius; offset += 1) {
+		const weight = Math.exp(-(offset * offset) / (2 * sigma * sigma));
+		weights.push(weight);
+		weightTotal += weight;
+	}
+	for (let y = 0; y < height; y += 1) {
+		for (let x = 0; x < width; x += 1) {
+			const index = (y * width + x) * 3;
+			for (let channel = 0; channel < 3; channel += 1) {
+				let sum = 0;
+				for (let offset = -kernelRadius; offset <= kernelRadius; offset += 1) {
+					const sampleX = Math.max(0, Math.min(width - 1, x + offset));
+					sum += data[(y * width + sampleX) * 4 + channel] * weights[offset + kernelRadius];
+				}
+				horizontal[index + channel] = sum / weightTotal;
+			}
+		}
+		if (y % 64 === 0) emitProgress(id, y, height * 2);
+	}
+	for (let y = 0; y < height; y += 1) {
+		for (let x = 0; x < width; x += 1) {
+			const index = (y * width + x) * 3;
+			for (let channel = 0; channel < 3; channel += 1) {
+				let sum = 0;
+				for (let offset = -kernelRadius; offset <= kernelRadius; offset += 1) {
+					const sampleY = Math.max(0, Math.min(height - 1, y + offset));
+					sum += horizontal[(sampleY * width + x) * 3 + channel] * weights[offset + kernelRadius];
+				}
+				blur[index + channel] = sum / weightTotal;
+			}
+		}
+		if (y % 64 === 0) emitProgress(id, height + y, height * 2);
+	}
+	for (let y = 0; y < height; y += 1) {
+		for (let x = 0; x < width; x += 1) {
+			const index = (y * width + x) * 4;
+			const blurIndex = (y * width + x) * 3;
+			for (let channel = 0; channel < 3; channel += 1) {
+				const difference = data[index + channel] - blur[blurIndex + channel];
+				output[index + channel] = Math.abs(difference) < threshold
+					? data[index + channel]
+					: Math.max(0, Math.min(255, data[index + channel] + difference * amount));
+			}
+		}
+		if (y % 64 === 0) emitProgress(id, height * 2 + y, height * 3);
+	}
+	emitProgress(id, height * 3, height * 3);
+	return new ImageData(output, width, height);
+}
+
 function clampRinging(output: Uint8ClampedArray, width: number, height: number, source: Uint8ClampedArray, sourceWidth: number, sourceHeight: number): void {
 	for (let y = 0; y < height; y += 1) {
 		const sy = Math.max(0, Math.min(sourceHeight - 1, Math.round((y + 0.5) * sourceHeight / height - 0.5)));
@@ -171,7 +233,7 @@ function gentleSharpen(data: Uint8ClampedArray, width: number, height: number, a
 workerScope.onmessage = (event: MessageEvent<WorkerRequest>) => {
 	const { id, task } = event.data;
 	try {
-		const imageData = resample(id, task);
+		const imageData = task.type === 'upscale' ? resample(id, task) : sharpenImage(id, task);
 		workerScope.postMessage({
 			id,
 			result: { data: imageData.data, width: imageData.width, height: imageData.height },

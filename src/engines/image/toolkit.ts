@@ -19,7 +19,7 @@ export interface WorkerProgress {
 	total: number;
 }
 
-export interface ImageWorkerTask {
+export type ImageWorkerTask = {
 	type: 'upscale';
 	data: Uint8ClampedArray;
 	width: number;
@@ -28,7 +28,15 @@ export interface ImageWorkerTask {
 	outputHeight: number;
 	mode: ResampleMode;
 	sharpen: number;
-}
+} | {
+	type: 'sharpen';
+	data: Uint8ClampedArray;
+	width: number;
+	height: number;
+	amount: number;
+	radius: number;
+	threshold: number;
+};
 
 export interface ImageWorkerResult {
 	data: Uint8ClampedArray;

@@ -48,6 +48,7 @@ export type ToolComponentName =
 	| 'ImageFormatConverter'
 	| 'ImageCropper'
 	| 'ImageUpscaler'
+	| 'ImageSharpener'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -92,6 +93,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageUpscaler',
 		icon: '↗',
+		live: false,
+	},
+	{
+		slug: 'image-sharpener',
+		name: 'Image Sharpener',
+		department: 'image',
+		description: 'Sharpen soft edges with adjustable amount, radius and threshold.',
+		seoTitle: 'Private Image Sharpener | Starmore Tools',
+		seoDescription: 'Sharpen an image in your browser with an adjustable unsharp mask, zoomable crop and before-and-after comparison. Your files never leave your device.',
+		howTo: ['Choose a JPG, PNG, WebP, GIF or BMP image.', 'Adjust amount, radius and threshold; zoom the preview crop to inspect detail.', 'Sharpen, compare the original and result, then download your preferred format.'],
+		faqs: [
+			{ question: 'Does sharpening fix blur?', answer: 'Sharpening can make edges in a slightly soft image look more defined, but it cannot restore lost detail or fix heavy blur.' },
+			{ question: 'Are images uploaded?', answer: 'No. The image is processed locally in a background worker on your device.' },
+		],
+		component: 'ImageSharpener',
+		icon: '✳',
 		live: false,
 	},
 	{
