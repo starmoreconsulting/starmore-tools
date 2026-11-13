@@ -8,6 +8,8 @@ import PhaseOneToolbar from './PhaseOneToolbar';
 import { loadBrowserFont } from '../library/fonts';
 import { createProjectFile, readProjectFile } from '../export/project-file';
 import { downloadBlob } from '../export/raster';
+import MyProjects from './MyProjects';
+import { restoreLastProject, saveLocalProject, setLastProjectId } from '../store/local-projects';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -20,6 +22,13 @@ function findElement(elements: Element[], id: string | null): Element | null {
 		if (child) return child;
 	}
 	return null;
+}
+
+function findTextElements(elements: Element[]): Element[] {
+	return elements.flatMap((element) => [
+		...(element.type === 'text' ? [element] : []),
+		...(element.children ? findTextElements(element.children) : []),
+	]);
 }
 
 export default function LogoStudioApp() {
@@ -41,8 +50,10 @@ export default function LogoStudioApp() {
 	const [zoom, setZoom] = useState(100);
 	const [mobilePanel, setMobilePanel] = useState<MobilePanel>('elements');
 	const [mobileSheetOpen, setMobileSheetOpen] = useState(true);
-	const [status, setStatus] = useState('Your design stays in this browser session.');
+	const [status, setStatus] = useState('Your design stays on this device.');
 	const [fileError, setFileError] = useState('');
+	const [storageReady, setStorageReady] = useState(false);
+	const [showProjects, setShowProjects] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const elements = project.variants.primary ?? [];
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
@@ -58,8 +69,10 @@ export default function LogoStudioApp() {
 		try {
 			const imported = await readProjectFile(file);
 			loadProject(imported);
+			await saveLocalProject(imported);
 			setStatus(`Opened “${imported.name}”.`);
 			setFileError('');
+			setShowProjects(false);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'The project file could not be opened.';
 			setFileError(message);
@@ -68,7 +81,53 @@ export default function LogoStudioApp() {
 	};
 
 	useEffect(() => {
-		const texts = elements.filter((element) => element.type === 'text');
+		let active = true;
+		void restoreLastProject().then((restored) => {
+			if (!active) return;
+			if (restored) {
+				loadProject(restored);
+				setStatus(`Restored “${restored.name}” from this device.`);
+			}
+			setStorageReady(true);
+		}).catch((error: unknown) => {
+			if (!active) return;
+			const message = error instanceof Error ? error.message : 'Local projects could not be restored.';
+			setStatus(`Local project storage is unavailable: ${message}`);
+			setStorageReady(true);
+		});
+		return () => { active = false; };
+	}, [loadProject]);
+
+	useEffect(() => {
+		if (!storageReady) return undefined;
+		let active = true;
+		let timer: number | undefined;
+		let saveQueue = Promise.resolve();
+		const scheduleSave = (nextProject: typeof project) => {
+			window.clearTimeout(timer);
+			timer = window.setTimeout(() => {
+				saveQueue = saveQueue.then(() => saveLocalProject(nextProject)).then(() => {
+					if (active) setStatus('Autosaved on this device.');
+				}).catch((error: unknown) => {
+					if (!active) return;
+					const message = error instanceof Error ? error.message : 'The project could not be saved locally.';
+					setStatus(`Autosave failed: ${message}`);
+				});
+			}, 600);
+		};
+		scheduleSave(project);
+		const unsubscribe = useLogoStudioStore.subscribe((state, previous) => {
+			if (state.project !== previous.project) scheduleSave(state.project);
+		});
+		return () => {
+			active = false;
+			window.clearTimeout(timer);
+			unsubscribe();
+		};
+	}, [storageReady]);
+
+	useEffect(() => {
+		const texts = findTextElements(elements);
 		const fontRequests = new Map(texts.map((element) => [
 			`${element.fontFamily ?? 'Inter'}:${element.fontWeight ?? 400}`,
 			{ family: element.fontFamily ?? 'Inter', weight: element.fontWeight ?? 400 },
@@ -154,6 +213,7 @@ export default function LogoStudioApp() {
 				onZoomChange={setZoom}
 				onSave={saveProjectFile}
 				onOpenProject={() => fileInputRef.current?.click()}
+				onProjects={() => setShowProjects(true)}
 			/>
 			<input
 				ref={fileInputRef}
@@ -166,6 +226,21 @@ export default function LogoStudioApp() {
 					event.currentTarget.value = '';
 				}}
 			/>
+			{showProjects ? (
+				<MyProjects
+					onBack={() => setShowProjects(false)}
+					onImport={() => fileInputRef.current?.click()}
+					onOpen={(savedProject) => {
+						void setLastProjectId(savedProject.id).then(() => {
+							loadProject(savedProject);
+							setShowProjects(false);
+						}).catch((error: unknown) => {
+							const message = error instanceof Error ? error.message : 'The project could not be opened.';
+							setStatus(`Could not open project: ${message}`);
+						});
+					}}
+				/>
+			) : <>
 			<div className="logo-phase-workspace">
 				<div className="logo-phase-desktop-sidebar">
 					<ElementSidebar onAdd={addElement} />
@@ -205,6 +280,7 @@ export default function LogoStudioApp() {
 					</>
 				)}
 			</div>
+			</>}
 			<span className="visually-hidden" aria-live="polite">{status}</span>
 		</section>
 	);
