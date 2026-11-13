@@ -39,6 +39,7 @@ import FaviconGenerator from '../components/tools/FaviconGenerator';
 import SocialMediaImageResizer from '../components/tools/SocialMediaImageResizer';
 import ImageWatermarkGenerator from '../components/tools/ImageWatermarkGenerator';
 import BackgroundRemover from '../components/tools/BackgroundRemover';
+import BackgroundChanger from '../components/tools/BackgroundChanger';
 import MarkdownEditor from '../components/tools/MarkdownEditor';
 import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
 import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
@@ -143,6 +144,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'SocialMediaImageResizer' && <SocialMediaImageResizer client:load />}
 			{tool.component === 'ImageWatermarkGenerator' && <ImageWatermarkGenerator client:load />}
 			{tool.component === 'BackgroundRemover' && <BackgroundRemover client:load />}
+			{tool.component === 'BackgroundChanger' && <BackgroundChanger client:load />}
 			{tool.component === 'MarkdownEditor' && <MarkdownEditor client:load />}
 			{tool.component === 'TextLogoGenerator' && <TextLogoGenerator client:load />}
 			{tool.component === 'MonogramLogoGenerator' && <MonogramLogoGenerator client:load />}

@@ -57,6 +57,7 @@ export type ToolComponentName =
 	| 'SocialMediaImageResizer'
 	| 'ImageWatermarkGenerator'
 	| 'BackgroundRemover'
+	| 'BackgroundChanger'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
