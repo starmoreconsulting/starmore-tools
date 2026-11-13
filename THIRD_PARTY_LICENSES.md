@@ -10,6 +10,7 @@ This project uses the following third-party packages in Logo Studio. The table c
 | [fflate](https://github.com/101arrowz/fflate) | 0.8.3 | MIT | Copyright (c) 2026 Arjun Barrett |
 | [idb-keyval](https://github.com/jakearchibald/idb-keyval) | 6.3.0 | Apache-2.0 | Copyright (c) Jake Archibald |
 | [jsPDF](https://github.com/parallax/jsPDF) | 4.2.1 | MIT | Copyright (c) 2010-2025 James Hall; Copyright (c) 2015-2025 yWorks GmbH |
+| [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) | 1.31.1 | MIT | Copyright (c) Microsoft Corporation |
 | [opentype.js](https://github.com/opentypejs/opentype.js) | 2.0.0 | MIT | Copyright (c) 2020 Frederik De Bleser |
 | [pako](https://github.com/nodeca/pako) | 2.1.0 | MIT AND Zlib | Copyright (C) 2014-2017 Vitaly Puzrin and Andrei Tuputcyn; Zlib portions Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler |
 | [svg2pdf.js](https://github.com/yWorks/svg2pdf.js) | 2.9.0 | MIT | Copyright (c) 2015-2026 yWorks GmbH; Copyright (c) 2013-2015 Vitaly Puzrin |
@@ -17,6 +18,8 @@ This project uses the following third-party packages in Logo Studio. The table c
 | [Fontsource font packages](https://fontsource.org/) | 5.3.0 (Source Sans 3: 5.3.1) | SIL Open Font License 1.1 | Font copyrights and any reserved names are specified by each package's bundled `LICENSE` |
 
 The bundled Fontsource families are Abril Fatface, Allura, Anton, Archivo Black, Barlow Condensed, Bebas Neue, Bodoni Moda, Cormorant Garamond, Dancing Script, DM Sans, DM Serif Display, Great Vibes, Inter, Libre Baskerville, Lora, Manrope, Merriweather, Montserrat, Nunito, Open Sans, Oswald, Pacifico, Playfair Display, Quicksand, Raleway, Righteous, Roboto Condensed, Roboto Slab, Source Sans 3, and Work Sans. Preserve the relevant copyright and OFL notices when redistributing the bundled font files. Custom fonts uploaded by users are not bundled by the project; users must have permission to use them and to redistribute them when embedding them in exported project or brand-kit files.
+
+The background-removal models are distributed with their upstream notices under `public/licenses/`. U²-Netp weights are Apache-2.0; its ONNX export is from rembg and MIT-licensed. IS-Net weights are attributed to DIS under Apache-2.0; the approved rembg ONNX export is MIT-licensed. The locally converted IS-Net fp16 file is derived from that approved export. ONNX Runtime Web is MIT-licensed; see `public/licenses/onnxruntime-web-MIT.txt`.
 
 ## MIT License
 
