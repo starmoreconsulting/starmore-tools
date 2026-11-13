@@ -1,16 +1,19 @@
 import { lazy, Suspense, useState } from 'react';
 import { createDefaultElement, type Element } from '../model/types';
 const IconLibrary = lazy(() => import('./IconLibrary'));
+const ColorLibrary = lazy(() => import('./ColorLibrary'));
 
 const shapes = ['rectangle', 'rounded-rectangle', 'circle', 'triangle', 'polygon', 'star', 'arrow', 'line', 'ring', 'hexagon', 'diamond', 'shield', 'leaf', 'drop', 'bolt'] as const;
 
 interface Props {
 	onAdd: (element: Element) => void;
+	element?: Element | null;
+	onUpdate?: (patch: Partial<Element>) => void;
 }
 
-export default function ElementSidebar({ onAdd }: Props) {
+export default function ElementSidebar({ onAdd, element = null, onUpdate = () => undefined }: Props) {
 	const [shape, setShape] = useState<(typeof shapes)[number]>('rectangle');
-	const [tab, setTab] = useState<'elements' | 'icons'>('elements');
+	const [tab, setTab] = useState<'elements' | 'icons' | 'colors'>('elements');
 
 	const addText = () => onAdd(createDefaultElement('text', {
 		x: 90,
@@ -37,10 +40,15 @@ export default function ElementSidebar({ onAdd }: Props) {
 			<div className="logo-library-tabs" role="tablist" aria-label="Libraries">
 				<button type="button" role="tab" aria-selected={tab === 'elements'} onClick={() => setTab('elements')}>Elements</button>
 				<button type="button" role="tab" aria-selected={tab === 'icons'} onClick={() => setTab('icons')}>Icons</button>
+				<button type="button" role="tab" aria-selected={tab === 'colors'} onClick={() => setTab('colors')}>Colours</button>
 			</div>
 			{tab === 'icons' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading icon browser…</p>}>
 					<IconLibrary onAdd={onAdd} />
+				</Suspense>
+			) : tab === 'colors' ? (
+				<Suspense fallback={<p className="logo-phase-hint">Loading colours…</p>}>
+					<ColorLibrary element={element} onUpdate={onUpdate} />
 				</Suspense>
 			) : <>
 			<button className="logo-phase-primary" type="button" onClick={addText}>Add text</button>

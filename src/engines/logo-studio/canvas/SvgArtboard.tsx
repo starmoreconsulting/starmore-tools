@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
-import type { Element, LogoProject } from '../model/types';
+import { getElementGradientId, type Element, type GradientFill, type LogoProject } from '../model/types';
 import { getElementBounds, movedElement, resizedElement, rotationFromPointer, type ResizeHandle } from './geometry';
 import { loadLucideLibrary, type LucideIconNodes } from '../library/icons';
 import { getShapeGeometry } from '../library/shapes';
@@ -11,6 +11,29 @@ interface Props {
 	onSelect: (id: string | null) => void;
 	onUpdate: (id: string, patch: Partial<Element>, recordHistory?: boolean) => void;
 	onBackgroundChange: (background: string) => void;
+}
+
+function gradientElement(element: Element): ReactNode {
+	const gradient = element.gradient;
+	if (!gradient) return null;
+	const id = getElementGradientId(element);
+	const stops = gradient.stops.map((stop, index) => (
+		<stop key={`${id}-${index}`} offset={`${Math.min(1, Math.max(0, stop.offset)) * 100}%`} stopColor={stop.color} />
+	));
+	if (gradient.type === 'radial') {
+		return <radialGradient key={id} id={id} cx="50%" cy="50%" r="50%">{stops}</radialGradient>;
+	}
+	const angle = gradient.angle * Math.PI / 180;
+	const x = Math.cos(angle) * 50;
+	const y = Math.sin(angle) * 50;
+	return <linearGradient key={id} id={id} x1={`${50 - x}%`} y1={`${50 - y}%`} x2={`${50 + x}%`} y2={`${50 + y}%`}>{stops}</linearGradient>;
+}
+
+function collectGradients(elements: Element[]): ReactNode[] {
+	return elements.flatMap((element) => [
+		...(element.gradient ? [gradientElement(element)] : []),
+		...(element.children ? collectGradients(element.children) : []),
+	]);
 }
 
 type PointerAction =
@@ -46,7 +69,7 @@ function renderIcon(element: Element, icons: LucideIconNodes | null): ReactNode 
 	const nodes = element.iconName ? icons?.[element.iconName] : undefined;
 	if (!nodes) return null;
 	return (
-		<svg x="0" y="0" width={element.width} height={element.height} viewBox="0 0 24 24" fill={element.fill ?? 'none'} stroke={element.stroke ?? '#203b32'} strokeWidth={element.strokeWidth ?? 2} strokeLinecap="round" strokeLinejoin="round" preserveAspectRatio="xMidYMid meet" vectorEffect="non-scaling-stroke">
+		<svg x="0" y="0" width={element.width} height={element.height} viewBox="0 0 24 24" fill={element.gradient ? `url(#${getElementGradientId(element)})` : element.fill ?? 'none'} stroke={element.gradient ? `url(#${getElementGradientId(element)})` : element.stroke ?? '#203b32'} strokeWidth={element.strokeWidth ?? 2} strokeLinecap="round" strokeLinejoin="round" preserveAspectRatio="xMidYMid meet" vectorEffect="non-scaling-stroke">
 			{nodes.map(([tag, attributes], index) => {
 				const key = `${element.id}-${index}`;
 				switch (tag) {
@@ -65,8 +88,9 @@ function renderIcon(element: Element, icons: LucideIconNodes | null): ReactNode 
 }
 
 function renderShape(element: Element): ReactNode {
-	const fill = element.shape === 'line' ? 'none' : element.fill ?? '#d7ed79';
-	const stroke = element.stroke ?? (element.shape === 'line' ? '#203b32' : 'none');
+	const paint = element.gradient ? `url(#${getElementGradientId(element)})` : element.fill ?? '#d7ed79';
+	const fill = element.shape === 'line' ? 'none' : paint;
+	const stroke = element.stroke ? (element.gradient ? paint : element.stroke) : (element.shape === 'line' ? '#203b32' : 'none');
 	const strokeWidth = element.strokeWidth ?? 2;
 	const geometry = getShapeGeometry(element);
 	const common = { fill, stroke, strokeWidth, strokeLinejoin: 'round' as const };
@@ -95,7 +119,7 @@ function SvgElement({
 		<text
 			x={element.align === 'left' ? 0 : element.align === 'right' ? element.width : element.width / 2}
 			y={element.height / 2}
-			fill={element.fill ?? '#203b32'}
+			fill={element.gradient ? `url(#${getElementGradientId(element)})` : element.fill ?? '#203b32'}
 			fontFamily={element.fontFamily ?? 'Arial'}
 			fontSize={element.fontSize ?? 48}
 			fontWeight={element.fontWeight ?? 400}
@@ -305,7 +329,8 @@ export default function SvgArtboard({ project, zoom, selectedId, onSelect, onUpd
 				style={{ width: `${zoom}%`, background: background === 'transparent' ? 'transparent' : background, touchAction: 'none' }}
 			>
 				<rect data-artboard="background" width="100%" height="100%" fill={background === 'transparent' ? 'transparent' : background} />
-				{(project.variants.primary ?? []).map((element) => (
+				<defs>{collectGradients(elements)}</defs>
+				{elements.map((element) => (
 					<SvgElement
 						key={element.id}
 						element={element}

@@ -30,6 +30,7 @@ export interface Element {
 	children?: Element[];
 	src?: string;
 	pathData?: string | number[][];
+	gradient?: GradientFill;
 }
 
 export interface LogoProject {
@@ -39,6 +40,21 @@ export interface LogoProject {
 	updatedAt: number;
 	artboard: { width: number; height: number; background: string };
 	variants: Record<string, Element[]>;
+}
+
+export interface GradientStop {
+	offset: number;
+	color: string;
+}
+
+export interface GradientFill {
+	type: 'linear' | 'radial';
+	angle: number;
+	stops: GradientStop[];
+}
+
+export function getElementGradientId(element: Pick<Element, 'id'>): string {
+	return `logo-gradient-${element.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 }
 
 function createId(): string {

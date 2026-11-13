@@ -1,4 +1,4 @@
-import type { Element, LogoProject } from '../model/types';
+import { getElementGradientId, type Element, type LogoProject } from '../model/types';
 import { outlineProjectText } from './outline';
 import { loadLucideLibrary, renderLucideNodesToSvg } from '../library/icons';
 import { getShapeGeometry } from '../library/shapes';
@@ -23,9 +23,13 @@ function escapeXml(value: string): string {
 	})[character] ?? character);
 }
 
+function getPaint(element: Element): string {
+	return element.gradient ? `url(#${getElementGradientId(element)})` : escapeXml(element.fill ?? '#d7ed79');
+}
+
 function renderShape(element: Element): string {
-	const fill = element.shape === 'line' ? 'none' : escapeXml(element.fill ?? '#d7ed79');
-	const stroke = escapeXml(element.stroke ?? (element.shape === 'line' ? '#203b32' : 'none'));
+	const fill = element.shape === 'line' ? 'none' : getPaint(element);
+	const stroke = element.gradient && element.stroke ? getPaint(element) : escapeXml(element.stroke ?? (element.shape === 'line' ? '#203b32' : 'none'));
 	const strokeWidth = Math.max(0, element.strokeWidth ?? 2);
 	const geometry = getShapeGeometry(element);
 	const common = `fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round"`;
@@ -39,12 +43,29 @@ function renderShape(element: Element): string {
 }
 
 function renderText(element: Element, pathData?: string): string {
-	if (pathData !== undefined) return pathData ? `<path d="${escapeXml(pathData)}" fill="${escapeXml(element.fill ?? '#203b32')}"/>` : '';
+	const fill = element.gradient ? `url(#${getElementGradientId(element)})` : escapeXml(element.fill ?? '#203b32');
+	if (pathData !== undefined) return pathData ? `<path d="${escapeXml(pathData)}" fill="${fill}"/>` : '';
 	const x = element.align === 'left' ? 0 : element.align === 'right' ? element.width : element.width / 2;
 	const lines = (element.text ?? '').split('\n').map((line, index) => (
 		`<tspan x="${x}"${index ? ` dy="${element.lineHeight ?? 1.16}em"` : ''}>${escapeXml(line)}</tspan>`
 	)).join('');
-	return `<text x="${x}" y="${element.height / 2}" fill="${escapeXml(element.fill ?? '#203b32')}" font-family="${escapeXml(element.fontFamily ?? 'Inter')}" font-size="${Math.max(1, element.fontSize ?? 48)}" font-weight="${Math.max(100, element.fontWeight ?? 400)}" letter-spacing="${element.letterSpacing ?? 0}" text-anchor="${element.align === 'left' ? 'start' : element.align === 'right' ? 'end' : 'middle'}" dominant-baseline="middle">${lines}</text>`;
+	return `<text x="${x}" y="${element.height / 2}" fill="${fill}" font-family="${escapeXml(element.fontFamily ?? 'Inter')}" font-size="${Math.max(1, element.fontSize ?? 48)}" font-weight="${Math.max(100, element.fontWeight ?? 400)}" letter-spacing="${element.letterSpacing ?? 0}" text-anchor="${element.align === 'left' ? 'start' : element.align === 'right' ? 'end' : 'middle'}" dominant-baseline="middle">${lines}</text>`;
+}
+
+function renderGradient(element: Element): string {
+	const gradient = element.gradient;
+	if (!gradient) return '';
+	const stops = gradient.stops.map((stop) => `<stop offset="${Math.min(1, Math.max(0, stop.offset)) * 100}%" stop-color="${escapeXml(stop.color)}"/>`).join('');
+	const id = getElementGradientId(element);
+	if (gradient.type === 'radial') return `<radialGradient id="${id}" cx="50%" cy="50%" r="50%">${stops}</radialGradient>`;
+	const angle = gradient.angle * Math.PI / 180;
+	const x = Math.cos(angle) * 50;
+	const y = Math.sin(angle) * 50;
+	return `<linearGradient id="${id}" x1="${50 - x}%" y1="${50 - y}%" x2="${50 + x}%" y2="${50 + y}%">${stops}</linearGradient>`;
+}
+
+function collectGradientMarkup(elements: Element[]): string {
+	return elements.map((element) => `${renderGradient(element)}${element.children ? collectGradientMarkup(element.children) : ''}`).join('');
 }
 
 function renderElement(element: Element, outlines: Map<string, string>, icons: Record<string, import('../library/icons').LucideNode[]>, warnings: string[]): string {
@@ -60,7 +81,9 @@ function renderElement(element: Element, outlines: Map<string, string>, icons: R
 	} else if (element.type === 'image' && element.src?.startsWith('data:image/')) {
 		content = `<image href="${escapeXml(element.src)}" width="${element.width}" height="${element.height}"/>`;
 	} else if (element.type === 'icon' && element.iconName && icons[element.iconName]) {
-		content = `<svg width="${element.width}" height="${element.height}" viewBox="0 0 24 24" fill="${escapeXml(element.fill ?? 'none')}" stroke="${escapeXml(element.stroke ?? '#203b32')}" stroke-width="${Math.max(0, element.strokeWidth ?? 2)}" stroke-linecap="round" stroke-linejoin="round" preserveAspectRatio="xMidYMid meet">${renderLucideNodesToSvg(icons[element.iconName])}</svg>`;
+		const fill = element.gradient ? `url(#${getElementGradientId(element)})` : escapeXml(element.fill ?? 'none');
+		const stroke = element.gradient && element.stroke ? fill : escapeXml(element.stroke ?? '#203b32');
+		content = `<svg width="${element.width}" height="${element.height}" viewBox="0 0 24 24" fill="${fill}" stroke="${stroke}" stroke-width="${Math.max(0, element.strokeWidth ?? 2)}" stroke-linecap="round" stroke-linejoin="round" preserveAspectRatio="xMidYMid meet">${renderLucideNodesToSvg(icons[element.iconName])}</svg>`;
 	} else if (element.type === 'icon') {
 		warnings.push(`Skipped unavailable Lucide icon “${escapeXml(element.iconName ?? 'unknown')}”.`);
 		return '';
@@ -98,6 +121,7 @@ export async function exportProjectToSvg(
 	const artwork = projectElements
 		.map((element) => renderElement(element, outlines, icons, warnings))
 		.join('');
-	const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${project.artboard.width}" height="${project.artboard.height}" viewBox="0 0 ${project.artboard.width} ${project.artboard.height}"><title>${escapeXml(project.name)}</title>${backgroundMarkup}${artwork}</svg>`;
+	const gradientMarkup = `<defs>${collectGradientMarkup(projectElements)}</defs>`;
+	const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${project.artboard.width}" height="${project.artboard.height}" viewBox="0 0 ${project.artboard.width} ${project.artboard.height}"><title>${escapeXml(project.name)}</title>${gradientMarkup}${backgroundMarkup}${artwork}</svg>`;
 	return { svg, warnings };
 }

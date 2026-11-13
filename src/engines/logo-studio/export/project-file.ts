@@ -78,6 +78,32 @@ function validateElement(value: unknown, depth: number, count: { value: number }
 		const result = optionalNumber(value, key);
 		if (result !== undefined) element[key] = result;
 	}
+	for (const key of ['sides', 'points'] as const) {
+		const result = optionalNumber(value, key);
+		if (result !== undefined) element[key] = Math.min(12, Math.max(3, Math.round(result)));
+	}
+	if (value.gradient !== undefined) {
+		if (!isRecord(value.gradient)
+			|| (value.gradient.type !== 'linear' && value.gradient.type !== 'radial')
+			|| !finiteNumber(value.gradient.angle)
+			|| !Array.isArray(value.gradient.stops)
+			|| value.gradient.stops.length < 2
+			|| value.gradient.stops.length > 4) {
+			throw new Error('An element has an invalid gradient fill.');
+		}
+		const stops = value.gradient.stops.map((stop) => {
+			if (!isRecord(stop) || !finiteNumber(stop.offset) || stop.offset < 0 || stop.offset > 1
+				|| typeof stop.color !== 'string' || !/^#[\da-f]{6}$/i.test(stop.color)) {
+				throw new Error('An element has an invalid gradient stop.');
+			}
+			return { offset: stop.offset, color: stop.color };
+		});
+		element.gradient = {
+			type: value.gradient.type,
+			angle: value.gradient.angle,
+			stops,
+		};
+	}
 	if (value.align !== undefined) {
 		if (value.align !== 'left' && value.align !== 'center' && value.align !== 'right') {
 			throw new Error('An element has an invalid text alignment.');

@@ -196,6 +196,13 @@ export default function LogoStudioApp() {
 			if (selectedId) updateElement(selectedId, patch);
 		}}
 	/>;
+	const elementLibrary = <ElementSidebar
+		onAdd={addElement}
+		element={selectedElement}
+		onUpdate={(patch) => {
+			if (selectedId) updateElement(selectedId, patch);
+		}}
+	/>;
 
 	return (
 		<section className="logo-phase-app" aria-label="Logo Studio editor">
@@ -239,7 +246,7 @@ export default function LogoStudioApp() {
 			) : <>
 			<div className="logo-phase-workspace">
 				<div className="logo-phase-desktop-sidebar">
-					<ElementSidebar onAdd={addElement} />
+					{elementLibrary}
 				</div>
 				<div className="logo-phase-artboard-column">
 					<SvgArtboard
@@ -271,7 +278,7 @@ export default function LogoStudioApp() {
 							<button type="button" role="tab" aria-selected={mobilePanel === 'properties'} onClick={() => setMobilePanel('properties')}>Properties</button>
 						</div>
 						<div className="logo-phase-mobile-panel">
-							{mobilePanel === 'elements' ? <ElementSidebar onAdd={addElement} /> : propertiesPanel}
+							{mobilePanel === 'elements' ? elementLibrary : propertiesPanel}
 						</div>
 					</>
 				)}

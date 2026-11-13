@@ -29,6 +29,14 @@
 .logo-icon-grid button { display: flex; min-width: 0; min-height: 62px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 6px 3px; text-align: center; }
 .logo-icon-grid svg { width: 22px; height: 22px; flex: 0 0 auto; }
 .logo-icon-grid span { width: 100%; overflow: hidden; color: #687368; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.logo-library-subheading { margin: 14px 0 7px; color: #465448; font-size: 11px; }
+.logo-palette-list { display: grid; gap: 8px; }
+.logo-palette > span { display: block; margin-bottom: 4px; color: #687368; font-size: 10px; }
+.logo-palette > div, .logo-recent-colors > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.logo-swatch { width: 28px; min-height: 28px !important; height: 28px; padding: 0 !important; border: 1px solid #cfd4c7 !important; border-radius: 50% !important; }
+.logo-color-controls { display: grid; gap: 8px; }
+.logo-color-channel-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.logo-gradient-stop-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
 .logo-phase-field { display: flex; min-width: 0; flex-direction: column; gap: 5px; color: #59645b; font-size: 11px; font-weight: 650; }
 .logo-phase-field input, .logo-phase-field select, .logo-phase-field textarea { width: 100%; min-width: 0; min-height: 34px; padding: 6px 8px; border: 1px solid #dedfd6; border-radius: 4px; background: #fffefa; color: #28352d; font-size: 12px; }
 .logo-phase-field input[type="color"] { padding: 3px; }
