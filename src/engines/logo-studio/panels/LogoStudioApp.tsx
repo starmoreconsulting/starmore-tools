@@ -36,6 +36,7 @@ export default function LogoStudioApp() {
 	const redo = useLogoStudioStore((state) => state.redo);
 	const [zoom, setZoom] = useState(100);
 	const [mobilePanel, setMobilePanel] = useState<MobilePanel>('elements');
+	const [mobileSheetOpen, setMobileSheetOpen] = useState(true);
 	const [status, setStatus] = useState('Your design stays in this browser session.');
 	const elements = project.variants.primary ?? [];
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
@@ -132,14 +133,26 @@ export default function LogoStudioApp() {
 				</div>
 				<div className="logo-phase-desktop-properties">{propertiesPanel}</div>
 			</div>
-			<div className="logo-phase-mobile-sheet">
-				<div className="logo-phase-mobile-tabs" role="tablist" aria-label="Editor panels">
-					<button type="button" role="tab" aria-selected={mobilePanel === 'elements'} onClick={() => setMobilePanel('elements')}>Elements</button>
-					<button type="button" role="tab" aria-selected={mobilePanel === 'properties'} onClick={() => setMobilePanel('properties')}>Properties</button>
-				</div>
-				<div className="logo-phase-mobile-panel">
-					{mobilePanel === 'elements' ? <ElementSidebar onAdd={addElement} /> : propertiesPanel}
-				</div>
+			<div className={`logo-phase-mobile-sheet${mobileSheetOpen ? '' : ' is-collapsed'}`}>
+				<button
+					type="button"
+					className="logo-phase-sheet-toggle"
+					aria-expanded={mobileSheetOpen}
+					onClick={() => setMobileSheetOpen((open) => !open)}
+				>
+					{mobileSheetOpen ? 'Hide editor panels' : 'Show editor panels'}
+				</button>
+				{mobileSheetOpen && (
+					<>
+						<div className="logo-phase-mobile-tabs" role="tablist" aria-label="Editor panels">
+							<button type="button" role="tab" aria-selected={mobilePanel === 'elements'} onClick={() => setMobilePanel('elements')}>Elements</button>
+							<button type="button" role="tab" aria-selected={mobilePanel === 'properties'} onClick={() => setMobilePanel('properties')}>Properties</button>
+						</div>
+						<div className="logo-phase-mobile-panel">
+							{mobilePanel === 'elements' ? <ElementSidebar onAdd={addElement} /> : propertiesPanel}
+						</div>
+					</>
+				)}
 			</div>
 			<span className="visually-hidden" aria-live="polite">{status}</span>
 		</section>
