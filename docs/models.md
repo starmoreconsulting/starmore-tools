@@ -31,3 +31,7 @@ The script saves masks, transparent cutouts, and side-by-side IS-Net fp32/fp16 m
 
 - TODO: add the three approved local test images and record the measured timings and mask differences.
 - TODO: confirm the final production hosting URL after deployment.
+
+## Browser WASM smoke test
+
+The browser worker loaded both self-hosted models and completed inference on a user-selected 1024 × 1280 image using the WASM execution provider. U²-Netp took 1.61 s; IS-Net fp16 took 11.95 s. IS-Net's 1024 × 1024 model input contains about 10 times as many pixels as U²-Netp's 320 × 320 input, so the measured runtime was not unexpectedly slow for the larger model. The uploaded image was processed in the browser and was not retained.
