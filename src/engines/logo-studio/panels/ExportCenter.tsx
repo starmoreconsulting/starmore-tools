@@ -82,6 +82,7 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 	const [extendBackground, setExtendBackground] = useState(project.artboard.background !== 'transparent');
 	const [includeVariantLabels, setIncludeVariantLabels] = useState(false);
 	const [includePsdBackground, setIncludePsdBackground] = useState(false);
+	const [simplifyForCanva, setSimplifyForCanva] = useState(false);
 	const [busy, setBusy] = useState('');
 	const [error, setError] = useState('');
 	const [warnings, setWarnings] = useState<string[]>([]);
@@ -237,6 +238,12 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 		const bytes = await exportProjectToPsd(activeProject, { includeArtboardBackground: includePsdBackground });
 		downloadBlob(new Blob([bytes], { type: 'image/vnd.adobe.photoshop' }), `${safeFileName(project.name)}.psd`);
 		return {};
+	});
+	const exportCanva = () => runExport('Canva-ready', async () => {
+		const { exportCanvaReadyZip } = await import('../export/canva');
+		const result = await exportCanvaReadyZip(activeProject, simplifyForCanva);
+		downloadBlob(result.blob, `${safeFileName(project.name)}-canva-ready.zip`);
+		return { warnings: result.warnings };
 	});
 	const exportProjectFile = () => runExport('Project file', async () => {
 		const file = includeReference
@@ -413,6 +420,13 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 					</section>
 
 					<section className="logo-export-format">
+						<div><h3>Canva-ready</h3><p>ZIP with outlined logo.svg, logo.pdf, and transparent 4× logo.png.</p></div>
+						<label className="logo-export-check"><input type="checkbox" checked={simplifyForCanva} onChange={(event) => setSimplifyForCanva(event.target.checked)} /> Simplify for Canva</label>
+						<p className="logo-export-size">Simplifying flattens the design into an embedded PNG and lists the changes. Canva’s import behaviour can change.</p>
+						<button type="button" onClick={() => void exportCanva()} disabled={Boolean(busy)}>{busy === 'Canva-ready' ? 'Preparing ZIP…' : 'Download Canva-ready ZIP'}</button>
+					</section>
+
+					<section className="logo-export-format">
 						<div><h3>Project file</h3><p>Save an editable JSON backup of this design.</p></div>
 						<label className="logo-export-check"><input type="checkbox" checked={includeReference} disabled={!reference} onChange={(event) => setIncludeReference(event.target.checked)} /> Include the local reference image (off by default)</label>
 						<button type="button" onClick={() => void exportProjectFile()} disabled={Boolean(busy)}>{busy === 'Project file' ? 'Preparing…' : 'Save project file'}</button>
@@ -423,10 +437,6 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 						<button type="button" onClick={() => void exportAllVariants()} disabled={Boolean(busy)}>{busy === 'All variants' ? 'Preparing ZIP…' : 'Export all variants (ZIP)'}</button>
 					</section>
 
-					<section className="logo-export-format logo-export-coming-soon" aria-label="More formats coming soon">
-						<button type="button" disabled>PSD — Coming soon</button>
-						<button type="button" disabled>Canva-compatible — Coming soon</button>
-					</section>
 				</div>
 
 				{busy && <p className="logo-export-progress" role="status" aria-live="polite">Preparing {busy} locally…</p>}
