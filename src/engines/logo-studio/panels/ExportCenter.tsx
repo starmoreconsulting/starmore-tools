@@ -3,9 +3,11 @@ import { strToU8, zipSync } from 'fflate';
 import { createProjectFile, createProjectFileWithReference } from '../export/project-file';
 import { downloadBlob, renderSvgToRaster, type RasterScale } from '../export/raster';
 import { exportSvgToPdf } from '../export/pdf';
+import { exportPrintPdf, type PrintPdfPage, type PrintPreset, type PrintUnit } from '../export/print';
 import { exportProjectToSvg } from '../export/svg';
 import type { LogoProject } from '../model/types';
 import type { ReferenceLayer } from '../store/references';
+import { createAutomaticVariant, variantLabel } from '../variants/automatic';
 
 interface Props {
 	project: LogoProject;
@@ -18,6 +20,50 @@ function safeFileName(name: string): string {
 	return name.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'logo-project';
 }
 
+type TrimPreset = 'current' | 'business-mm' | 'business-in' | 'a4' | 'a5' | 'a6'
+	| 'custom' | 'screen-square' | 'screen-portrait' | 'screen-landscape';
+
+interface TrimSize {
+	width: number;
+	height: number;
+	unit: PrintUnit;
+}
+
+const STANDARD_VARIANT_PAGES = ['primary', 'horizontal', 'vertical', 'icon-only', 'wordmark-only', 'black', 'white', 'monochrome'];
+
+function trimSizeFor(
+	preset: TrimPreset,
+	project: LogoProject,
+	customWidth: number,
+	customHeight: number,
+	customUnit: 'mm' | 'in',
+): TrimSize {
+	switch (preset) {
+		case 'business-mm': return { width: 85, height: 55, unit: 'mm' };
+		case 'business-in': return { width: 3.5, height: 2, unit: 'in' };
+		case 'a4': return { width: 210, height: 297, unit: 'mm' };
+		case 'a5': return { width: 148, height: 210, unit: 'mm' };
+		case 'a6': return { width: 105, height: 148, unit: 'mm' };
+		case 'screen-square': return { width: 1080, height: 1080, unit: 'px' };
+		case 'screen-portrait': return { width: 1080, height: 1350, unit: 'px' };
+		case 'screen-landscape': return { width: 1920, height: 1080, unit: 'px' };
+		case 'custom': return { width: customWidth, height: customHeight, unit: customUnit };
+		default: return { width: project.artboard.width, height: project.artboard.height, unit: 'px' };
+	}
+}
+
+function printPageSizeLabel(size: TrimSize, preset: PrintPreset, bleedMm: number, marks: boolean): string {
+	const bleed = preset === 'screen' ? 0 : preset === 'standard' ? 3 : bleedMm;
+	const markMarginMm = marks && preset !== 'screen' ? 6 : 0;
+	if (size.unit === 'px') {
+		const width = size.width + 2 * (bleed + markMarginMm) * 72 / 25.4;
+		const height = size.height + 2 * (bleed + markMarginMm) * 72 / 25.4;
+		return `${width.toFixed(2)} × ${height.toFixed(2)} pt (1 px = 1 pt)`;
+	}
+	const extra = 2 * (bleed + markMarginMm) / (size.unit === 'in' ? 25.4 : 1);
+	return `${(size.width + extra).toFixed(2)} × ${(size.height + extra).toFixed(2)} ${size.unit} final page`;
+}
+
 export default function ExportCenter({ project, activeVariant, reference, onClose }: Props) {
 	const [outlineText, setOutlineText] = useState(true);
 	const [pngTransparent, setPngTransparent] = useState(project.artboard.background === 'transparent');
@@ -26,6 +72,15 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 	const [jpgBackground, setJpgBackground] = useState('#ffffff');
 	const [jpgQuality, setJpgQuality] = useState(0.92);
 	const [includeReference, setIncludeReference] = useState(false);
+	const [trimPreset, setTrimPreset] = useState<TrimPreset>('current');
+	const [customPrintWidth, setCustomPrintWidth] = useState(210);
+	const [customPrintHeight, setCustomPrintHeight] = useState(297);
+	const [customPrintUnit, setCustomPrintUnit] = useState<'mm' | 'in'>('mm');
+	const [printPreset, setPrintPreset] = useState<PrintPreset>('screen');
+	const [customBleedMm, setCustomBleedMm] = useState(3);
+	const [printCropMarks, setPrintCropMarks] = useState(false);
+	const [extendBackground, setExtendBackground] = useState(project.artboard.background !== 'transparent');
+	const [includeVariantLabels, setIncludeVariantLabels] = useState(false);
 	const [busy, setBusy] = useState('');
 	const [error, setError] = useState('');
 	const [warnings, setWarnings] = useState<string[]>([]);
@@ -106,6 +161,76 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 		downloadBlob(blob, `${safeFileName(project.name)}.pdf`);
 		return result;
 	});
+	const exportPrintPdfFile = () => runExport('Print PDF', async () => {
+		const trim = trimSizeFor(trimPreset, project, customPrintWidth, customPrintHeight, customPrintUnit);
+		const result = await exportProjectToSvg(activeProject, { outlineText: true, background: 'transparent' });
+		const pdf = await exportPrintPdf([{
+			svg: result.svg,
+			...trim,
+			background: activeProject.artboard.background,
+		}], {
+			preset: printPreset,
+			bleedMm: customBleedMm,
+			cropMarks: printCropMarks,
+			extendBackgroundColourIntoBleed: extendBackground,
+		});
+		downloadBlob(pdf.blob, `${safeFileName(project.name)}-print.pdf`);
+		return result;
+	});
+	const exportVariantsSheet = () => runExport('Variants sheet', async () => {
+		const pages: PrintPdfPage[] = [];
+		const warnings = new Set<string>();
+		for (const name of STANDARD_VARIANT_PAGES) {
+			const generated = project.variants[name]
+				? null
+				: createAutomaticVariant(project, name, project.variantColors?.[name] ?? '#111111');
+			const elements = project.variants[name] ?? generated?.elements ?? project.variants.primary ?? [];
+			const background = project.variantBackgrounds?.[name] ?? generated?.background ?? project.artboard.background;
+			const pageProject: LogoProject = {
+				...project,
+				artboard: { ...project.artboard, background },
+				variants: { primary: elements },
+			};
+			if (includeVariantLabels) {
+				const labelColor = background === '#202020' || name === 'white' ? '#ffffff' : '#303030';
+				pageProject.variants.primary = [
+					...elements,
+					{
+						id: `variant-label-${name}`,
+						type: 'text',
+						role: 'other',
+						name: 'Variant label',
+						x: 0,
+						y: Math.max(0, project.artboard.height - 42),
+						width: project.artboard.width,
+						height: 36,
+						rotation: 0,
+						opacity: 1,
+						locked: false,
+						visible: true,
+						text: variantLabel(name),
+						fontFamily: 'Inter',
+						fontSize: Math.max(12, Math.min(24, project.artboard.width / 24)),
+						fontWeight: 600,
+						align: 'center',
+						fill: labelColor,
+					},
+				];
+			}
+			const vector = await exportProjectToSvg(pageProject, { outlineText: true, background: 'transparent' });
+			vector.warnings.forEach((warning) => warnings.add(warning));
+			pages.push({
+				svg: vector.svg,
+				width: project.artboard.width,
+				height: project.artboard.height,
+				unit: 'px' as const,
+				background,
+			});
+		}
+		const pdf = await exportPrintPdf(pages, { preset: 'screen' });
+		downloadBlob(pdf.blob, `${safeFileName(project.name)}-variants.pdf`);
+		return { warnings: [...warnings] };
+	});
 	const exportProjectFile = () => runExport('Project file', async () => {
 		const file = includeReference
 			? await createProjectFileWithReference(project, reference)
@@ -178,6 +303,9 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 		downloadBlob(new Blob([new Uint8Array(archive)], { type: 'application/zip' }), `${safeFileName(project.name)}-all-variants.zip`);
 		return { warnings: Array.from(warnings) };
 	});
+	const trim = trimSizeFor(trimPreset, project, customPrintWidth, customPrintHeight, customPrintUnit);
+	const effectiveCropMarks = printPreset === 'standard' || (printPreset === 'custom' && printCropMarks);
+	const printSize = printPageSizeLabel(trim, printPreset, customBleedMm, effectiveCropMarks);
 
 	return (
 		<div
@@ -226,6 +354,48 @@ export default function ExportCenter({ project, activeVariant, reference, onClos
 					<section className="logo-export-format">
 						<div><h3>PDF</h3><p>Artboard-sized PDF with outlined text. Designs with shadows use a raster fallback so effects remain visible.</p></div>
 						<button type="button" onClick={() => void exportPdf()} disabled={Boolean(busy)}>{busy === 'PDF' ? 'Preparing…' : 'Download PDF'}</button>
+					</section>
+
+					<section className="logo-export-format">
+						<div><h3>Print PDF</h3><p>Vector PDF with outlined text, print trim options, and optional bleed and crop marks.</p></div>
+						<label className="logo-phase-field"><span>Trim size</span><select value={trimPreset} onChange={(event) => setTrimPreset(event.target.value as TrimPreset)}>
+							<option value="current">Current artboard (px)</option>
+							<option value="business-mm">Business card — 85 × 55 mm</option>
+							<option value="business-in">Business card — 3.5 × 2 in</option>
+							<option value="a4">A4 — 210 × 297 mm</option>
+							<option value="a5">A5 — 148 × 210 mm</option>
+							<option value="a6">A6 — 105 × 148 mm</option>
+							<option value="custom">Custom dimensions</option>
+							<option value="screen-square">Screen — 1080 × 1080 px</option>
+							<option value="screen-portrait">Screen — 1080 × 1350 px</option>
+							<option value="screen-landscape">Screen — 1920 × 1080 px</option>
+						</select></label>
+						{trimPreset === 'custom' && <div className="logo-export-control-row">
+							<label className="logo-phase-field"><span>Width</span><input type="number" min="0.1" step="0.1" value={customPrintWidth} onChange={(event) => setCustomPrintWidth(Number(event.target.value))} /></label>
+							<label className="logo-phase-field"><span>Height</span><input type="number" min="0.1" step="0.1" value={customPrintHeight} onChange={(event) => setCustomPrintHeight(Number(event.target.value))} /></label>
+							<label className="logo-phase-field"><span>Unit</span><select value={customPrintUnit} onChange={(event) => setCustomPrintUnit(event.target.value as 'mm' | 'in')}><option value="mm">mm</option><option value="in">in</option></select></label>
+						</div>}
+						<div className="logo-export-control-row">
+							<label className="logo-phase-field"><span>Print preset</span><select value={printPreset} onChange={(event) => setPrintPreset(event.target.value as PrintPreset)}>
+								<option value="screen">Screen — no bleed or marks</option>
+								<option value="standard">Standard print — 3 mm bleed + marks</option>
+								<option value="custom">Custom</option>
+							</select></label>
+							{printPreset === 'custom' && <>
+								<label className="logo-phase-field"><span>Bleed (0–10 mm)</span><input type="number" min="0" max="10" step="0.1" value={customBleedMm} onChange={(event) => setCustomBleedMm(Number(event.target.value))} /></label>
+								<label className="logo-export-check"><input type="checkbox" checked={printCropMarks} onChange={(event) => setPrintCropMarks(event.target.checked)} /> Crop marks</label>
+							</>}
+						</div>
+						<label className="logo-export-check"><input type="checkbox" checked={extendBackground} disabled={activeProject.artboard.background === 'transparent'} onChange={(event) => setExtendBackground(event.target.checked)} /> Extend background colour into the bleed</label>
+						<p className="logo-export-size">Final PDF page: {printSize}. Screen pixel pages use 1 px = 1 pt to preserve exact aspect ratio.</p>
+						<p className="logo-export-size">RGB PDF; your printer can convert it to CMYK.</p>
+						<button type="button" onClick={() => void exportPrintPdfFile()} disabled={Boolean(busy) || !Number.isFinite(trim.width) || trim.width <= 0 || !Number.isFinite(trim.height) || trim.height <= 0 || (printPreset === 'custom' && (!Number.isFinite(customBleedMm) || customBleedMm < 0 || customBleedMm > 10))}>{busy === 'Print PDF' ? 'Preparing…' : 'Download Print PDF'}</button>
+					</section>
+
+					<section className="logo-export-format">
+						<div><h3>Variants sheet PDF</h3><p>One outlined page for Primary, Horizontal, Vertical, Icon only, Wordmark only, Black, White, and Monochrome.</p></div>
+						<label className="logo-export-check"><input type="checkbox" checked={includeVariantLabels} onChange={(event) => setIncludeVariantLabels(event.target.checked)} /> Add a label below each logo</label>
+						<button type="button" onClick={() => void exportVariantsSheet()} disabled={Boolean(busy)}>{busy === 'Variants sheet' ? 'Preparing…' : 'Download variants sheet'}</button>
 					</section>
 
 					<section className="logo-export-format">

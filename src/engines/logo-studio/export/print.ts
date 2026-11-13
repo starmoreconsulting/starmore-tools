@@ -135,9 +135,13 @@ export async function exportPrintPdf(
 
 		const extendBackground = options.extendBackgroundColourIntoBleed
 			?? isSolidColour(page.background);
-		if (extendBackground && isSolidColour(page.background) && bleed > 0) {
+		if (isSolidColour(page.background)) {
 			pdf.setFillColor(page.background);
-			pdf.rect(markMargin, markMargin, trimWidth + 2 * bleed, trimHeight + 2 * bleed, 'F');
+			if (extendBackground && bleed > 0) {
+				pdf.rect(markMargin, markMargin, trimWidth + 2 * bleed, trimHeight + 2 * bleed, 'F');
+			} else {
+				pdf.rect(trimX, trimY, trimWidth, trimHeight, 'F');
+			}
 		}
 
 		const svgElement = parsePageSvg(page.svg);
