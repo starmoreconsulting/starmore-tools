@@ -3,7 +3,7 @@ import type { Element, ElementRole, ElementType, LogoArrangement, LogoIndustry, 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_ELEMENTS = 5000;
 const MAX_GROUP_DEPTH = 30;
-const elementTypes = new Set<ElementType>(['text', 'shape', 'icon', 'image', 'group']);
+const elementTypes = new Set<ElementType>(['text', 'shape', 'icon', 'image', 'group', 'path']);
 const elementRoles = new Set<ElementRole>(['icon', 'name', 'tagline', 'decor', 'other']);
 const industries = new Set<LogoIndustry>(['Technology', 'Business', 'Fashion', 'Construction', 'Food', 'Transport', 'Education', 'Health', 'Creative', 'General']);
 const styles = new Set<LogoStyle>(['Minimalist', 'Modern', 'Corporate', 'Luxury', 'Futuristic', 'Geometric', 'Vintage', 'Elegant', 'Bold', 'Abstract', 'Playful', 'Professional']);
@@ -85,6 +85,14 @@ function validateElement(value: unknown, depth: number, count: { value: number }
 	for (const key of ['fill', 'stroke', 'text', 'fontFamily', 'shape', 'iconName', 'src'] as const) {
 		const result = optionalString(value, key);
 		if (result !== undefined) element[key] = result;
+	}
+	const path = optionalString(value, 'd', 1_000_000);
+	if (path !== undefined) element.d = path;
+	if (value.fillRule !== undefined) {
+		if (value.fillRule !== 'nonzero' && value.fillRule !== 'evenodd') {
+			throw new Error('A path element has an invalid fill rule.');
+		}
+		element.fillRule = value.fillRule;
 	}
 	for (const key of ['strokeWidth', 'fontSize', 'fontWeight', 'letterSpacing', 'lineHeight', 'curve', 'radius'] as const) {
 		const result = optionalNumber(value, key);

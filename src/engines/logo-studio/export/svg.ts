@@ -83,6 +83,8 @@ function renderElement(element: Element, outlines: Map<string, TextOutline>, ico
 		content = renderText(element, outlines.get(element.id));
 	} else if (element.type === 'shape') {
 		content = renderShape(element);
+	} else if (element.type === 'path') {
+		content = `<path d="${escapeXml(element.d ?? '')}" fill="${getPaint(element)}" stroke="${escapeXml(element.stroke ?? 'none')}" stroke-width="${Math.max(0, element.strokeWidth ?? 0)}" fill-rule="${element.fillRule ?? 'nonzero'}" stroke-linejoin="round"/>`;
 	} else if (element.type === 'group') {
 		content = (element.children ?? []).map((child) => renderElement(child, outlines, icons, warnings)).join('');
 	} else if (element.type === 'image' && element.src?.startsWith('data:image/')) {

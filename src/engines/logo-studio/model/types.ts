@@ -1,4 +1,4 @@
-export type ElementType = 'text' | 'shape' | 'icon' | 'image' | 'group';
+export type ElementType = 'text' | 'shape' | 'icon' | 'image' | 'group' | 'path';
 export type ElementRole = 'icon' | 'name' | 'tagline' | 'decor' | 'other';
 
 export interface Element {
@@ -33,6 +33,8 @@ export interface Element {
 	children?: Element[];
 	src?: string;
 	pathData?: string | number[][];
+	d?: string;
+	fillRule?: 'nonzero' | 'evenodd';
 	gradient?: GradientFill;
 	shadow?: ShadowEffect;
 }
@@ -136,6 +138,8 @@ export function createDefaultElement(type: ElementType, overrides: Partial<Eleme
 		defaults.strokeWidth = 2;
 	} else if (type === 'image') {
 		defaults.src = '';
+	} else if (type === 'path') {
+		Object.assign(defaults, { d: '', fill: '#203b32', fillRule: 'nonzero' });
 	}
 
 	return { ...defaults, ...overrides, id: overrides.id ?? defaults.id };

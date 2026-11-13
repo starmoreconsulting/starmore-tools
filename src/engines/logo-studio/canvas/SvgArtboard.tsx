@@ -178,6 +178,8 @@ function SvgElement({
 		</text>
 	) : element.type === 'shape' ? (
 		renderShape(element)
+	) : element.type === 'path' ? (
+		<path d={element.d ?? ''} fill={element.gradient ? `url(#${getElementGradientId(element)})` : element.fill ?? '#203b32'} stroke={element.stroke ?? 'none'} strokeWidth={element.strokeWidth ?? 0} fillRule={element.fillRule ?? 'nonzero'} strokeLinejoin="round" />
 	) : element.type === 'group' ? (
 		<g>
 			{(element.children ?? []).map((child) => (
