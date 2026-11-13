@@ -8,7 +8,8 @@ interface Props {
 	project: LogoProject;
 	zoom: number;
 	selectedId: string | null;
-	onSelect: (id: string | null) => void;
+	selectedIds: string[];
+	onSelect: (id: string | null, extend?: boolean) => void;
 	onUpdate: (id: string, patch: Partial<Element>, recordHistory?: boolean) => void;
 	onBackgroundChange: (background: string) => void;
 }
@@ -104,17 +105,18 @@ function renderShape(element: Element): ReactNode {
 }
 
 function SvgElement({
-	element, selectedId, onSelect, onPointerStart,
+	element, selectedId, selectedIds, onSelect, onPointerStart,
 	iconNodes,
 }: {
 	element: Element;
 	selectedId: string | null;
-	onSelect: (id: string | null) => void;
+	selectedIds: string[];
+	onSelect: (id: string | null, extend?: boolean) => void;
 	onPointerStart: (event: ReactPointerEvent<SVGGElement>, element: Element) => void;
 	iconNodes: LucideIconNodes | null;
 }) {
 	if (!element.visible) return null;
-	const selected = element.id === selectedId;
+	const selected = selectedIds.includes(element.id);
 	const content = element.type === 'text' ? (
 		<text
 			x={element.align === 'left' ? 0 : element.align === 'right' ? element.width : element.width / 2}
@@ -140,6 +142,7 @@ function SvgElement({
 					key={child.id}
 					element={child}
 					selectedId={selectedId}
+					selectedIds={selectedIds}
 					onSelect={onSelect}
 					onPointerStart={onPointerStart}
 					iconNodes={iconNodes}
@@ -157,6 +160,10 @@ function SvgElement({
 			onPointerDown={(event) => {
 				if (element.locked) return;
 				event.stopPropagation();
+				if (event.shiftKey) {
+					onSelect(element.id, true);
+					return;
+				}
 				onSelect(element.id);
 				onPointerStart(event, element);
 			}}
@@ -168,6 +175,7 @@ function SvgElement({
 			{selected && !element.locked && (
 				<g className="logo-selection-controls" onPointerDown={(event) => event.stopPropagation()}>
 					<rect {...getElementBounds({ ...element, x: 0, y: 0 })} fill="none" stroke="#37694f" strokeDasharray="4 3" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+					{element.id === selectedId && <>
 					<line x1={element.width / 2} y1="0" x2={element.width / 2} y2="-25" stroke="#37694f" vectorEffect="non-scaling-stroke" pointerEvents="none" />
 					<circle
 						cx={element.width / 2}
@@ -200,6 +208,7 @@ function SvgElement({
 							}}
 						/>
 					))}
+					</>}
 				</g>
 			)}
 		</g>
@@ -216,7 +225,7 @@ function pointInSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x: 
 	return { x: transformed.x, y: transformed.y };
 }
 
-export default function SvgArtboard({ project, zoom, selectedId, onSelect, onUpdate, onBackgroundChange }: Props) {
+export default function SvgArtboard({ project, zoom, selectedId, selectedIds, onSelect, onUpdate, onBackgroundChange }: Props) {
 	const svgRef = useRef<SVGSVGElement>(null);
 	const actionRef = useRef<PointerAction | null>(null);
 	const movedRef = useRef(false);
@@ -335,6 +344,7 @@ export default function SvgArtboard({ project, zoom, selectedId, onSelect, onUpd
 						key={element.id}
 						element={element}
 						selectedId={selectedId}
+						selectedIds={selectedIds}
 						onSelect={onSelect}
 						onPointerStart={startPointerAction}
 						iconNodes={iconNodes}

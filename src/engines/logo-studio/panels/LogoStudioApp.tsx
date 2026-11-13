@@ -34,6 +34,7 @@ function findTextElements(elements: Element[]): Element[] {
 export default function LogoStudioApp() {
 	const project = useLogoStudioStore((state) => state.project);
 	const selectedId = useLogoStudioStore((state) => state.selectedId);
+	const selectedIds = useLogoStudioStore((state) => state.selectedIds);
 	const pastCount = useLogoStudioStore((state) => state.past.length);
 	const futureCount = useLogoStudioStore((state) => state.future.length);
 	const select = useLogoStudioStore((state) => state.select);
@@ -44,6 +45,9 @@ export default function LogoStudioApp() {
 	const copySelected = useLogoStudioStore((state) => state.copySelected);
 	const paste = useLogoStudioStore((state) => state.paste);
 	const setBackground = useLogoStudioStore((state) => state.setBackground);
+	const reorderElement = useLogoStudioStore((state) => state.reorderElement);
+	const groupSelected = useLogoStudioStore((state) => state.groupSelected);
+	const ungroupSelected = useLogoStudioStore((state) => state.ungroupSelected);
 	const undo = useLogoStudioStore((state) => state.undo);
 	const redo = useLogoStudioStore((state) => state.redo);
 	const loadProject = useLogoStudioStore((state) => state.loadProject);
@@ -199,6 +203,13 @@ export default function LogoStudioApp() {
 	const elementLibrary = <ElementSidebar
 		onAdd={addElement}
 		element={selectedElement}
+		elements={elements}
+		selectedIds={selectedIds}
+		onSelect={select}
+		onLayerUpdate={updateElement}
+		onReorder={reorderElement}
+		onGroup={groupSelected}
+		onUngroup={ungroupSelected}
 		onUpdate={(patch) => {
 			if (selectedId) updateElement(selectedId, patch);
 		}}
@@ -253,6 +264,7 @@ export default function LogoStudioApp() {
 						project={project}
 						zoom={zoom}
 						selectedId={selectedId}
+						selectedIds={selectedIds}
 						onSelect={select}
 						onUpdate={updateElement}
 						onBackgroundChange={setBackground}

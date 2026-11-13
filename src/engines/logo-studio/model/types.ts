@@ -3,6 +3,7 @@ export type ElementType = 'text' | 'shape' | 'icon' | 'image' | 'group';
 export interface Element {
 	id: string;
 	type: ElementType;
+	name?: string;
 	x: number;
 	y: number;
 	width: number;
@@ -65,6 +66,7 @@ export function createDefaultElement(type: ElementType, overrides: Partial<Eleme
 	const defaults: Element = {
 		id: createId(),
 		type,
+		name: type === 'text' ? 'Text' : type === 'shape' ? 'Shape' : type === 'icon' ? 'Icon' : type === 'group' ? 'Group' : 'Image',
 		x: 180,
 		y: 180,
 		width: 240,

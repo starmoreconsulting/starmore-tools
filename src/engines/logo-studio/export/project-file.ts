@@ -66,6 +66,8 @@ function validateElement(value: unknown, depth: number, count: { value: number }
 		locked: value.locked,
 		visible: value.visible,
 	};
+	const name = optionalString(value, 'name', 200);
+	if (name !== undefined) element.name = name;
 	if (element.width < 0 || element.height < 0 || element.opacity < 0 || element.opacity > 1) {
 		throw new Error('An element has dimensions or opacity outside the supported range.');
 	}

@@ -3,6 +3,7 @@ import { createDefaultElement, type Element } from '../model/types';
 const IconLibrary = lazy(() => import('./IconLibrary'));
 const ColorLibrary = lazy(() => import('./ColorLibrary'));
 const FontBrowser = lazy(() => import('./FontBrowser'));
+const LayersPanel = lazy(() => import('./LayersPanel'));
 
 const shapes = ['rectangle', 'rounded-rectangle', 'circle', 'triangle', 'polygon', 'star', 'arrow', 'line', 'ring', 'hexagon', 'diamond', 'shield', 'leaf', 'drop', 'bolt'] as const;
 
@@ -10,11 +11,29 @@ interface Props {
 	onAdd: (element: Element) => void;
 	element?: Element | null;
 	onUpdate?: (patch: Partial<Element>) => void;
+	elements?: Element[];
+	selectedIds?: string[];
+	onSelect?: (id: string, extend: boolean) => void;
+	onLayerUpdate?: (id: string, patch: Partial<Element>) => void;
+	onReorder?: (id: string, targetId: string) => void;
+	onGroup?: () => void;
+	onUngroup?: () => void;
 }
 
-export default function ElementSidebar({ onAdd, element = null, onUpdate = () => undefined }: Props) {
+export default function ElementSidebar({
+	onAdd,
+	element = null,
+	onUpdate = () => undefined,
+	elements = [],
+	selectedIds = [],
+	onSelect = () => undefined,
+	onLayerUpdate = () => undefined,
+	onReorder = () => undefined,
+	onGroup = () => undefined,
+	onUngroup = () => undefined,
+}: Props) {
 	const [shape, setShape] = useState<(typeof shapes)[number]>('rectangle');
-	const [tab, setTab] = useState<'elements' | 'icons' | 'colors' | 'fonts'>('elements');
+	const [tab, setTab] = useState<'elements' | 'icons' | 'colors' | 'fonts' | 'layers'>('elements');
 
 	const addText = () => onAdd(createDefaultElement('text', {
 		x: 90,
@@ -43,6 +62,7 @@ export default function ElementSidebar({ onAdd, element = null, onUpdate = () =>
 				<button type="button" role="tab" aria-selected={tab === 'icons'} onClick={() => setTab('icons')}>Icons</button>
 				<button type="button" role="tab" aria-selected={tab === 'colors'} onClick={() => setTab('colors')}>Colours</button>
 				<button type="button" role="tab" aria-selected={tab === 'fonts'} onClick={() => setTab('fonts')}>Fonts</button>
+				<button type="button" role="tab" aria-selected={tab === 'layers'} onClick={() => setTab('layers')}>Layers</button>
 			</div>
 			{tab === 'icons' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading icon browser…</p>}>
@@ -55,6 +75,10 @@ export default function ElementSidebar({ onAdd, element = null, onUpdate = () =>
 			) : tab === 'fonts' ? (
 				<Suspense fallback={<p className="logo-phase-hint">Loading font browser…</p>}>
 					<FontBrowser element={element} onUpdate={onUpdate} />
+				</Suspense>
+			) : tab === 'layers' ? (
+				<Suspense fallback={<p className="logo-phase-hint">Loading layers…</p>}>
+					<LayersPanel elements={elements} selectedIds={selectedIds} onSelect={onSelect} onUpdate={onLayerUpdate} onReorder={onReorder} onGroup={onGroup} onUngroup={onUngroup} />
 				</Suspense>
 			) : <>
 			<button className="logo-phase-primary" type="button" onClick={addText}>Add text</button>
