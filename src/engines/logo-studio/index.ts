@@ -8,3 +8,5 @@ export { outlineProjectText } from './export/outline';
 export type { OutlineResult, TextOutline } from './export/outline';
 export { exportProjectToSvg } from './export/svg';
 export type { SvgExportOptions, SvgExportResult } from './export/svg';
+export { renderSvgToRaster, downloadBlob } from './export/raster';
+export type { RasterExportOptions, RasterExportResult, RasterFormat, RasterScale } from './export/raster';
