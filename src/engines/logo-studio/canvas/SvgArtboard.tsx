@@ -4,16 +4,20 @@ import { getElementBounds, movedElement, resizedElement, rotationFromPointer, ty
 import { loadLucideLibrary, type LucideIconNodes } from '../library/icons';
 import { getShapeGeometry } from '../library/shapes';
 import { outlineProjectText, type TextOutline } from '../export/outline';
+import type { ReferenceLayer } from '../store/references';
 
 interface Props {
 	project: LogoProject;
 	variant: string;
+	reference: ReferenceLayer | null;
 	zoom: number;
 	selectedId: string | null;
 	selectedIds: string[];
 	onSelect: (id: string | null, extend?: boolean) => void;
 	onUpdate: (id: string, patch: Partial<Element>, recordHistory?: boolean) => void;
 	onBackgroundChange: (background: string) => void;
+	onReferenceChange: (patch: Partial<ReferenceLayer>) => void;
+	onReferenceRemove: () => void;
 }
 
 interface CenterGuides {
@@ -57,7 +61,8 @@ function collectEffects(elements: Element[]): ReactNode[] {
 type PointerAction =
 	| { type: 'move'; id: string; startX: number; startY: number; element: Element }
 	| { type: 'resize'; id: string; startX: number; startY: number; element: Element; handle: ResizeHandle }
-	| { type: 'rotate'; id: string; startX: number; startY: number; startAngle: number; element: Element };
+	| { type: 'rotate'; id: string; startX: number; startY: number; startAngle: number; element: Element }
+	| { type: 'reference-move' | 'reference-resize'; startX: number; startY: number; reference: ReferenceLayer };
 
 const handles: { name: ResizeHandle; x: number; y: number; cursor: string }[] = [
 	{ name: 'nw', x: 0, y: 0, cursor: 'nwse-resize' },
@@ -274,17 +279,28 @@ function pointInSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x: 
 	return { x: transformed.x, y: transformed.y };
 }
 
-export default function SvgArtboard({ project, variant, zoom, selectedId, selectedIds, onSelect, onUpdate, onBackgroundChange }: Props) {
+export default function SvgArtboard({ project, variant, zoom, selectedId, selectedIds, onSelect, onUpdate, onBackgroundChange, reference, onReferenceChange, onReferenceRemove }: Props) {
 	const svgRef = useRef<SVGSVGElement>(null);
 	const actionRef = useRef<PointerAction | null>(null);
 	const movedRef = useRef(false);
 	const [iconNodes, setIconNodes] = useState<LucideIconNodes | null>(null);
 	const [textOutlines, setTextOutlines] = useState<Map<string, TextOutline>>(() => new Map());
 	const [outlineWarning, setOutlineWarning] = useState('');
+	const [referenceUrl, setReferenceUrl] = useState('');
 	const [centerGuides, setCenterGuides] = useState<CenterGuides>({ vertical: false, horizontal: false });
 	const background = project.variantBackgrounds?.[variant] ?? project.artboard.background;
 	const elements = project.variants[variant] ?? [];
 	const textLayoutKey = getTextLayoutKey(elements);
+
+	useEffect(() => {
+		if (!reference) {
+			setReferenceUrl('');
+			return undefined;
+		}
+		const url = URL.createObjectURL(reference.blob);
+		setReferenceUrl(url);
+		return () => URL.revokeObjectURL(url);
+	}, [reference?.blob]);
 
 	useEffect(() => {
 		if (!containsIcon(elements) || iconNodes) return;
@@ -353,6 +369,17 @@ export default function SvgArtboard({ project, variant, zoom, selectedId, select
 		}
 	};
 
+	const startReferenceAction = (event: ReactPointerEvent<SVGElement>, type: 'reference-move' | 'reference-resize') => {
+		event.stopPropagation();
+		if (!reference || reference.locked) return;
+		const svg = svgRef.current;
+		if (!svg) return;
+		svg.setPointerCapture(event.pointerId);
+		movedRef.current = false;
+		const point = pointInSvg(svg, event.clientX, event.clientY);
+		actionRef.current = { type, startX: point.x, startY: point.y, reference };
+	};
+
 	const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
 		const action = actionRef.current;
 		const svg = svgRef.current;
@@ -363,7 +390,14 @@ export default function SvgArtboard({ project, variant, zoom, selectedId, select
 		if (Math.abs(dx) + Math.abs(dy) < 0.5) return;
 		const isFirstMove = !movedRef.current;
 		movedRef.current = true;
-		if (action.type === 'move') {
+		if (action.type === 'reference-move') {
+			onReferenceChange({ x: action.reference.x + dx, y: action.reference.y + dy });
+		} else if (action.type === 'reference-resize') {
+			onReferenceChange({
+				width: Math.max(12, action.reference.width + dx),
+				height: Math.max(12, action.reference.height + dy),
+			});
+		} else if (action.type === 'move') {
 			const moved = movedElement(action.element, dx, dy);
 			const matrix = svg.getScreenCTM();
 			const threshold = matrix ? 8 / Math.max(0.01, Math.abs(matrix.a)) : 8;
@@ -406,6 +440,15 @@ export default function SvgArtboard({ project, variant, zoom, selectedId, select
 				</label>
 				<span>{project.artboard.width} × {project.artboard.height}</span>
 			</div>
+			{reference && (
+				<div className="logo-reference-controls" aria-label="Reference image controls">
+					<strong>{reference.name}</strong>
+					<label><input type="checkbox" checked={reference.visible} onChange={(event) => onReferenceChange({ visible: event.target.checked })} /> Show</label>
+					<label><input type="checkbox" checked={reference.locked} onChange={(event) => onReferenceChange({ locked: event.target.checked })} /> Lock</label>
+					<label className="logo-reference-opacity"><span>Opacity</span><input aria-label="Reference opacity" type="range" min="0.05" max="1" step="0.05" value={reference.opacity} onChange={(event) => onReferenceChange({ opacity: Number(event.target.value) })} /></label>
+					<button type="button" onClick={onReferenceRemove}>Remove reference</button>
+				</div>
+			)}
 			<svg
 				ref={svgRef}
 				className="logo-svg-artboard"
@@ -431,6 +474,20 @@ export default function SvgArtboard({ project, variant, zoom, selectedId, select
 					</pattern>}
 				</defs>
 				<rect data-artboard="background" width="100%" height="100%" fill={variant === 'white' ? 'url(#logo-white-variant-checker)' : background === 'transparent' ? 'transparent' : background} />
+				{reference?.visible && referenceUrl && (
+					<g
+						transform={`translate(${reference.x} ${reference.y})`}
+						opacity={reference.opacity}
+						onPointerDown={(event) => startReferenceAction(event, 'reference-move')}
+						style={{ cursor: reference.locked ? 'default' : 'move', touchAction: 'none' }}
+					>
+						<image href={referenceUrl} width={reference.width} height={reference.height} preserveAspectRatio="none" />
+						{!reference.locked && <>
+							<rect width={reference.width} height={reference.height} fill="none" stroke="#718071" strokeDasharray="5 4" pointerEvents="none" vectorEffect="non-scaling-stroke" />
+							<circle cx={reference.width} cy={reference.height} r="7" fill="white" stroke="#37694f" vectorEffect="non-scaling-stroke" style={{ cursor: 'nwse-resize', touchAction: 'none' }} onPointerDown={(event) => startReferenceAction(event, 'reference-resize')} />
+						</>}
+					</g>
+				)}
 				{elements.map((element) => (
 					<SvgElement
 						key={element.id}

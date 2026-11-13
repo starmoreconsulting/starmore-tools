@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createProjectFile } from '../export/project-file';
+import { createProjectFile, createProjectFileWithReference } from '../export/project-file';
 import { downloadBlob, renderSvgToRaster, type RasterScale } from '../export/raster';
 import { exportSvgToPdf } from '../export/pdf';
 import { exportProjectToSvg } from '../export/svg';
 import type { LogoProject } from '../model/types';
+import type { ReferenceLayer } from '../store/references';
 
 interface Props {
 	project: LogoProject;
 	activeVariant: string;
+	reference: ReferenceLayer | null;
 	onClose: () => void;
 }
 
@@ -15,13 +17,14 @@ function safeFileName(name: string): string {
 	return name.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'logo-project';
 }
 
-export default function ExportCenter({ project, activeVariant, onClose }: Props) {
+export default function ExportCenter({ project, activeVariant, reference, onClose }: Props) {
 	const [outlineText, setOutlineText] = useState(true);
 	const [pngTransparent, setPngTransparent] = useState(project.artboard.background === 'transparent');
 	const [pngScale, setPngScale] = useState<RasterScale>(1);
 	const [jpgScale, setJpgScale] = useState<RasterScale>(1);
 	const [jpgBackground, setJpgBackground] = useState('#ffffff');
 	const [jpgQuality, setJpgQuality] = useState(0.92);
+	const [includeReference, setIncludeReference] = useState(false);
 	const [busy, setBusy] = useState('');
 	const [error, setError] = useState('');
 	const [warnings, setWarnings] = useState<string[]>([]);
@@ -103,7 +106,10 @@ export default function ExportCenter({ project, activeVariant, onClose }: Props)
 		return result;
 	});
 	const exportProjectFile = () => runExport('Project file', async () => {
-		downloadBlob(createProjectFile(project), `${safeFileName(project.name)}.json`);
+		const file = includeReference
+			? await createProjectFileWithReference(project, reference)
+			: createProjectFile(project);
+		downloadBlob(file, `${safeFileName(project.name)}.json`);
 		return {};
 	});
 
@@ -158,6 +164,7 @@ export default function ExportCenter({ project, activeVariant, onClose }: Props)
 
 					<section className="logo-export-format">
 						<div><h3>Project file</h3><p>Save an editable JSON backup of this design.</p></div>
+						<label className="logo-export-check"><input type="checkbox" checked={includeReference} disabled={!reference} onChange={(event) => setIncludeReference(event.target.checked)} /> Include the local reference image (off by default)</label>
 						<button type="button" onClick={() => void exportProjectFile()} disabled={Boolean(busy)}>{busy === 'Project file' ? 'Preparing…' : 'Save project file'}</button>
 					</section>
 

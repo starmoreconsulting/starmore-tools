@@ -1,6 +1,8 @@
 import type { Element, ElementRole, ElementType, LogoArrangement, LogoIndustry, LogoProject, LogoStyle } from '../model/types';
+import { sanitizeReferenceSvg, type ReferenceLayer } from '../store/references';
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_BYTES = 16 * 1024 * 1024;
+const MAX_REFERENCE_BYTES = 10 * 1024 * 1024;
 const MAX_ELEMENTS = 5000;
 const MAX_GROUP_DEPTH = 30;
 const elementTypes = new Set<ElementType>(['text', 'shape', 'icon', 'image', 'group', 'path']);
@@ -302,6 +304,34 @@ export function createProjectFile(project: LogoProject): Blob {
 	return new Blob([`${JSON.stringify(project, null, 2)}\n`], { type: 'application/json' });
 }
 
+function blobToBase64(blob: Blob): Promise<string> {
+	return blob.arrayBuffer().then((buffer) => {
+		const bytes = new Uint8Array(buffer);
+		let binary = '';
+		for (let index = 0; index < bytes.length; index += 0x8000) {
+			binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+		}
+		return btoa(binary);
+	});
+}
+
+export async function createProjectFileWithReference(project: LogoProject, reference: ReferenceLayer | null): Promise<Blob> {
+	if (!reference) return createProjectFile(project);
+	const referenceData = {
+		name: reference.name,
+		x: reference.x,
+		y: reference.y,
+		width: reference.width,
+		height: reference.height,
+		opacity: reference.opacity,
+		visible: reference.visible,
+		locked: reference.locked,
+		type: reference.blob.type,
+		data: await blobToBase64(reference.blob),
+	};
+	return new Blob([`${JSON.stringify({ ...project, reference: referenceData }, null, 2)}\n`], { type: 'application/json' });
+}
+
 export function parseProjectFile(contents: string): LogoProject {
 	let parsed: unknown;
 	try {
@@ -312,7 +342,66 @@ export function parseProjectFile(contents: string): LogoProject {
 	return validateLogoProject(parsed);
 }
 
+function parseEmbeddedReference(value: unknown): ReferenceLayer | null {
+	if (!isRecord(value) || value.reference === undefined) return null;
+	if (!isRecord(value.reference)) throw new Error('The project file contains an invalid embedded reference image.');
+	const reference = value.reference;
+	if (typeof reference.name !== 'string'
+		|| reference.name.length > 180
+		|| typeof reference.type !== 'string'
+		|| !['image/webp', 'image/png', 'image/svg+xml'].includes(reference.type)
+		|| typeof reference.data !== 'string'
+		|| reference.data.length === 0
+		|| reference.data.length > Math.ceil(MAX_REFERENCE_BYTES * 4 / 3) + 4
+		|| !/^[\da-z+/]+=*$/i.test(reference.data)
+		|| ![reference.x, reference.y, reference.width, reference.height, reference.opacity].every(finiteNumber)
+		|| (reference.width as number) < 1
+		|| (reference.height as number) < 1
+		|| (reference.opacity as number) < 0
+		|| (reference.opacity as number) > 1
+		|| typeof reference.visible !== 'boolean'
+		|| typeof reference.locked !== 'boolean') {
+		throw new Error('The project file contains an invalid embedded reference image.');
+	}
+	let binary: string;
+	try {
+		binary = atob(reference.data);
+	} catch {
+		throw new Error('The embedded reference image data is not valid base64.');
+	}
+	if (binary.length > MAX_REFERENCE_BYTES) throw new Error('The embedded reference image is larger than 10 MB.');
+	const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+	let blob = new Blob([bytes], { type: reference.type });
+	if (reference.type === 'image/svg+xml') {
+		const sanitized = sanitizeReferenceSvg(new TextDecoder().decode(bytes));
+		blob = new Blob([sanitized], { type: 'image/svg+xml' });
+	}
+	return {
+		blob,
+		name: reference.name,
+		x: reference.x as number,
+		y: reference.y as number,
+		width: reference.width as number,
+		height: reference.height as number,
+		opacity: reference.opacity as number,
+		visible: reference.visible,
+		locked: reference.locked,
+	};
+}
+
+export async function readProjectFileWithReference(file: File): Promise<{ project: LogoProject; reference: ReferenceLayer | null }> {
+	if (file.size > MAX_FILE_BYTES) throw new Error('Project files must be 16 MB or smaller.');
+	const contents = await file.text();
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(contents);
+	} catch {
+		throw new Error('The selected file is not valid JSON. Choose a Logo Studio .json project file.');
+	}
+	return { project: validateLogoProject(parsed), reference: parseEmbeddedReference(parsed) };
+}
+
 export async function readProjectFile(file: File): Promise<LogoProject> {
-	if (file.size > MAX_FILE_BYTES) throw new Error('Project files must be 10 MB or smaller.');
+	if (file.size > MAX_FILE_BYTES) throw new Error('Project files must be 16 MB or smaller.');
 	return parseProjectFile(await file.text());
 }

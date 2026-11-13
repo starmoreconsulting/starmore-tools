@@ -6,7 +6,7 @@ import ElementProperties from './ElementProperties';
 import ElementSidebar from './ElementSidebar';
 import PhaseOneToolbar from './PhaseOneToolbar';
 import { loadBrowserFont } from '../library/fonts';
-import { readProjectFile } from '../export/project-file';
+import { readProjectFileWithReference } from '../export/project-file';
 import MyProjects from './MyProjects';
 import ExportCenter from './ExportCenter';
 import SetupFlow from './SetupFlow';
@@ -16,6 +16,7 @@ import { restoreLastProject, saveLocalProject, setLastProjectId } from '../store
 import VariantBar from './VariantBar';
 import CompareVariants from './CompareVariants';
 import { primarySignature } from '../variants/automatic';
+import { createReferenceFromFile, deleteLocalReference, loadLocalReference, saveLocalReference, type ReferenceLayer } from '../store/references';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -98,9 +99,12 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [showSetup, setShowSetup] = useState(Boolean(preset));
 	const [showGallery, setShowGallery] = useState(false);
 	const [showVariantComparison, setShowVariantComparison] = useState(false);
+	const [reference, setReference] = useState<ReferenceLayer | null>(null);
+	const [referenceReady, setReferenceReady] = useState(false);
 	const [galleryBrief, setGalleryBrief] = useState<LogoBrief | null>(null);
 	const [gallerySeed, setGallerySeed] = useState(0);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const referenceInputRef = useRef<HTMLInputElement>(null);
 	const elements = project.variants[activeVariant] ?? [];
 	const primaryElements = project.variants.primary ?? [];
 	const primaryChanged = activeVariant !== 'primary'
@@ -111,10 +115,14 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const openProjectFile = async (file: File | undefined) => {
 		if (!file) return;
 		try {
-			const imported = await readProjectFile(file);
-			loadProject(imported);
-			await saveLocalProject(imported);
-			setStatus(`Opened “${imported.name}”.`);
+			const imported = await readProjectFileWithReference(file);
+			loadProject(imported.project);
+			await saveLocalProject(imported.project);
+			await deleteLocalReference(imported.project.id);
+			if (imported.reference) await saveLocalReference(imported.project.id, imported.reference);
+			setReference(imported.reference);
+			setReferenceReady(true);
+			setStatus(`Opened “${imported.project.name}”.`);
 			setFileError('');
 			setShowProjects(false);
 		} catch (error) {
@@ -123,6 +131,56 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			setStatus(message);
 		}
 	};
+	const openReferenceFile = async (file: File | undefined) => {
+		if (!file) return;
+		try {
+			const prepared = await createReferenceFromFile(file, project.artboard.width, project.artboard.height);
+			await saveLocalReference(project.id, prepared);
+			setReference(prepared);
+			setReferenceReady(true);
+			setFileError('');
+			setStatus(`Reference “${prepared.name}” is stored on this device only.`);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'The reference image could not be opened.';
+			setFileError(message);
+			setStatus(message);
+		}
+	};
+	const updateReference = (patch: Partial<ReferenceLayer>) => {
+		if (!reference) return;
+		const updated = { ...reference, ...patch };
+		setReference(updated);
+		void saveLocalReference(project.id, updated).catch((error: unknown) => {
+			const message = error instanceof Error ? error.message : 'The reference image could not be saved locally.';
+			setStatus(`Reference save failed: ${message}`);
+		});
+	};
+	const removeReference = () => {
+		setReference(null);
+		void deleteLocalReference(project.id).then(() => {
+			setStatus('Reference removed. Your logo is unchanged.');
+		}).catch((error: unknown) => {
+			const message = error instanceof Error ? error.message : 'The reference image could not be removed.';
+			setStatus(`Reference removal failed: ${message}`);
+		});
+	};
+
+	useEffect(() => {
+		let active = true;
+		setReference(null);
+		setReferenceReady(false);
+		void loadLocalReference(project.id).then((saved) => {
+			if (!active) return;
+			setReference(saved);
+			setReferenceReady(true);
+		}).catch((error: unknown) => {
+			if (!active) return;
+			const message = error instanceof Error ? error.message : 'The local reference image could not be loaded.';
+			setStatus(`Reference restore failed: ${message}`);
+			setReferenceReady(true);
+		});
+		return () => { active = false; };
+	}, [project.id]);
 
 	useEffect(() => {
 		let active = true;
@@ -274,6 +332,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				onRedo={redo}
 				onZoomChange={setZoom}
 				onOpenProject={() => fileInputRef.current?.click()}
+				onReference={() => referenceInputRef.current?.click()}
 				onNewLogo={() => setShowSetup(true)}
 				onProjects={() => setShowProjects(true)}
 				onExport={() => setShowExportCenter(true)}
@@ -303,7 +362,18 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 					event.currentTarget.value = '';
 				}}
 			/>
-			{showExportCenter && <ExportCenter project={project} activeVariant={activeVariant} onClose={() => setShowExportCenter(false)} />}
+			<input
+				ref={referenceInputRef}
+				type="file"
+				accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
+				className="visually-hidden"
+				aria-label="Upload reference image"
+				onChange={(event) => {
+					void openReferenceFile(event.currentTarget.files?.[0]);
+					event.currentTarget.value = '';
+				}}
+			/>
+			{showExportCenter && <ExportCenter project={project} activeVariant={activeVariant} reference={referenceReady ? reference : null} onClose={() => setShowExportCenter(false)} />}
 			{showVariantComparison && <CompareVariants project={project} onClose={() => setShowVariantComparison(false)} />}
 			{showGallery && galleryBrief ? (
 				<GalleryScreen
@@ -374,6 +444,9 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 						onSelect={select}
 						onUpdate={updateElement}
 						onBackgroundChange={setBackground}
+						reference={referenceReady ? reference : null}
+						onReferenceChange={updateReference}
+						onReferenceRemove={removeReference}
 					/>
 					<p className="logo-phase-status" role="status" aria-live="polite">{status}</p>
 					{fileError && <p className="logo-phase-error" role="alert">{fileError}</p>}

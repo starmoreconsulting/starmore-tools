@@ -2,6 +2,7 @@ import { del, get, set } from 'idb-keyval';
 import type { LogoProject } from '../model/types';
 import { validateLogoProject } from '../export/project-file';
 import { exportProjectToSvg } from '../export/svg';
+import { deleteLocalReference } from './references';
 
 const PROJECT_INDEX_KEY = 'logo-studio:project-index:v1';
 const LAST_PROJECT_KEY = 'logo-studio:last-project:v1';
@@ -93,6 +94,7 @@ export async function duplicateLocalProject(project: LogoProject): Promise<LogoP
 
 export async function deleteLocalProject(id: string): Promise<void> {
 	await del(projectKey(id));
+	await deleteLocalReference(id);
 	const ids = projectIds(await get<unknown>(PROJECT_INDEX_KEY));
 	const remaining = ids.filter((entry) => entry !== id);
 	if (remaining.length) await set(PROJECT_INDEX_KEY, remaining);
