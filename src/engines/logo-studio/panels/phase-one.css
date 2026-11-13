@@ -28,6 +28,7 @@
 .logo-phase-number-grid, .logo-phase-text-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 13px; }
 .logo-phase-hint { color: #778177; font-size: 11px; line-height: 1.5; }
 .logo-phase-status { min-height: 18px; margin: 0; color: #6c776d; font-size: 11px; text-align: center; }
+.logo-phase-error { max-width: 520px; margin: 0; color: #9c3d32; font-size: 12px; text-align: center; }
 .logo-phase-mobile-sheet { display: none; }
 .logo-phase-sheet-toggle { display: none; }
 .logo-phase-desktop-sidebar, .logo-phase-desktop-properties { min-width: 0; }

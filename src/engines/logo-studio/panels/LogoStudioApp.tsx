@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SvgArtboard from '../canvas/SvgArtboard';
 import { createDefaultElement, type Element } from '../model/types';
 import { useLogoStudioStore } from '../store/store';
@@ -6,6 +6,8 @@ import ElementProperties from './ElementProperties';
 import ElementSidebar from './ElementSidebar';
 import PhaseOneToolbar from './PhaseOneToolbar';
 import { loadBrowserFont } from '../library/fonts';
+import { createProjectFile, readProjectFile } from '../export/project-file';
+import { downloadBlob } from '../export/raster';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -35,13 +37,35 @@ export default function LogoStudioApp() {
 	const setBackground = useLogoStudioStore((state) => state.setBackground);
 	const undo = useLogoStudioStore((state) => state.undo);
 	const redo = useLogoStudioStore((state) => state.redo);
+	const loadProject = useLogoStudioStore((state) => state.loadProject);
 	const [zoom, setZoom] = useState(100);
 	const [mobilePanel, setMobilePanel] = useState<MobilePanel>('elements');
 	const [mobileSheetOpen, setMobileSheetOpen] = useState(true);
 	const [status, setStatus] = useState('Your design stays in this browser session.');
+	const [fileError, setFileError] = useState('');
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const elements = project.variants.primary ?? [];
 	const selectedElement = useMemo(() => findElement(elements, selectedId), [elements, selectedId]);
 	const addText = () => addElement(createDefaultElement('text', { x: 90, y: 268, width: 420, height: 64 }));
+	const saveProjectFile = () => {
+		const safeName = project.name.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'logo-project';
+		downloadBlob(createProjectFile(project), `${safeName}.json`);
+		setStatus('Project file downloaded.');
+		setFileError('');
+	};
+	const openProjectFile = async (file: File | undefined) => {
+		if (!file) return;
+		try {
+			const imported = await readProjectFile(file);
+			loadProject(imported);
+			setStatus(`Opened “${imported.name}”.`);
+			setFileError('');
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'The project file could not be opened.';
+			setFileError(message);
+			setStatus(message);
+		}
+	};
 
 	useEffect(() => {
 		const texts = elements.filter((element) => element.type === 'text');
@@ -128,7 +152,19 @@ export default function LogoStudioApp() {
 				onUndo={undo}
 				onRedo={redo}
 				onZoomChange={setZoom}
-				onSave={() => setStatus('Save is a placeholder in this phase.')}
+				onSave={saveProjectFile}
+				onOpenProject={() => fileInputRef.current?.click()}
+			/>
+			<input
+				ref={fileInputRef}
+				type="file"
+				accept=".json,application/json"
+				className="visually-hidden"
+				aria-label="Open Logo Studio project file"
+				onChange={(event) => {
+					void openProjectFile(event.currentTarget.files?.[0]);
+					event.currentTarget.value = '';
+				}}
 			/>
 			<div className="logo-phase-workspace">
 				<div className="logo-phase-desktop-sidebar">
@@ -144,6 +180,7 @@ export default function LogoStudioApp() {
 						onBackgroundChange={setBackground}
 					/>
 					<p className="logo-phase-status" role="status" aria-live="polite">{status}</p>
+					{fileError && <p className="logo-phase-error" role="alert">{fileError}</p>}
 				</div>
 				<div className="logo-phase-desktop-properties">{propertiesPanel}</div>
 			</div>

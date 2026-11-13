@@ -11,3 +11,4 @@ export type { SvgExportOptions, SvgExportResult } from './export/svg';
 export { renderSvgToRaster, downloadBlob } from './export/raster';
 export type { RasterExportOptions, RasterExportResult, RasterFormat, RasterScale } from './export/raster';
 export { exportSvgToPdf } from './export/pdf';
+export { createProjectFile, parseProjectFile, readProjectFile, validateLogoProject } from './export/project-file';

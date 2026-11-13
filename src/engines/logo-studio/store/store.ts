@@ -75,6 +75,7 @@ interface LogoStudioState {
 	past: LogoProject[];
 	future: LogoProject[];
 	clipboard: Element | null;
+	loadProject: (project: LogoProject) => void;
 	select: (id: string | null) => void;
 	updateElement: (id: string, patch: Partial<Element>, recordHistory?: boolean) => void;
 	addElement: (element: Element) => void;
@@ -103,6 +104,13 @@ export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 		past: [],
 		future: [],
 		clipboard: null,
+		loadProject: (project) => set({
+			project: clone(project),
+			selectedId: null,
+			past: [],
+			future: [],
+			clipboard: null,
+		}),
 		select: (id) => set({ selectedId: id }),
 		updateElement: (id, patch, recordHistory = true) => {
 			const project = get().project;
