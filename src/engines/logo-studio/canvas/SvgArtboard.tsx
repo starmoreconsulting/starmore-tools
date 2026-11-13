@@ -1,0 +1,292 @@
+import { useRef, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import type { Element, LogoProject } from '../model/types';
+import { getElementBounds, movedElement, resizedElement, rotationFromPointer, type ResizeHandle } from './geometry';
+
+interface Props {
+	project: LogoProject;
+	selectedId: string | null;
+	onSelect: (id: string | null) => void;
+	onUpdate: (id: string, patch: Partial<Element>, recordHistory?: boolean) => void;
+	onBackgroundChange: (background: string) => void;
+}
+
+type PointerAction =
+	| { type: 'move'; id: string; startX: number; startY: number; element: Element }
+	| { type: 'resize'; id: string; startX: number; startY: number; element: Element; handle: ResizeHandle }
+	| { type: 'rotate'; id: string; startX: number; startY: number; startAngle: number; element: Element };
+
+const handles: { name: ResizeHandle; x: number; y: number; cursor: string }[] = [
+	{ name: 'nw', x: 0, y: 0, cursor: 'nwse-resize' },
+	{ name: 'ne', x: 1, y: 0, cursor: 'nesw-resize' },
+	{ name: 'sw', x: 0, y: 1, cursor: 'nesw-resize' },
+	{ name: 'se', x: 1, y: 1, cursor: 'nwse-resize' },
+];
+
+function isResizeHandle(value: string | undefined): value is ResizeHandle {
+	return value === 'nw' || value === 'ne' || value === 'sw' || value === 'se';
+}
+
+function findElement(elements: Element[], id: string): Element | null {
+	for (const element of elements) {
+		if (element.id === id) return element;
+		const nested = element.children && findElement(element.children, id);
+		if (nested) return nested;
+	}
+	return null;
+}
+
+function starPoints(width: number, height: number) {
+	const cx = width / 2;
+	const cy = height / 2;
+	const outer = Math.min(width, height) / 2;
+	const inner = outer * 0.43;
+	return Array.from({ length: 10 }, (_, index) => {
+		const radius = index % 2 === 0 ? outer : inner;
+		const angle = -Math.PI / 2 + index * Math.PI / 5;
+		return `${cx + Math.cos(angle) * radius},${cy + Math.sin(angle) * radius}`;
+	}).join(' ');
+}
+
+function renderShape(element: Element): ReactNode {
+	const fill = element.shape === 'line' ? 'none' : element.fill ?? '#d7ed79';
+	const stroke = element.stroke ?? (element.shape === 'line' ? '#203b32' : 'none');
+	const strokeWidth = element.strokeWidth ?? 2;
+	switch (element.shape) {
+		case 'circle':
+			return <ellipse cx={element.width / 2} cy={element.height / 2} rx={element.width / 2} ry={element.height / 2} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+		case 'triangle':
+			return <polygon points={`${element.width / 2},0 ${element.width},${element.height} 0,${element.height}`} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+		case 'star':
+			return <polygon points={starPoints(element.width, element.height)} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+		case 'line':
+			return <line x1="0" y1="0" x2={element.width} y2={element.height} stroke={stroke} strokeWidth={strokeWidth} />;
+		case 'rectangle':
+		default:
+			return <rect width={element.width} height={element.height} rx={element.radius ?? 0} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />;
+	}
+}
+
+function SvgElement({
+	element, selectedId, onSelect, onPointerStart,
+}: {
+	element: Element;
+	selectedId: string | null;
+	onSelect: (id: string | null) => void;
+	onPointerStart: (event: ReactPointerEvent<SVGGElement>, element: Element) => void;
+}) {
+	if (!element.visible) return null;
+	const selected = element.id === selectedId;
+	const content = element.type === 'text' ? (
+		<text
+			x={element.width / 2}
+			y={element.height / 2}
+			fill={element.fill ?? '#203b32'}
+			fontFamily={element.fontFamily ?? 'Arial'}
+			fontSize={element.fontSize ?? 48}
+			fontWeight={element.fontWeight ?? 400}
+			letterSpacing={element.letterSpacing ?? 0}
+			textAnchor={element.align === 'left' ? 'start' : element.align === 'right' ? 'end' : 'middle'}
+			dominantBaseline="middle"
+			pointerEvents="none"
+		>
+			{(element.text ?? '').split('\n').map((line, index) => (
+				<tspan key={`${element.id}-${index}`} x={element.width / 2} dy={index === 0 ? 0 : `${element.lineHeight ?? 1.16}em`}>{line}</tspan>
+			))}
+		</text>
+	) : element.type === 'shape' ? (
+		renderShape(element)
+	) : element.type === 'group' ? (
+		<g>
+			{(element.children ?? []).map((child) => (
+				<SvgElement
+					key={child.id}
+					element={child}
+					selectedId={selectedId}
+					onSelect={onSelect}
+					onPointerStart={onPointerStart}
+				/>
+			))}
+		</g>
+	) : null;
+
+	return (
+		<g
+			transform={`translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})`}
+			opacity={element.opacity}
+			onPointerDown={(event) => {
+				if (element.locked) return;
+				event.stopPropagation();
+				onSelect(element.id);
+				onPointerStart(event, element);
+			}}
+			style={{ cursor: element.locked ? 'default' : 'move', touchAction: 'none' }}
+			role="graphics-symbol"
+			aria-label={element.type === 'text' ? element.text : `${element.type} element`}
+		>
+			{content}
+			{selected && !element.locked && (
+				<g className="logo-selection-controls" onPointerDown={(event) => event.stopPropagation()}>
+					<rect {...getElementBounds({ ...element, x: 0, y: 0 })} fill="none" stroke="#37694f" strokeDasharray="4 3" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+					<line x1={element.width / 2} y1="0" x2={element.width / 2} y2="-25" stroke="#37694f" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+					<circle
+						cx={element.width / 2}
+						cy="-29"
+						r="5"
+						fill="white"
+						stroke="#37694f"
+						vectorEffect="non-scaling-stroke"
+						style={{ cursor: 'grab', touchAction: 'none' }}
+						onPointerDown={(event) => {
+							event.stopPropagation();
+							onPointerStart(event, element);
+						}}
+					/>
+					{handles.map((handle) => (
+						<rect
+							key={handle.name}
+							x={handle.x * element.width - 5}
+							y={handle.y * element.height - 5}
+							width="10"
+							height="10"
+							rx="2"
+							fill="white"
+							stroke="#37694f"
+							vectorEffect="non-scaling-stroke"
+							style={{ cursor: handle.cursor, touchAction: 'none' }}
+							onPointerDown={(event) => {
+								event.stopPropagation();
+								onPointerStart(event, { ...element, id: `${element.id}:${handle.name}` });
+							}}
+						/>
+					))}
+				</g>
+			)}
+		</g>
+	);
+}
+
+function pointInSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x: number; y: number } {
+	const point = svg.createSVGPoint();
+	point.x = clientX;
+	point.y = clientY;
+	const matrix = svg.getScreenCTM();
+	if (!matrix) return { x: clientX, y: clientY };
+	const transformed = point.matrixTransform(matrix.inverse());
+	return { x: transformed.x, y: transformed.y };
+}
+
+export default function SvgArtboard({ project, selectedId, onSelect, onUpdate, onBackgroundChange }: Props) {
+	const svgRef = useRef<SVGSVGElement>(null);
+	const actionRef = useRef<PointerAction | null>(null);
+	const movedRef = useRef(false);
+	const background = project.artboard.background;
+
+	const startPointerAction = (event: ReactPointerEvent<SVGGElement>, element: Element) => {
+		const svg = svgRef.current;
+		if (!svg) return;
+		svg.setPointerCapture(event.pointerId);
+		movedRef.current = false;
+		const point = pointInSvg(svg, event.clientX, event.clientY);
+		const [baseId, handle] = element.id.split(':');
+		const original = findElement(project.variants.primary ?? [], baseId);
+		const target = original ?? element;
+		if (isResizeHandle(handle)) {
+			actionRef.current = {
+				type: 'resize',
+				id: baseId,
+				startX: point.x,
+				startY: point.y,
+				element: target,
+				handle,
+			};
+		} else if (element.id === selectedId && event.target instanceof SVGCircleElement && event.target.getAttribute('cy') === '-29') {
+			const centerX = target.x + target.width / 2;
+			const centerY = target.y + target.height / 2;
+			actionRef.current = {
+				type: 'rotate',
+				id: target.id,
+				startX: point.x,
+				startY: point.y,
+				startAngle: Math.atan2(point.y - centerY, point.x - centerX) * 180 / Math.PI,
+				element: target,
+			};
+		} else {
+			actionRef.current = {
+				type: 'move',
+				id: target.id,
+				startX: point.x,
+				startY: point.y,
+				element: target,
+			};
+		}
+	};
+
+	const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
+		const action = actionRef.current;
+		const svg = svgRef.current;
+		if (!action || !svg) return;
+		const point = pointInSvg(svg, event.clientX, event.clientY);
+		const dx = point.x - action.startX;
+		const dy = point.y - action.startY;
+		if (Math.abs(dx) + Math.abs(dy) < 0.5) return;
+		const isFirstMove = !movedRef.current;
+		movedRef.current = true;
+		if (action.type === 'move') {
+			onUpdate(action.id, movedElement(action.element, dx, dy), isFirstMove);
+		} else if (action.type === 'resize') {
+			onUpdate(action.id, resizedElement(action.element, action.handle, dx, dy), isFirstMove);
+		} else {
+			onUpdate(action.id, {
+				rotation: rotationFromPointer(action.element, action.startAngle, point.x, point.y),
+			}, isFirstMove);
+		}
+	};
+
+	const stopPointerAction = (event: ReactPointerEvent<SVGSVGElement>) => {
+		if (svgRef.current?.hasPointerCapture(event.pointerId)) svgRef.current.releasePointerCapture(event.pointerId);
+		actionRef.current = null;
+	};
+
+	return (
+		<div className={`logo-artboard-wrap${background === 'transparent' ? ' is-transparent' : ''}`}>
+			<div className="logo-artboard-tools">
+				<label>
+					<input
+						type="checkbox"
+						checked={background === 'transparent'}
+						onChange={(event) => onBackgroundChange(event.target.checked ? 'transparent' : '#ffffff')}
+					/>
+					Transparent background
+				</label>
+				<span>{project.artboard.width} × {project.artboard.height}</span>
+			</div>
+			<svg
+				ref={svgRef}
+				className="logo-svg-artboard"
+				viewBox={`0 0 ${project.artboard.width} ${project.artboard.height}`}
+				role="application"
+				aria-label="Logo artboard"
+				onPointerMove={onPointerMove}
+				onPointerUp={stopPointerAction}
+				onPointerCancel={stopPointerAction}
+				onPointerDown={(event) => {
+					if (event.target === event.currentTarget || (event.target as SVGElement).dataset.artboard === 'background') {
+						onSelect(null);
+					}
+				}}
+				style={{ background: background === 'transparent' ? 'transparent' : background, touchAction: 'none' }}
+			>
+				<rect data-artboard="background" width="100%" height="100%" fill={background === 'transparent' ? 'transparent' : background} />
+				{(project.variants.primary ?? []).map((element) => (
+					<SvgElement
+						key={element.id}
+						element={element}
+						selectedId={selectedId}
+						onSelect={onSelect}
+						onPointerStart={startPointerAction}
+					/>
+				))}
+			</svg>
+		</div>
+	);
+}
