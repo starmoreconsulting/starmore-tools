@@ -24,6 +24,16 @@ export default function ElementProperties({ element, onUpdate }: Props) {
 	return (
 		<aside className="logo-phase-panel logo-properties" aria-label="Properties">
 			<h2>Properties</h2>
+			<label className="logo-phase-field">
+				<span>Role</span>
+				<select aria-label="Element role" value={element.role ?? 'other'} onChange={(event) => onUpdate({ role: event.target.value as Element['role'] })}>
+					<option value="icon">Icon</option>
+					<option value="name">Name</option>
+					<option value="tagline">Tagline</option>
+					<option value="decor">Decoration</option>
+					<option value="other">Other</option>
+				</select>
+			</label>
 			<div className="logo-phase-number-grid">
 				<label className="logo-phase-field"><span>X</span><input type="number" value={element.x} onChange={(event) => onUpdate({ x: numberValue(event.target.value, element.x) })} /></label>
 				<label className="logo-phase-field"><span>Y</span><input type="number" value={element.y} onChange={(event) => onUpdate({ y: numberValue(event.target.value, element.y) })} /></label>

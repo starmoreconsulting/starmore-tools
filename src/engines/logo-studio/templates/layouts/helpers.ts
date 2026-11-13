@@ -30,7 +30,7 @@ export function textElement(
 	input: LayoutInput,
 	text: string,
 	box: { x: number; y: number; width: number; height: number },
-	options: { font?: string; size?: number; weight?: number; spacing?: number; fill?: string; curve?: number; align?: Element['align']; name?: string; maximum?: number } = {},
+	options: { font?: string; size?: number; weight?: number; spacing?: number; fill?: string; curve?: number; align?: Element['align']; name?: string; role?: Element['role']; maximum?: number } = {},
 ): Element {
 	const wrapped = wrappedText(text, options.maximum ?? 18);
 	const lines = wrapped.split('\n').length;
@@ -41,6 +41,7 @@ export function textElement(
 	const element = createDefaultElement('text', {
 		...box,
 		name: options.name ?? (text === input.brief.tagline && input.brief.tagline ? 'Tagline' : 'Business name'),
+		role: options.role ?? (text === input.brief.tagline && input.brief.tagline ? 'tagline' : 'name'),
 		text: wrapped,
 		fontFamily: options.font ?? input.fontPair.primary,
 		fontSize: Math.min(fitSize, box.height / (lines * 1.25)),
@@ -57,6 +58,7 @@ export function textElement(
 export function iconElement(input: LayoutInput, x: number, y: number, size: number, color = input.palette.colors[0]): Element {
 	return createDefaultElement('icon', {
 		x, y, width: size, height: size, name: `${input.icon} icon`,
+		role: 'icon',
 		iconName: input.icon, stroke: color, fill: 'none', strokeWidth: 2,
 	});
 }
@@ -72,7 +74,7 @@ export function shapeElement(
 	strokeWidth = 0,
 ): Element {
 	return createDefaultElement('shape', {
-		shape, x, y, width, height, fill, stroke, strokeWidth, radius: shape === 'rounded-rectangle' ? 18 : 0,
+		shape, x, y, width, height, fill, stroke, strokeWidth, role: 'decor', radius: shape === 'rounded-rectangle' ? 18 : 0,
 	});
 }
 

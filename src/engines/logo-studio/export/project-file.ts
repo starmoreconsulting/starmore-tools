@@ -1,9 +1,10 @@
-import type { Element, ElementType, LogoArrangement, LogoIndustry, LogoProject, LogoStyle } from '../model/types';
+import type { Element, ElementRole, ElementType, LogoArrangement, LogoIndustry, LogoProject, LogoStyle } from '../model/types';
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_ELEMENTS = 5000;
 const MAX_GROUP_DEPTH = 30;
 const elementTypes = new Set<ElementType>(['text', 'shape', 'icon', 'image', 'group']);
+const elementRoles = new Set<ElementRole>(['icon', 'name', 'tagline', 'decor', 'other']);
 const industries = new Set<LogoIndustry>(['Technology', 'Business', 'Fashion', 'Construction', 'Food', 'Transport', 'Education', 'Health', 'Creative', 'General']);
 const styles = new Set<LogoStyle>(['Minimalist', 'Modern', 'Corporate', 'Luxury', 'Futuristic', 'Geometric', 'Vintage', 'Elegant', 'Bold', 'Abstract', 'Playful', 'Professional']);
 const arrangements = new Set<LogoArrangement>(['icon-above-text', 'icon-left', 'icon-right', 'text-only', 'badge']);
@@ -69,6 +70,12 @@ function validateElement(value: unknown, depth: number, count: { value: number }
 		locked: value.locked,
 		visible: value.visible,
 	};
+	if (value.role !== undefined) {
+		if (typeof value.role !== 'string' || !elementRoles.has(value.role as ElementRole)) {
+			throw new Error('An element has an unsupported role.');
+		}
+		element.role = value.role as ElementRole;
+	}
 	const name = optionalString(value, 'name', 200);
 	if (name !== undefined) element.name = name;
 	if (element.width < 0 || element.height < 0 || element.opacity < 0 || element.opacity > 1) {

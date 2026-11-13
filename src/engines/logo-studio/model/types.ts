@@ -1,8 +1,10 @@
 export type ElementType = 'text' | 'shape' | 'icon' | 'image' | 'group';
+export type ElementRole = 'icon' | 'name' | 'tagline' | 'decor' | 'other';
 
 export interface Element {
 	id: string;
 	type: ElementType;
+	role?: ElementRole;
 	name?: string;
 	x: number;
 	y: number;

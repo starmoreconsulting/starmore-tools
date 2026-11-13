@@ -32,7 +32,7 @@ function textOnly(input: LayoutInput): Element[] {
 function monogramCircle(input: LayoutInput): Element[] {
 	return [
 		shapeElement('circle', 186, 72, 228, 228, 'none', input.palette.colors[0], 5),
-		textElement(input, initials(input.brief.businessName), { x: 202, y: 145, width: 196, height: 84 }, { size: 82, weight: 700, maximum: 4 }),
+		textElement(input, initials(input.brief.businessName), { x: 202, y: 145, width: 196, height: 84 }, { size: 82, weight: 700, role: 'icon', maximum: 4 }),
 		textElement(input, input.brief.businessName, { x: 45, y: 350, width: 510, height: 77 }, { size: 48, maximum: 18 }),
 	];
 }
@@ -40,7 +40,7 @@ function monogramCircle(input: LayoutInput): Element[] {
 function monogramSquare(input: LayoutInput): Element[] {
 	return [
 		shapeElement('rounded-rectangle', 196, 74, 208, 208, input.palette.colors[0]),
-		textElement(input, initials(input.brief.businessName), { x: 212, y: 128, width: 176, height: 102 }, { size: 78, fill: input.palette.colors[1], maximum: 4 }),
+		textElement(input, initials(input.brief.businessName), { x: 212, y: 128, width: 176, height: 102 }, { size: 78, fill: input.palette.colors[1], role: 'icon', maximum: 4 }),
 		textElement(input, input.brief.businessName, { x: 48, y: 344, width: 504, height: 78 }, { size: 50, maximum: 18 }),
 	];
 }
@@ -91,7 +91,7 @@ function iconInShapeBesideName(input: LayoutInput): Element[] {
 function initialAndName(input: LayoutInput): Element[] {
 	const mark = initials(input.brief.businessName).slice(0, 1);
 	return [
-		textElement(input, mark, { x: 66, y: 208, width: 100, height: 110 }, { size: 100, weight: 700, fill: input.palette.colors[1], maximum: 2 }),
+		textElement(input, mark, { x: 66, y: 208, width: 100, height: 110 }, { size: 100, weight: 700, fill: input.palette.colors[1], role: 'icon', maximum: 2 }),
 		shapeElement('line', 177, 220, 0, 132, 'none', input.palette.colors[0], 3),
 		textElement(input, input.brief.businessName, { x: 204, y: 228, width: 338, height: 76 }, { size: 48, align: 'left', maximum: 17 }),
 		...(input.brief.tagline ? [textElement(input, input.brief.tagline, { x: 204, y: 310, width: 338, height: 44 }, { font: input.fontPair.secondary, size: 20, weight: 400, align: 'left' })] : []),
