@@ -67,6 +67,23 @@ export type ImageWorkerTask = {
 	width: number;
 	height: number;
 	colorCount: number;
+} | {
+	type: 'watermark';
+	source: ImageBitmap;
+	logo?: ImageBitmap;
+	mode: 'text' | 'logo';
+	text: string;
+	font: string;
+	color: string;
+	size: number;
+	opacity: number;
+	rotation: number;
+	position: string;
+	repeat: boolean;
+	spacing: number;
+	outputType: ImageOutputType;
+	quality: number;
+	jpgBackground: string;
 };
 
 export interface ImageWorkerResult {
@@ -74,6 +91,7 @@ export interface ImageWorkerResult {
 	width: number;
 	height: number;
 	palette?: { hex: string; percentage: number }[];
+	blob?: Blob;
 }
 
 const MIME_BY_EXTENSION: Record<string, ImageInputType> = {
@@ -253,8 +271,10 @@ export function runImageWorker(task: ImageWorkerTask, onProgress?: (progress: Wo
 			worker.terminate();
 			reject(new Error('Image processing stopped unexpectedly. Try a smaller image.'));
 		};
-		const transferable = task.data.buffer;
-		worker.postMessage({ id, task }, [transferable]);
+		const transferables = task.type === 'watermark'
+			? [task.source, ...(task.logo ? [task.logo] : [])]
+			: [task.data.buffer];
+		worker.postMessage({ id, task }, transferables);
 	});
 }
 

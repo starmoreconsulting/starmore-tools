@@ -55,6 +55,7 @@ export type ToolComponentName =
 	| 'ColourPaletteExtractor'
 	| 'FaviconGenerator'
 	| 'SocialMediaImageResizer'
+	| 'ImageWatermarkGenerator'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -215,6 +216,23 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'SocialMediaImageResizer',
 		icon: '▣',
+		live: false,
+	},
+	{
+		slug: 'image-watermark-generator',
+		name: 'Image Watermark Generator',
+		department: 'image',
+		description: 'Add a visible text or logo watermark to one or more images.',
+		seoTitle: 'Image Watermark Generator | Starmore Tools',
+		seoDescription: 'Add a visible text or image watermark with adjustable type, size, colour, opacity, rotation, position and tiling, then download watermarked images in a ZIP.',
+		howTo: ['Choose one or more images from your device.', 'Set a text or logo watermark and adjust its font, size, colour, opacity, rotation and placement.', 'Apply the watermark and download all processed images in one ZIP.'],
+		faqs: [
+			{ question: 'Does the watermark stay editable?', answer: 'No. The watermark is drawn into the image pixels and is visible in the downloaded output.' },
+			{ question: 'Can I watermark several images together?', answer: 'Yes. Select multiple source images and download the watermarked copies as a ZIP.' },
+			{ question: 'Are my photos uploaded?', answer: 'No. Your images never leave your device; watermark rendering and ZIP creation run locally.' },
+		],
+		component: 'ImageWatermarkGenerator',
+		icon: '◈',
 		live: false,
 	},
 	{

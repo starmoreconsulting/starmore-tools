@@ -37,6 +37,7 @@ import ImageColourPicker from '../components/tools/ImageColourPicker';
 import ColourPaletteExtractor from '../components/tools/ColourPaletteExtractor';
 import FaviconGenerator from '../components/tools/FaviconGenerator';
 import SocialMediaImageResizer from '../components/tools/SocialMediaImageResizer';
+import ImageWatermarkGenerator from '../components/tools/ImageWatermarkGenerator';
 import MarkdownEditor from '../components/tools/MarkdownEditor';
 import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
 import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
@@ -76,6 +77,7 @@ export function getStaticPaths() {
 		'colour-palette-extractor',
 		'favicon-generator',
 		'social-media-image-resizer',
+		'image-watermark-generator',
 	]);
 	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },
@@ -138,6 +140,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'ColourPaletteExtractor' && <ColourPaletteExtractor client:load />}
 			{tool.component === 'FaviconGenerator' && <FaviconGenerator client:load />}
 			{tool.component === 'SocialMediaImageResizer' && <SocialMediaImageResizer client:load />}
+			{tool.component === 'ImageWatermarkGenerator' && <ImageWatermarkGenerator client:load />}
 			{tool.component === 'MarkdownEditor' && <MarkdownEditor client:load />}
 			{tool.component === 'TextLogoGenerator' && <TextLogoGenerator client:load />}
 			{tool.component === 'MonogramLogoGenerator' && <MonogramLogoGenerator client:load />}

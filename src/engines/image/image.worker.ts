@@ -356,6 +356,68 @@ function extractPalette(id: string, task: Extract<ImageWorkerTask, { type: 'pale
 	}).sort((a, b) => b.percentage - a.percentage);
 }
 
+async function applyWatermark(task: Extract<ImageWorkerTask, { type: 'watermark' }>): Promise<Blob> {
+	const { source, logo, mode, text, font, color, size, opacity, rotation, position, repeat, spacing, outputType, quality, jpgBackground } = task;
+	const { width, height } = source;
+	if (width * height > 48_000_000) throw new Error('This image exceeds the 48 million pixel processing limit. Try a smaller image.');
+	if (width > 12_000 || height > 12_000) throw new Error('This image exceeds the 12,000 px side limit. Try a smaller image.');
+	const canvas = new OffscreenCanvas(width, height);
+	const context = canvas.getContext('2d');
+	if (!context) throw new Error('The browser could not prepare an image worker canvas.');
+	if (outputType === 'image/jpeg') {
+		context.fillStyle = jpgBackground;
+		context.fillRect(0, 0, width, height);
+	}
+	context.drawImage(source, 0, 0);
+	const markSize = Math.max(12, Math.min(width, height) * size / 100);
+	let markWidth = markSize;
+	let markHeight = markSize;
+	if (mode === 'logo' && logo) {
+		const scale = markSize / Math.max(logo.width, logo.height);
+		markWidth = logo.width * scale;
+		markHeight = logo.height * scale;
+	} else {
+		context.font = `700 ${markSize}px "${font}", sans-serif`;
+		markWidth = Math.max(markSize, context.measureText(text).width);
+		markHeight = markSize * 1.25;
+	}
+	const radians = rotation * Math.PI / 180;
+	const margin = Math.max(markSize * 0.6, spacing);
+	const singlePoint = (): { x: number; y: number } => {
+		const [vertical, horizontal] = position.split('-');
+		const x = horizontal === 'left' ? margin + markWidth / 2 : horizontal === 'right' ? width - margin - markWidth / 2 : width / 2;
+		const y = vertical === 'top' ? margin + markHeight / 2 : vertical === 'bottom' ? height - margin - markHeight / 2 : height / 2;
+		return { x, y };
+	};
+	const drawAt = (x: number, y: number): void => {
+		context.save();
+		context.globalAlpha = Math.max(0, Math.min(1, opacity / 100));
+		context.translate(x, y);
+		context.rotate(radians);
+		if (mode === 'logo' && logo) {
+			context.drawImage(logo, -markWidth / 2, -markHeight / 2, markWidth, markHeight);
+		} else {
+			context.fillStyle = color;
+			context.textAlign = 'center';
+			context.textBaseline = 'middle';
+			context.font = `700 ${markSize}px "${font}", sans-serif`;
+			context.fillText(text, 0, 0, Math.max(markWidth, width * 0.8));
+		}
+		context.restore();
+	};
+	if (repeat) {
+		const stepX = Math.max(markWidth + spacing * 2, markSize * 3);
+		const stepY = Math.max(markHeight + spacing * 2, markSize * 3);
+		for (let y = -height; y <= height * 2; y += stepY) {
+			for (let x = -width; x <= width * 2; x += stepX) drawAt(x, y);
+		}
+	} else {
+		const point = singlePoint();
+		drawAt(point.x, point.y);
+	}
+	return canvas.convertToBlob({ type: outputType, quality: outputType === 'image/png' ? undefined : quality / 100 });
+}
+
 function clampRinging(output: Uint8ClampedArray, width: number, height: number, source: Uint8ClampedArray, sourceWidth: number, sourceHeight: number): void {
 	for (let y = 0; y < height; y += 1) {
 		const sy = Math.max(0, Math.min(sourceHeight - 1, Math.round((y + 0.5) * sourceHeight / height - 0.5)));
@@ -401,12 +463,17 @@ function gentleSharpen(data: Uint8ClampedArray, width: number, height: number, a
 	}
 }
 
-workerScope.onmessage = (event: MessageEvent<WorkerRequest>) => {
+workerScope.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 	const { id, task } = event.data;
 	try {
 		if (task.type === 'palette') {
 			const palette = extractPalette(id, task);
 			workerScope.postMessage({ id, result: { data: new Uint8ClampedArray(), width: 0, height: 0, palette } });
+			return;
+		}
+		if (task.type === 'watermark') {
+			const blob = await applyWatermark(task);
+			workerScope.postMessage({ id, result: { data: new Uint8ClampedArray(), width: task.source.width, height: task.source.height, blob } });
 			return;
 		}
 		const imageData = task.type === 'upscale'
