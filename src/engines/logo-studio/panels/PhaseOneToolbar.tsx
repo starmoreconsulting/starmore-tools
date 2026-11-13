@@ -10,9 +10,10 @@ interface Props {
 	onNewLogo: () => void;
 	onProjects: () => void;
 	onExport: () => void;
+	onMockups: () => void;
 }
 
-export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo, onZoomChange, onOpenProject, onReference, onNewLogo, onProjects, onExport }: Props) {
+export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo, onZoomChange, onOpenProject, onReference, onNewLogo, onProjects, onExport, onMockups }: Props) {
 	return (
 		<header className="logo-phase-toolbar">
 			<a href="/" className="logo-phase-brand">Starmore <span>Logo Studio</span></a>
@@ -27,6 +28,7 @@ export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo
 				<button type="button" onClick={onOpenProject}>Open project file</button>
 				<button type="button" onClick={onReference}>Reference</button>
 				<button type="button" onClick={onNewLogo}>New Logo</button>
+				<button type="button" onClick={onMockups}>Mockups</button>
 				<button type="button" onClick={onExport}>Export</button>
 				<button type="button" onClick={onProjects}>My Projects</button>
 			</div>

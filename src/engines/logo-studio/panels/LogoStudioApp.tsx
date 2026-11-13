@@ -18,6 +18,7 @@ import CompareVariants from './CompareVariants';
 import { primarySignature } from '../variants/automatic';
 import { createReferenceFromFile, deleteLocalReference, loadLocalReference, saveLocalReference, type ReferenceLayer } from '../store/references';
 import { importCustomSvgIcon, importSvg } from '../import/svg-import';
+import MockupStudio from '../mockups/MockupStudio';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -45,6 +46,10 @@ function presetBrief(preset: LogoStudioPreset): LogoBrief {
 		'colour-variation': { style: 'Modern', preferredPalette: 'Pastels', arrangement: 'icon-above-text' },
 		reference: { style: 'Modern', arrangement: 'icon-above-text' },
 		redesign: { style: 'Vintage', arrangement: 'icon-above-text' },
+		mockups: { style: 'Modern' },
+		'business-card-mockup': { style: 'Corporate', arrangement: 'icon-left' },
+		'tshirt-mockup': { style: 'Bold' },
+		'preview-mockup': { style: 'Modern' },
 	};
 	return { ...defaults, ...presets[preset] };
 }
@@ -68,6 +73,10 @@ function findTextElements(elements: Element[]): Element[] {
 
 export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } = {}) {
 	const uploadPreset = preset === 'reference' || preset === 'redesign';
+	const mockupPreset = preset === 'mockups' || preset === 'business-card-mockup' || preset === 'tshirt-mockup' || preset === 'preview-mockup';
+	const initialMockupScene = preset === 'business-card-mockup'
+		? 'business-cards-stack'
+		: preset === 'tshirt-mockup' ? 'tshirt-light' : undefined;
 	const project = useLogoStudioStore((state) => state.project);
 	const activeVariant = useLogoStudioStore((state) => state.activeVariant);
 	const selectedId = useLogoStudioStore((state) => state.selectedId);
@@ -106,8 +115,9 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [storageReady, setStorageReady] = useState(false);
 	const [showProjects, setShowProjects] = useState(false);
 	const [showExportCenter, setShowExportCenter] = useState(false);
-	const [showSetup, setShowSetup] = useState(Boolean(preset && !uploadPreset));
+	const [showSetup, setShowSetup] = useState(Boolean(preset && !uploadPreset && !mockupPreset));
 	const [showGallery, setShowGallery] = useState(false);
+	const [showMockups, setShowMockups] = useState(mockupPreset);
 	const [showVariantComparison, setShowVariantComparison] = useState(false);
 	const [reference, setReference] = useState<ReferenceLayer | null>(null);
 	const [referenceReady, setReferenceReady] = useState(false);
@@ -371,6 +381,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				onOpenProject={() => fileInputRef.current?.click()}
 				onReference={() => referenceInputRef.current?.click()}
 				onNewLogo={() => setShowSetup(true)}
+				onMockups={() => setShowMockups(true)}
 				onProjects={() => setShowProjects(true)}
 				onExport={() => setShowExportCenter(true)}
 			/>
@@ -473,6 +484,21 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 							setStatus(`Could not open project: ${message}`);
 						});
 					}}
+				/>
+			) : showMockups ? (
+				<MockupStudio
+					project={project}
+					initialSceneId={initialMockupScene}
+					onBack={() => setShowMockups(false)}
+					onAddSample={() => addElement(createDefaultElement('text', {
+						name: 'Brand name',
+						text: project.brief?.businessName || (project.name === 'Untitled logo' ? 'Your Brand' : project.name),
+						role: 'name',
+						x: 90,
+						y: 268,
+						width: 420,
+						height: 64,
+					}))}
 				/>
 			) : <>
 			<div className="logo-phase-workspace">

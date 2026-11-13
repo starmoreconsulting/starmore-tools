@@ -70,7 +70,8 @@ export type LogoStyle =
 
 export type LogoArrangement = 'icon-above-text' | 'icon-left' | 'icon-right' | 'text-only' | 'badge';
 export type LogoStudioPreset = 'text' | 'monogram' | 'template' | 'business-name' | 'industry' | 'icon' | 'initials'
-	| 'variation' | 'black-and-white' | 'colour-variation' | 'reference' | 'redesign';
+	| 'variation' | 'black-and-white' | 'colour-variation' | 'reference' | 'redesign'
+	| 'mockups' | 'business-card-mockup' | 'tshirt-mockup' | 'preview-mockup';
 
 export interface LogoBrief {
 	businessName: string;

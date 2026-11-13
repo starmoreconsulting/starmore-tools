@@ -1,0 +1,47 @@
+.logo-mockup-studio { padding: clamp(16px, 3vw, 32px); color: #23332c; background: #f7f7f2; border: 1px solid #e4e6dc; border-radius: 12px; }
+.logo-mockup-header, .logo-mockup-detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+.logo-mockup-header h2, .logo-mockup-detail-heading h3 { margin: 3px 0 7px; color: #24372d; }
+.logo-mockup-header p, .logo-mockup-detail-heading p { max-width: 650px; margin: 0; color: #67736a; line-height: 1.55; }
+.logo-mockup-eyebrow, .logo-mockup-detail-heading .logo-mockup-eyebrow { margin: 0; color: #7b8b69; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.logo-mockup-back, .logo-mockup-categories button, .logo-mockup-controls select, .logo-mockup-empty button { min-height: 40px; padding: 8px 13px; border: 1px solid #cfd7c9; border-radius: 7px; color: #263a2d; background: #fff; font: inherit; }
+.logo-mockup-categories { display: flex; gap: 8px; overflow-x: auto; margin: 0 0 17px; padding: 2px 0 7px; }
+.logo-mockup-categories button { flex: 0 0 auto; cursor: pointer; }
+.logo-mockup-categories button[aria-pressed="true"] { border-color: #375843; color: #fff; background: #375843; }
+.logo-mockup-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.logo-mockup-card { min-width: 0; overflow: hidden; border: 1px solid #e0e4da; border-radius: 9px; background: #fff; }
+.logo-mockup-card-open { display: flex; width: 100%; padding: 0 0 12px; flex-direction: column; align-items: stretch; border: 0; color: inherit; background: transparent; text-align: left; cursor: pointer; }
+.logo-mockup-card-image { position: relative; display: block; width: 100%; aspect-ratio: 1.32; overflow: hidden; background: #e8e7df; }
+.logo-mockup-svg, .logo-mockup-image-loading, .logo-mockup-image-error { display: block; width: 100%; height: 100%; }
+.logo-mockup-svg svg { display: block; width: 100%; height: 100%; }
+.logo-mockup-image-loading { background: linear-gradient(100deg, #edeee9 25%, #f8f8f5 45%, #edeee9 65%); background-size: 220% 100%; animation: logo-mockup-shimmer 1.5s linear infinite; }
+.logo-mockup-image-error { padding: 14px; color: #8d3932; font-size: 13px; }
+@keyframes logo-mockup-shimmer { to { background-position-x: -220%; } }
+.logo-mockup-card-category { margin: 11px 12px 3px; color: #87917f; font-size: 10px; font-weight: 750; text-transform: uppercase; }
+.logo-mockup-card-open strong { margin: 0 12px; font-size: 14px; }
+.logo-mockup-card-description { margin: 5px 12px 0; color: #738077; font-size: 12px; line-height: 1.4; }
+.logo-mockup-include { display: flex; align-items: center; gap: 7px; color: #69756b; font-size: 12px; }
+.logo-mockup-include input, .logo-mockup-check input { accent-color: #375843; }
+.logo-mockup-card > .logo-mockup-include { padding: 0 12px 12px; }
+.logo-mockup-detail-heading { align-items: flex-end; }
+.logo-mockup-text-button { margin-bottom: 13px; padding: 0; border: 0; color: #476a4d; background: transparent; font: inherit; cursor: pointer; }
+.logo-mockup-detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 18px; }
+.logo-mockup-stage { min-width: 0; aspect-ratio: 1.3; overflow: hidden; border: 1px solid #dfe3d8; border-radius: 10px; background-color: #e7e6df; background-image: linear-gradient(45deg,#d9d9d2 25%,transparent 25%),linear-gradient(-45deg,#d9d9d2 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d9d9d2 75%),linear-gradient(-45deg,transparent 75%,#d9d9d2 75%); background-size: 18px 18px; background-position: 0 0,0 9px,9px -9px,-9px 0; }
+.logo-mockup-controls { display: flex; flex-direction: column; gap: 14px; padding: 15px; border: 1px solid #e0e4da; border-radius: 9px; background: #fff; }
+.logo-mockup-control { display: grid; gap: 7px; color: #4c5c50; font-size: 12px; font-weight: 700; }
+.logo-mockup-check { display: flex; align-items: flex-start; gap: 8px; color: #4e5e52; font-size: 12px; line-height: 1.4; }
+.logo-mockup-color-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 0; padding: 10px; border: 1px solid #e2e6dd; border-radius: 7px; }
+.logo-mockup-color-fields legend { padding: 0 5px; color: #68746a; font-size: 12px; }
+.logo-mockup-color-fields label { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 5px; color: #657067; font-size: 11px; }
+.logo-mockup-color-fields input[type="color"] { width: 35px; height: 29px; padding: 2px; border: 1px solid #dce1d8; border-radius: 5px; background: #fff; }
+.logo-mockup-empty { display: flex; align-items: center; gap: 11px; margin: 0 0 17px; padding: 12px; flex-wrap: wrap; border: 1px solid #e4d7b6; border-radius: 8px; color: #66572f; background: #fffbed; font-size: 13px; }
+.logo-mockup-empty span { flex: 1 1 250px; }
+.logo-mockup-empty button { cursor: pointer; }
+@media (max-width: 900px) { .logo-mockup-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 650px) {
+	.logo-mockup-studio { padding: 14px; }
+	.logo-mockup-header, .logo-mockup-detail-heading { flex-direction: column; align-items: stretch; }
+	.logo-mockup-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+	.logo-mockup-detail-grid { grid-template-columns: 1fr; }
+	.logo-mockup-stage { aspect-ratio: 1.08; }
+	.logo-mockup-card-description { display: none; }
+}
