@@ -21,6 +21,10 @@ export interface OutlineResult {
 	warnings: string[];
 }
 
+function finiteOr(value: number | undefined, fallback: number): number {
+	return value !== undefined && Number.isFinite(value) ? value : fallback;
+}
+
 const parsedFonts = new Map<string, Promise<opentype.Font>>();
 const textFontCache = new Map<string, Promise<{ font: opentype.Font; family: string }>>();
 
@@ -91,14 +95,16 @@ function getFontForText(family: string, weight: number, text: string): Promise<{
 }
 
 export function layoutTextGlyphs(element: Element, font: opentype.Font): TextGlyphPlacement[] {
-	const fontSize = Math.max(1, element.fontSize ?? 48);
+	const fontSize = Math.max(1, finiteOr(element.fontSize, 48));
+	const width = finiteOr(element.width, 0);
+	const height = finiteOr(element.height, 0);
 	const lines = (element.text ?? '').split('\n');
-	const lineHeight = Math.max(0, element.lineHeight ?? 1.16) * fontSize;
+	const lineHeight = Math.max(0, finiteOr(element.lineHeight, 1.16)) * fontSize;
 	const scale = fontSize / font.unitsPerEm;
 	const baselineOffset = ((font.ascender + font.descender) / 2) * scale;
-	const firstBaseline = element.height / 2 + baselineOffset - ((lines.length - 1) * lineHeight) / 2;
-	const letterSpacing = element.letterSpacing ?? 0;
-	const curve = Math.min(100, Math.max(-100, element.curve ?? 0)) / 100;
+	const firstBaseline = height / 2 + baselineOffset - ((lines.length - 1) * lineHeight) / 2;
+	const letterSpacing = finiteOr(element.letterSpacing, 0);
+	const curve = Math.min(100, Math.max(-100, finiteOr(element.curve, 0))) / 100;
 	const placements: TextGlyphPlacement[] = [];
 
 	lines.forEach((line, lineIndex) => {
@@ -110,8 +116,8 @@ export function layoutTextGlyphs(element: Element, font: opentype.Font): TextGly
 		});
 		const lineWidth = advances.reduce((total, advance) => total + advance, 0);
 		const startX = element.align === 'left' ? 0
-			: element.align === 'right' ? element.width - lineWidth
-				: (element.width - lineWidth) / 2;
+			: element.align === 'right' ? width - lineWidth
+				: (width - lineWidth) / 2;
 		const baseline = firstBaseline + lineIndex * lineHeight;
 		const totalAngle = Math.abs(curve) * Math.PI;
 		const radius = totalAngle > 0.0001 ? Math.max(1, lineWidth / totalAngle) : 0;
@@ -145,9 +151,20 @@ async function outlineText(element: Element): Promise<{ outline: TextOutline; wa
 	const text = element.text ?? '';
 	const { font, family } = await getFontForText(preferredFamily, element.fontWeight ?? 400, text);
 	const placements = layoutTextGlyphs(element, font);
+	if (!Number.isFinite(font.unitsPerEm) || font.unitsPerEm <= 0) {
+		throw new Error('The bundled font has invalid metrics.');
+	}
+	const fontSize = Math.max(1, finiteOr(element.fontSize, 48));
+	const scale = fontSize / font.unitsPerEm;
 	const paths = placements.map(({ glyph, centerX, centerY, rotation, advance }) => {
-		const d = glyph.getPath(0, 0, Math.max(1, element.fontSize ?? 48)).toPathData(3);
-		const transform = `translate(${centerX} ${centerY}) rotate(${rotation}) translate(${-advance / 2} 0)`;
+		if (![centerX, centerY, rotation, advance].every(Number.isFinite)) {
+			throw new Error('Text layout produced invalid coordinates.');
+		}
+		const d = glyph.getPath(0, 0, font.unitsPerEm).toPathData(3);
+		if (/(?:NaN|Infinity)/i.test(d)) {
+			throw new Error('The bundled font produced invalid outline data.');
+		}
+		const transform = `translate(${centerX} ${centerY}) rotate(${rotation}) translate(${-advance / 2} 0) scale(${scale})`;
 		return { d, transform };
 	});
 	return {
