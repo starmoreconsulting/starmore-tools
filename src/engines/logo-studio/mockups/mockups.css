@@ -33,6 +33,14 @@
 .logo-mockup-color-fields legend { padding: 0 5px; color: #68746a; font-size: 12px; }
 .logo-mockup-color-fields label { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 5px; color: #657067; font-size: 11px; }
 .logo-mockup-color-fields input[type="color"] { width: 35px; height: 29px; padding: 2px; border: 1px solid #dce1d8; border-radius: 5px; background: #fff; }
+.logo-mockup-exports { display: grid; gap: 10px; margin: 0; padding: 10px; border: 1px solid #e2e6dd; border-radius: 7px; }
+.logo-mockup-exports legend { padding: 0 5px; color: #68746a; font-size: 12px; }
+.logo-mockup-export-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.logo-mockup-export-buttons button, .logo-mockup-export-primary, .logo-mockup-export-secondary { min-height: 38px; padding: 7px 9px; border: 1px solid #cfd7c9; border-radius: 6px; color: #263a2d; background: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+.logo-mockup-export-primary { border-color: #375843; color: #fff; background: #375843; }
+.logo-mockup-export-buttons button:disabled, .logo-mockup-export-primary:disabled, .logo-mockup-export-secondary:disabled { opacity: .6; cursor: wait; }
+.logo-mockup-export-status, .logo-mockup-export-error { margin: 12px 0 0; color: #526553; font-size: 13px; }
+.logo-mockup-export-error { color: #9a3e34; }
 .logo-mockup-empty { display: flex; align-items: center; gap: 11px; margin: 0 0 17px; padding: 12px; flex-wrap: wrap; border: 1px solid #e4d7b6; border-radius: 8px; color: #66572f; background: #fffbed; font-size: 13px; }
 .logo-mockup-empty span { flex: 1 1 250px; }
 .logo-mockup-empty button { cursor: pointer; }

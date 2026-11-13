@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { strToU8, zipSync } from 'fflate';
+import { exportSvgPagesToPdf } from '../export/pdf';
+import { downloadBlob, renderSvgToRaster, type RasterScale } from '../export/raster';
 import type { LogoProject } from '../model/types';
 import { createSceneColors, renderMockupSvg, type MockupColors } from './render';
 import { mockupCategories, mockupScenes, type MockupCategory, type MockupScene } from './scenes';
@@ -61,6 +64,9 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 	const [autoVariant, setAutoVariant] = useState(true);
 	const [includeBackground, setIncludeBackground] = useState(true);
 	const [presentationScenes, setPresentationScenes] = useState<Set<string>>(() => new Set(mockupScenes.map((scene) => scene.id)));
+	const [rasterScale, setRasterScale] = useState<RasterScale>(1);
+	const [busy, setBusy] = useState('');
+	const [exportError, setExportError] = useState('');
 	const scenes = useMemo(
 		() => mockupScenes.filter((scene) => category === 'All' || scene.category === category),
 		[category],
@@ -93,6 +99,77 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 	const activeVariant = autoVariant ? 'preferred' : variant;
 	const availableVariants = Object.keys(project.variants);
 	const empty = !hasArtwork(project);
+	const safeName = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'logo';
+	const sceneDimensions = (scene: MockupScene) => {
+		const [, , width, height] = scene.viewBox.trim().split(/\s+/).map(Number);
+		return { width, height };
+	};
+	const renderScene = (scene: MockupScene) => renderMockupSvg(
+		scene,
+		project,
+		scene.id === selectedScene?.id ? colors : createSceneColors(scene),
+		{
+			variant: scene.id === selectedScene?.id ? activeVariant : 'preferred',
+			includeBackground: scene.id === selectedScene?.id ? includeBackground : true,
+		},
+	);
+	const exportAction = async (label: string, action: () => Promise<void>) => {
+		setBusy(label);
+		setExportError('');
+		try {
+			await action();
+		} catch (cause) {
+			setExportError(cause instanceof Error ? cause.message : `${label} could not be exported.`);
+		} finally {
+			setBusy('');
+		}
+	};
+	const exportOne = (format: 'SVG' | 'PNG' | 'JPG') => exportAction(format, async () => {
+		if (!selectedScene) throw new Error('Choose a mockup first.');
+		const result = await renderScene(selectedScene);
+		const fileBase = `${safeName(project.name)}-${selectedScene.id}`;
+		if (format === 'SVG') {
+			downloadBlob(new Blob([result.svg], { type: 'image/svg+xml;charset=utf-8' }), `${fileBase}.svg`);
+			return;
+		}
+		const { width, height } = sceneDimensions(selectedScene);
+		const raster = await renderSvgToRaster(result.svg, {
+			width,
+			height,
+			format: format === 'PNG' ? 'png' : 'jpg',
+			scale: rasterScale,
+			background: format === 'JPG' && !includeBackground ? '#efeee9' : undefined,
+		});
+		downloadBlob(raster.blob, `${fileBase}.${format.toLowerCase()}`);
+	});
+	const exportAll = () => exportAction('All mockups', async () => {
+		const files: Record<string, Uint8Array> = {};
+		for (const scene of mockupScenes) {
+			const result = await renderScene(scene);
+			const { width, height } = sceneDimensions(scene);
+			const name = `${safeName(project.name)}-${scene.id}`;
+			files[`SVG/${name}.svg`] = strToU8(result.svg);
+			const png = await renderSvgToRaster(result.svg, { width, height, format: 'png', scale: 1 });
+			files[`PNG/${name}.png`] = new Uint8Array(await png.blob.arrayBuffer());
+			const jpg = await renderSvgToRaster(result.svg, { width, height, format: 'jpg', scale: 1, background: '#ffffff', quality: 0.92 });
+			files[`JPG/${name}.jpg`] = new Uint8Array(await jpg.blob.arrayBuffer());
+		}
+		files['README.txt'] = strToU8('Logo mockups created locally by Starmore Tools.\nEach SVG, PNG, and JPG is a separate scene preview. All artwork remains on your device.');
+		const archive = zipSync(files, { level: 5 });
+		downloadBlob(new Blob([new Uint8Array(archive)], { type: 'application/zip' }), `${safeName(project.name)}-mockups.zip`);
+	});
+	const exportPresentation = () => exportAction('Brand presentation', async () => {
+		const chosen = mockupScenes.filter((scene) => presentationScenes.has(scene.id));
+		if (!chosen.length) throw new Error('Choose at least one scene for the brand presentation.');
+		const pages = [];
+		for (const scene of chosen) {
+			const result = await renderScene(scene);
+			const { width, height } = sceneDimensions(scene);
+			pages.push({ svg: result.svg, width, height });
+		}
+		const blob = await exportSvgPagesToPdf(pages);
+		downloadBlob(blob, `${safeName(project.name)}-brand-presentation.pdf`);
+	});
 
 	return (
 		<section className="logo-mockup-studio" aria-label="Logo mockups">
@@ -153,6 +230,21 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 									</label>;
 								})}
 							</fieldset>
+							<fieldset className="logo-mockup-exports">
+								<legend>Download this mockup</legend>
+								<label className="logo-mockup-control"><span>PNG / JPG scale</span>
+									<select value={rasterScale} onChange={(event) => setRasterScale(Number(event.target.value) as RasterScale)}>
+										<option value={1}>1×</option><option value={2}>2×</option><option value={4}>4×</option>
+									</select>
+								</label>
+								<div className="logo-mockup-export-buttons">
+									<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('PNG')}>{busy === 'PNG' ? 'Preparing…' : 'PNG'}</button>
+									<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('JPG')}>{busy === 'JPG' ? 'Preparing…' : 'JPG'}</button>
+									<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('SVG')}>{busy === 'SVG' ? 'Preparing…' : 'SVG'}</button>
+								</div>
+							</fieldset>
+							<button type="button" className="logo-mockup-export-primary" disabled={Boolean(busy)} onClick={() => void exportAll()}>{busy === 'All mockups' ? 'Preparing ZIP…' : 'Download all mockups (ZIP)'}</button>
+							<button type="button" className="logo-mockup-export-secondary" disabled={Boolean(busy)} onClick={() => void exportPresentation()}>{busy === 'Brand presentation' ? 'Preparing PDF…' : 'Download brand presentation (PDF)'}</button>
 						</aside>
 					</div>
 				</section>
@@ -178,6 +270,8 @@ export default function MockupStudio({ project, initialSceneId, onBack, onAddSam
 					</div>
 				</>
 			)}
+			{busy && <p className="logo-mockup-export-status" role="status" aria-live="polite">Creating {busy} locally…</p>}
+			{exportError && <p className="logo-mockup-export-error" role="alert">{exportError}</p>}
 		</section>
 	);
 }

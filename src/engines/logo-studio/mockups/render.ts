@@ -75,7 +75,8 @@ export async function renderMockupSvg(
 	const backgroundMarkup = options.includeBackground === false
 		? '<rect width="100%" height="100%" fill="#eeeeea"/>'
 		: background;
-	const svg = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="${scene.viewBox}"><defs>${defs.join('')}</defs>${backgroundMarkup}${slots.join('')}</svg>`;
+	const [, , width, height] = scene.viewBox.trim().split(/\s+/).map(Number);
+	const svg = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${scene.viewBox}"><defs>${defs.join('')}</defs>${backgroundMarkup}${slots.join('')}</svg>`;
 	return { svg, warnings: Array.from(new Set(warnings)), missingVariants };
 }
 
