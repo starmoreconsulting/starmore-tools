@@ -1,0 +1,52 @@
+.template-preview-section {
+	margin-top: 2rem;
+}
+
+.template-preview-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+	gap: 1rem;
+	margin: 1.25rem 0 2rem;
+}
+
+.template-preview-card {
+	min-width: 0;
+	padding: 0.75rem;
+	border: 1px solid #e6e5df;
+	border-radius: 0.9rem;
+	background: #fff;
+}
+
+.template-preview-card .logo-gallery-preview {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 1;
+	border-radius: 0.6rem;
+	background: #fafaf7;
+}
+
+.template-preview-card h3 {
+	margin: 0.65rem 0 0.2rem;
+	font-size: 0.95rem;
+}
+
+.template-preview-card p,
+.template-preview-section > p {
+	color: #66675f;
+	font-size: 0.9rem;
+}
+
+.template-preview-error {
+	color: #9c2c26;
+}
+
+.template-preview-cta {
+	display: inline-flex;
+	padding: 0.8rem 1rem;
+	border-radius: 0.7rem;
+	background: #203b32;
+	color: #fff;
+	font-weight: 600;
+	text-decoration: none;
+}

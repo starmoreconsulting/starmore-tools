@@ -1,0 +1,78 @@
+---
+import ToolLayout from '../../../components/ToolLayout.astro';
+import { industryTemplateCategories } from '../../../engines/logo-studio/templates/industry-catalog';
+---
+
+<ToolLayout title="Logo Templates by Industry" description="Browse editable logo design ideas for ten industries, previewed with sample business names and generated locally in your browser.">
+	<section class="tool-page template-library-page">
+		<a class="back-link" href="/logo-studio/">← Logo Studio</a>
+		<header class="tool-page-header">
+			<p class="eyebrow">LOGO DESIGN LIBRARY</p>
+			<h1>Browse logo ideas by industry</h1>
+			<p>Explore sample logo concepts for ten industries before entering your own business details. Every preview is generated in your browser.</p>
+		</header>
+		<div class="template-category-grid">
+			{industryTemplateCategories.map((category) => (
+				<a class="template-category-card" href={`/logo-studio/templates/${category.slug}/`}>
+					<span>{category.industry}</span>
+					<strong>{category.sampleName}</strong>
+					<p>{category.description}</p>
+					<span class="template-category-link">Explore designs →</span>
+				</a>
+			))}
+		</div>
+	</section>
+</ToolLayout>
+
+<style>
+	.template-category-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+		gap: 1rem;
+		margin-top: 2rem;
+	}
+
+	.template-category-card {
+		display: flex;
+		min-height: 12rem;
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 1.25rem;
+		border: 1px solid #e6e5df;
+		border-radius: 1rem;
+		background: #fff;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.template-category-card > span:first-child {
+		color: #53665b;
+		font-size: 0.8rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.template-category-card strong {
+		margin-top: 0.8rem;
+		font-size: 1.15rem;
+	}
+
+	.template-category-card p {
+		color: #66675f;
+		font-size: 0.9rem;
+		line-height: 1.5;
+	}
+
+	.template-category-link {
+		margin-top: auto;
+		color: #203b32;
+		font-size: 0.9rem;
+		font-weight: 700;
+	}
+
+	.template-category-card:hover,
+	.template-category-card:focus-visible {
+		border-color: #203b32;
+	}
+</style>

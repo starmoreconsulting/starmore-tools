@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { departments, liveTools } from '../data/tools';
+import { industryTemplateCategories } from '../engines/logo-studio/templates/industry-catalog';
 
 function escapeXml(value: string) {
 	return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&apos;');
@@ -10,7 +11,13 @@ export const GET: APIRoute = ({ site }) => {
 
 	const routes = [
 		'',
+		'/about/',
+		'/privacy/',
+		'/disclosure/',
+		'/contact/',
 		'/logo-studio/',
+		'/logo-studio/templates/',
+		...industryTemplateCategories.map((category) => `/logo-studio/templates/${category.slug}/`),
 		...departments.map((department) => `/departments/${department.slug}/`),
 		...liveTools.map((tool) => `/${tool.slug}/`),
 	];

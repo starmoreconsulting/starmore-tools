@@ -1,0 +1,32 @@
+---
+import ToolLayout from '../../../components/ToolLayout.astro';
+import TemplatePreviewGrid from '../../../engines/logo-studio/templates/TemplatePreviewGrid';
+import { industryTemplateCategories } from '../../../engines/logo-studio/templates/industry-catalog';
+
+export function getStaticPaths() {
+	return industryTemplateCategories.map((category) => ({
+		params: { industry: category.slug },
+		props: { category },
+	}));
+}
+
+const { category } = Astro.props;
+---
+
+<ToolLayout title={`${category.industry} Logo Templates`} description={`${category.description} Browse sample designs made locally with Starmore Tools Logo Studio.`}>
+	<section class="tool-page template-library-page">
+		<a class="back-link" href="/logo-studio/templates/">← All industries</a>
+		<header class="tool-page-header">
+			<p class="eyebrow">{category.industry.toUpperCase()} LOGO IDEAS</p>
+			<h1>{category.industry} logo templates</h1>
+			<p>{category.description} The examples below use “{category.sampleName}” as a sample name, so you can explore before starting your own design.</p>
+		</header>
+		<TemplatePreviewGrid client:load category={category} />
+	</section>
+</ToolLayout>
+
+<style>
+	.template-library-page {
+		max-width: 76rem;
+	}
+</style>
