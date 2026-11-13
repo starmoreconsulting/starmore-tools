@@ -1,8 +1,32 @@
 ---
 import ToolLayout from '../components/ToolLayout.astro';
+import AgeCalculator from '../components/tools/AgeCalculator';
 import CaseConverter from '../components/tools/CaseConverter';
+import CharacterCounter from '../components/tools/CharacterCounter';
+import CompoundInterestCalculator from '../components/tools/CompoundInterestCalculator';
+import DateDifferenceCalculator from '../components/tools/DateDifferenceCalculator';
+import DiscountCalculator from '../components/tools/DiscountCalculator';
 import JsonFormatter from '../components/tools/JsonFormatter';
 import PercentageCalculator from '../components/tools/PercentageCalculator';
+import QrCodeGenerator from '../components/tools/QrCodeGenerator';
+import PasswordGenerator from '../components/tools/PasswordGenerator';
+import ImageCompressor from '../components/tools/ImageCompressor';
+import ImageResizer from '../components/tools/ImageResizer';
+import RoiCalculator from '../components/tools/RoiCalculator';
+import BmiCalculator from '../components/tools/BmiCalculator';
+import SimpleInterestCalculator from '../components/tools/SimpleInterestCalculator';
+import DateAddSubtractCalculator from '../components/tools/DateAddSubtractCalculator';
+import TimeZoneConverter from '../components/tools/TimeZoneConverter';
+import ReadingTimeCalculator from '../components/tools/ReadingTimeCalculator';
+import SentenceParagraphCounter from '../components/tools/SentenceParagraphCounter';
+import SortTextAlphabetically from '../components/tools/SortTextAlphabetically';
+import FindReplaceText from '../components/tools/FindReplaceText';
+import TextToSlugConverter from '../components/tools/TextToSlugConverter';
+import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
+import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
+import RemoveDuplicateLines from '../components/tools/RemoveDuplicateLines';
+import UnitConverter from '../components/tools/UnitConverter';
+import VatCalculator from '../components/tools/VatCalculator';
 import WordCounter from '../components/tools/WordCounter';
 import { departments, liveTools } from '../data/tools';
 
@@ -17,7 +41,7 @@ const { tool } = Astro.props;
 const departmentName = departments.find((department) => department.slug === tool.department)?.name;
 ---
 
-<ToolLayout title={tool.name} description={tool.description}>
+<ToolLayout title={tool.seoTitle} description={tool.seoDescription}>
 	<section class="tool-page">
 		<a class="back-link" href="/#tool-library">← All tools</a>
 		<header class="tool-page-header">
@@ -30,6 +54,44 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'WordCounter' && <WordCounter client:load />}
 			{tool.component === 'JsonFormatter' && <JsonFormatter client:load />}
 			{tool.component === 'PercentageCalculator' && <PercentageCalculator client:load />}
+			{tool.component === 'DiscountCalculator' && <DiscountCalculator client:load />}
+			{tool.component === 'VatCalculator' && <VatCalculator client:load />}
+			{tool.component === 'ProfitMarginCalculator' && <ProfitMarginCalculator client:load />}
+			{tool.component === 'LoanRepaymentCalculator' && <LoanRepaymentCalculator client:load />}
+			{tool.component === 'AgeCalculator' && <AgeCalculator client:load />}
+			{tool.component === 'CharacterCounter' && <CharacterCounter client:load />}
+			{tool.component === 'DateDifferenceCalculator' && <DateDifferenceCalculator client:load />}
+			{tool.component === 'CompoundInterestCalculator' && <CompoundInterestCalculator client:load />}
+			{tool.component === 'UnitConverter' && <UnitConverter client:load />}
+			{tool.component === 'RemoveDuplicateLines' && <RemoveDuplicateLines client:load />}
+			{tool.component === 'QrCodeGenerator' && <QrCodeGenerator client:load />}
+			{tool.component === 'PasswordGenerator' && <PasswordGenerator client:load />}
+			{tool.component === 'ImageCompressor' && <ImageCompressor client:load />}
+			{tool.component === 'ImageResizer' && <ImageResizer client:load />}
+			{tool.component === 'RoiCalculator' && <RoiCalculator client:load />}
+			{tool.component === 'BmiCalculator' && <BmiCalculator client:load />}
+			{tool.component === 'SimpleInterestCalculator' && <SimpleInterestCalculator client:load />}
+			{tool.component === 'DateAddSubtractCalculator' && <DateAddSubtractCalculator client:load />}
+			{tool.component === 'TimeZoneConverter' && <TimeZoneConverter client:load />}
+			{tool.component === 'ReadingTimeCalculator' && <ReadingTimeCalculator client:load />}
+			{tool.component === 'SentenceParagraphCounter' && <SentenceParagraphCounter client:load />}
+			{tool.component === 'SortTextAlphabetically' && <SortTextAlphabetically client:load />}
+			{tool.component === 'FindReplaceText' && <FindReplaceText client:load />}
+			{tool.component === 'TextToSlugConverter' && <TextToSlugConverter client:load />}
 		</div>
+		<section class="tool-guide" aria-labelledby="how-to-use">
+			<h2 id="how-to-use">How to use {tool.name}</h2>
+			<ol>
+				{tool.howTo.map((step) => <li>{step}</li>)}
+			</ol>
+			<div class="tool-faqs">
+				{tool.faqs.map((faq) => (
+					<article class="tool-faq">
+						<h3>{faq.question}</h3>
+						<p>{faq.answer}</p>
+					</article>
+				))}
+			</div>
+		</section>
 	</section>
 </ToolLayout>

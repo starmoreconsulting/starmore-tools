@@ -46,7 +46,7 @@ src/
   engines/                       # Shared, UI-independent tool logic
 ```
 
-Add a tool by implementing a React component in `src/components/tools/`, then add its `slug`, `name`, `department`, `description`, component export name, and `live` status to `src/data/tools.ts`. Only entries in `liveTools` appear in the directory, department listings, and generated pages. Keep unfinished tools at `live: false`. Add the corresponding static import and component branch in `src/pages/[slug].astro` before setting a tool to live; Astro needs explicit component imports for client hydration. Add new departments to the `departments` list in `src/data/tools.ts`.
+Add a tool by implementing a React component in `src/components/tools/`, then add its `slug`, `name`, `department`, card description, unique `seoTitle` and `seoDescription`, three `howTo` steps, 2–3 `faqs`, component export name, and `live` status to `src/data/tools.ts`. Only entries in `liveTools` appear in the directory, department listings, generated pages, and automatically generated `/sitemap.xml`. Keep unfinished tools at `live: false`. Add the corresponding static import and component branch in `src/pages/[slug].astro` before setting a tool to live; Astro needs explicit component imports for client hydration. Add new departments to the `departments` list in `src/data/tools.ts`.
 
 ## Commands
 
