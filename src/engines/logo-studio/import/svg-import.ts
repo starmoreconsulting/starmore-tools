@@ -1,10 +1,15 @@
+import DOMPurify from 'dompurify';
 import { createDefaultElement, type Element as LogoElement } from '../model/types';
 import { sanitizeReferenceSvg } from '../store/references';
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_ELEMENTS = 500;
+const MAX_NODES = 10_000;
+const MAX_DEPTH = 64;
+const MAX_PATH_CHARS = 1_000_000;
+const MAX_COORDINATE = 1_000_000;
 type Matrix = [number, number, number, number, number, number];
-type ImportResult = { elements: LogoElement[]; imported: number; skipped: number; truncated: boolean };
+type ImportResult = { elements: LogoElement[]; imported: number; skipped: number; truncated: boolean; limitReason?: string };
 type InheritedStyle = { fill?: string; stroke?: string; strokeWidth?: number; opacity: number };
 
 function multiply(left: Matrix, right: Matrix): Matrix {
@@ -23,7 +28,9 @@ function transformPoint(matrix: Matrix, x: number, y: number): [number, number] 
 
 function numberList(value: string): number[] {
 	const matches = value.match(/[-+]?(?:\d*\.?\d+)(?:e[-+]?\d+)?/gi) ?? [];
-	return matches.map(Number);
+	const values = matches.map(Number);
+	if (values.some((number) => !Number.isFinite(number))) throw new Error('This SVG contains invalid numeric values.');
+	return values;
 }
 
 function parseTransform(value: string | null): Matrix {
@@ -35,6 +42,7 @@ function parseTransform(value: string | null): Matrix {
 	while ((match = expression.exec(value))) {
 		consumed += match[0];
 		const values = numberList(match[2]);
+		if (values.some((number) => !Number.isFinite(number))) throw new Error('This SVG contains invalid transform values.');
 		let next: Matrix;
 		switch (match[1].toLowerCase()) {
 			case 'matrix':
@@ -80,6 +88,7 @@ function parsePoints(value: string): number[][] {
 }
 
 function transformedPath(data: string, matrix: Matrix): string {
+	if (!data || data.length > MAX_PATH_CHARS) throw new Error('This SVG path is empty or too large to import.');
 	const tokens = data.match(/[a-z]|[-+]?(?:\d*\.?\d+)(?:e[-+]?\d+)?/gi) ?? [];
 	if (data.replace(/[a-z]|[-+]?(?:\d*\.?\d+)(?:e[-+]?\d+)?|[\s,]/gi, '')) {
 		throw new Error('This SVG path contains unsupported data.');
@@ -100,7 +109,13 @@ function transformedPath(data: string, matrix: Matrix): string {
 	let startX = 0;
 	let startY = 0;
 	const counts: Record<string, number> = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7 };
-	const point = (px: number, py: number) => transformPoint(matrix, px, py).map((value) => Number(value.toFixed(4)));
+	const point = (px: number, py: number) => {
+		const transformed = transformPoint(matrix, px, py);
+		if (!transformed.every(Number.isFinite) || Math.max(Math.abs(transformed[0]), Math.abs(transformed[1])) > MAX_COORDINATE) {
+			throw new Error('This SVG path has invalid coordinates.');
+		}
+		return transformed.map((value) => Number(value.toFixed(4)));
+	};
 	while (index < tokens.length) {
 		if (/^[a-z]$/i.test(tokens[index])) {
 			command = tokens[index++];
@@ -118,6 +133,7 @@ function transformedPath(data: string, matrix: Matrix): string {
 		const count = counts[upper];
 		if (!count || index + count > tokens.length || /^[a-z]$/i.test(tokens[index])) throw new Error('This SVG path command is incomplete.');
 		const values = tokens.slice(index, index + count).map(Number);
+		if (values.some((value) => !Number.isFinite(value))) throw new Error('This SVG path has invalid coordinates.');
 		index += count;
 		const relative = command !== upper;
 		const absolutePoint = (px: number, py: number): [number, number] => [relative ? x + px : px, relative ? y + py : py];
@@ -185,10 +201,13 @@ function makeElement(
 	const sx = Math.hypot(matrix[0], matrix[1]);
 	const sy = Math.hypot(matrix[2], matrix[3]);
 	const angle = Math.atan2(matrix[1], matrix[0]) * 180 / Math.PI;
-	if (sx <= 0 || sy <= 0 || Math.abs(matrix[0] * matrix[2] + matrix[1] * matrix[3]) > 0.001 || matrix[0] * matrix[3] - matrix[1] * matrix[2] < 0) {
+	if (![...matrix, sx, sy, angle].every(Number.isFinite) || sx <= 0 || sy <= 0 || Math.abs(matrix[0] * matrix[2] + matrix[1] * matrix[3]) > 0.001 || matrix[0] * matrix[3] - matrix[1] * matrix[2] < 0) {
 		throw new Error('This SVG shape uses a skewed or reflected transform.');
 	}
 	const addShape = (shape: string, x: number, y: number, width: number, height: number, radius = 0) => {
+		if (![x, y, width, height, radius].every(Number.isFinite) || width <= 0 || height <= 0 || Math.max(Math.abs(x), Math.abs(y), width, height) > MAX_COORDINATE) {
+			throw new Error('This SVG shape has invalid or unsupported dimensions.');
+		}
 		const center = transformPoint(matrix, x + width / 2, y + height / 2);
 		return createDefaultElement('shape', {
 			name: `Imported ${shape}`,
@@ -211,16 +230,20 @@ function makeElement(
 		case 'rect': {
 			const width = attrs('width');
 			const height = attrs('height');
+			if (width <= 0 || height <= 0) throw new Error('This SVG rectangle has invalid dimensions.');
 			return addShape(attrs('rx') || attrs('ry') ? 'rounded-rectangle' : 'rectangle', attrs('x'), attrs('y'), width, height, attrs('rx') || attrs('ry'));
 		}
 		case 'circle': {
 			const radius = attrs('r');
+			if (radius <= 0) throw new Error('This SVG circle has invalid dimensions.');
 			return addShape('circle', attrs('cx') - radius, attrs('cy') - radius, radius * 2, radius * 2);
 		}
 		case 'ellipse':
+			if (attrs('rx') <= 0 || attrs('ry') <= 0) throw new Error('This SVG ellipse has invalid dimensions.');
 			return addShape('circle', attrs('cx') - attrs('rx'), attrs('cy') - attrs('ry'), attrs('rx') * 2, attrs('ry') * 2);
 		case 'path': {
 			const path = transformedPath(node.getAttribute('d') ?? '', matrix);
+			if (/NaN|Infinity/.test(path)) throw new Error('This SVG path has invalid coordinates.');
 			return createDefaultElement('path', {
 				name: 'Imported path',
 				x: 0,
@@ -239,6 +262,9 @@ function makeElement(
 		case 'line': {
 			const [x1, y1] = transformPoint(matrix, attrs('x1'), attrs('y1'));
 			const [x2, y2] = transformPoint(matrix, attrs('x2'), attrs('y2'));
+			if (![x1, y1, x2, y2].every(Number.isFinite) || Math.max(Math.abs(x1), Math.abs(y1), Math.abs(x2), Math.abs(y2)) > MAX_COORDINATE) {
+				throw new Error('This SVG line has invalid coordinates.');
+			}
 			return createDefaultElement('path', {
 				name: 'Imported line',
 				x: 0,
@@ -255,7 +281,11 @@ function makeElement(
 		}
 		case 'polyline':
 		case 'polygon': {
+			if ((node.getAttribute('points')?.length ?? 0) > MAX_PATH_CHARS) throw new Error('This SVG polygon is too large to import.');
 			const points = parsePoints(node.getAttribute('points') ?? '').map(([x, y]) => transformPoint(matrix, x, y));
+			if (points.some(([x, y]) => !Number.isFinite(x) || !Number.isFinite(y) || Math.max(Math.abs(x), Math.abs(y)) > MAX_COORDINATE)) {
+				throw new Error('This SVG polygon has invalid coordinates.');
+			}
 			const d = `M ${points.map(([x, y]) => `${x} ${y}`).join(' L ')}${node.localName === 'polygon' ? ' Z' : ''}`;
 			return createDefaultElement('path', {
 				name: `Imported ${node.localName}`,
@@ -277,27 +307,51 @@ function makeElement(
 }
 
 export function importSvg(contents: string, boardWidth: number, boardHeight: number): ImportResult {
-	if (contents.length > MAX_FILE_BYTES) throw new Error('SVG files must be 10 MB or smaller.');
+	if (new TextEncoder().encode(contents).byteLength > MAX_FILE_BYTES) throw new Error('SVG files must be 10 MB or smaller.');
+	if (![boardWidth, boardHeight].every(Number.isFinite) || boardWidth < 1 || boardHeight < 1) {
+		throw new Error('The logo artboard has invalid dimensions.');
+	}
 	const sanitized = sanitizeReferenceSvg(contents);
+	const sanitizerSkipped = DOMPurify.removed.filter((item) => 'element' in item && item.element.nodeType === Node.ELEMENT_NODE).length;
 	const document = new DOMParser().parseFromString(sanitized, 'image/svg+xml');
 	if (document.querySelector('parsererror') || document.documentElement.localName !== 'svg') {
 		throw new Error('This SVG could not be parsed. Choose a valid SVG file.');
 	}
 	const root = document.documentElement;
 	const viewBox = numberList(root.getAttribute('viewBox') ?? '');
+	if (viewBox.length !== 0 && (viewBox.length !== 4 || viewBox[2] <= 0 || viewBox[3] <= 0)) {
+		throw new Error('This SVG has an invalid viewBox.');
+	}
 	const sourceWidth = viewBox.length === 4 && viewBox[2] > 0 ? viewBox[2] : parseLength(root.getAttribute('width'), boardWidth);
 	const sourceHeight = viewBox.length === 4 && viewBox[3] > 0 ? viewBox[3] : parseLength(root.getAttribute('height'), boardHeight);
+	if (![sourceWidth, sourceHeight].every(Number.isFinite) || sourceWidth <= 0 || sourceHeight <= 0) {
+		throw new Error('This SVG has invalid canvas dimensions.');
+	}
 	const sourceX = viewBox.length === 4 ? viewBox[0] : 0;
 	const sourceY = viewBox.length === 4 ? viewBox[1] : 0;
 	const scale = Math.min(boardWidth * 0.8 / sourceWidth, boardHeight * 0.8 / sourceHeight);
 	const rootMap: Matrix = [scale, 0, 0, scale, (boardWidth - sourceWidth * scale) / 2 - sourceX * scale, (boardHeight - sourceHeight * scale) / 2 - sourceY * scale];
 	const initialStyle: InheritedStyle = { opacity: 1 };
 	const elements: LogoElement[] = [];
-	let skipped = 0;
+	let skipped = sanitizerSkipped;
 	let truncated = false;
-	const visit = (node: SVGElement, parentMatrix: Matrix, parentStyle: InheritedStyle) => {
+	let limitReason: string | undefined;
+	let visited = 0;
+	const visit = (node: SVGElement, parentMatrix: Matrix, parentStyle: InheritedStyle, depth = 0) => {
+		visited += 1;
+		if (depth > MAX_DEPTH) {
+			skipped += 1;
+			limitReason ??= 'The SVG nesting limit';
+			return;
+		}
+		if (visited > MAX_NODES) {
+			truncated = true;
+			limitReason = 'The SVG complexity limit';
+			return;
+		}
 		if (elements.length >= MAX_ELEMENTS) {
 			truncated = true;
+			limitReason = 'The 500-element limit';
 			return;
 		}
 		let matrix: Matrix;
@@ -309,11 +363,35 @@ export function importSvg(contents: string, boardWidth: number, boardHeight: num
 		}
 		const style = styleFor(node, parentStyle);
 		if (node.localName === 'svg' || node.localName === 'g') {
-			for (const child of Array.from(node.children)) visit(child as SVGElement, matrix, style);
+			const children = Array.from(node.children);
+			for (const [index, child] of children.entries()) {
+				if (elements.length >= MAX_ELEMENTS) {
+					truncated = true;
+					limitReason = 'The 500-element limit';
+					break;
+				}
+				if (visited >= MAX_NODES && index + 1 < children.length) {
+					truncated = true;
+					limitReason = 'The SVG complexity limit';
+					break;
+				}
+				visit(child as SVGElement, matrix, style, depth + 1);
+			}
 			return;
 		}
 		if (['defs', 'title', 'desc', 'metadata'].includes(node.localName)) return;
+		if (['filter', 'mask', 'clipPath'].includes(node.localName)) {
+			skipped += 1;
+			return;
+		}
 		if (!['rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'path'].includes(node.localName)) {
+			skipped += 1;
+			return;
+		}
+		if (['filter', 'mask', 'clip-path'].some((name) => {
+			const value = node.getAttribute(name);
+			return Boolean(value && value !== 'none');
+		})) {
 			skipped += 1;
 			return;
 		}
@@ -328,7 +406,7 @@ export function importSvg(contents: string, boardWidth: number, boardHeight: num
 	for (const child of Array.from(root.children)) visit(child as SVGElement, rootMatrix, rootStyle);
 	if (truncated) skipped += Math.max(1, document.querySelectorAll('rect,circle,ellipse,line,polyline,polygon,path').length - elements.length);
 	if (!elements.length) throw new Error('No supported shapes were found in this SVG.');
-	return { elements, imported: elements.length, skipped, truncated };
+	return { elements, imported: elements.length, skipped, truncated, ...(limitReason ? { limitReason } : {}) };
 }
 
 export function importCustomSvgIcon(contents: string, boardWidth: number, boardHeight: number): ImportResult {

@@ -165,7 +165,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			const summary = asIcon
 				? `Imported ${result.imported} shapes as one custom icon group`
 				: `Imported ${result.imported} shapes`;
-			setStatus(`${summary}${result.skipped ? `, skipped ${result.skipped} unsupported items` : ''}${result.truncated ? '. The 500-element limit was reached' : ''}.`);
+			setStatus(`${summary}${result.skipped ? `, skipped ${result.skipped} unsupported items` : ''}${result.limitReason ? `. ${result.limitReason} reached` : ''}.`);
 			setFileError('');
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'The SVG could not be imported.';
