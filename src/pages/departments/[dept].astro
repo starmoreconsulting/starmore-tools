@@ -1,6 +1,6 @@
 ---
 import ToolLayout from '../../components/ToolLayout.astro';
-import { departments, liveTools } from '../../data/tools';
+import { departments, publishedTools } from '../../data/tools';
 
 export function getStaticPaths() {
 	return departments.map((department) => ({
@@ -10,7 +10,7 @@ export function getStaticPaths() {
 }
 
 const { department } = Astro.props;
-const departmentTools = liveTools.filter((tool) => tool.department === department.slug);
+const departmentTools = publishedTools.filter((tool) => tool.department === department.slug);
 ---
 
 <ToolLayout title={`${department.name} tools`} description={department.description}>

@@ -1,14 +1,6 @@
 ---
-import ToolLayout from '../../../components/ToolLayout.astro';
-import { mockupCategoryPages } from '../../../engines/logo-studio/mockups/categories';
-import { mockupScenes } from '../../../engines/logo-studio/mockups/scenes';
-
-export function getStaticPaths() {
-	return mockupCategoryPages.map((category) => ({
-		params: { category: category.slug },
-		props: { category },
-	}));
-}
+import ToolLayout from '../ToolLayout.astro';
+import { mockupScenes } from '../../engines/logo-studio/mockups/scenes';
 
 const { category } = Astro.props;
 const scenes = mockupScenes.filter((scene) => scene.category === category.name);

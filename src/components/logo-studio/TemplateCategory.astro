@@ -1,14 +1,6 @@
 ---
-import ToolLayout from '../../../components/ToolLayout.astro';
-import TemplatePreviewGrid from '../../../engines/logo-studio/templates/TemplatePreviewGrid';
-import { industryTemplateCategories } from '../../../engines/logo-studio/templates/industry-catalog';
-
-export function getStaticPaths() {
-	return industryTemplateCategories.map((category) => ({
-		params: { industry: category.slug },
-		props: { category },
-	}));
-}
+import ToolLayout from '../ToolLayout.astro';
+import TemplatePreviewGrid from '../../engines/logo-studio/templates/TemplatePreviewGrid';
 
 const { category } = Astro.props;
 ---

@@ -56,47 +56,10 @@ import WordCounter from '../components/tools/WordCounter';
 import TextLogoGenerator from '../components/tools/TextLogoGenerator';
 import MonogramLogoGenerator from '../components/tools/MonogramLogoGenerator';
 import LogoStudioApp from '../engines/logo-studio/panels/LogoStudioApp';
-import { departments, tools } from '../data/tools';
+import { departments, publishedTools } from '../data/tools';
 
 export function getStaticPaths() {
-	const hiddenGeneratorSlugs = new Set([
-		'template-logo-generator',
-		'business-name-logo-generator',
-		'industry-logo-generator',
-		'icon-logo-generator',
-		'initials-logo-generator',
-		'logo-variation-generator',
-		'black-and-white-logo-generator',
-		'logo-colour-variation-generator',
-		'reference-logo-generator',
-		'logo-redesign-tool',
-		'logo-mockup-generator',
-		'business-card-mockup',
-		'tshirt-logo-mockup',
-		'logo-preview-tool',
-		'logo-export-centre',
-		'image-upscaler',
-		'image-sharpener',
-		'image-denoiser',
-		'photo-colour-correction',
-		'brightness-contrast-editor',
-		'blurry-photo-enhancer',
-		'image-colour-picker',
-		'colour-palette-extractor',
-		'favicon-generator',
-		'social-media-image-resizer',
-		'image-watermark-generator',
-		'background-remover',
-		'background-changer',
-		'logo-background-remover',
-		'logo-transparency-editor',
-		'passport-photo-maker',
-		'profile-picture-maker',
-		'photo-collage-maker',
-		'meme-generator',
-		'screenshot-beautifier',
-	]);
-	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
+	return publishedTools.filter((tool) => tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },
 		props: { tool },
 	}));

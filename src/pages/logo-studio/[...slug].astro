@@ -1,0 +1,35 @@
+---
+import LogoStudioLanding from '../../components/logo-studio/LogoStudioLanding.astro';
+import MockupCategory from '../../components/logo-studio/MockupCategory.astro';
+import MockupsIndex from '../../components/logo-studio/MockupsIndex.astro';
+import TemplateCategory from '../../components/logo-studio/TemplateCategory.astro';
+import TemplatesIndex from '../../components/logo-studio/TemplatesIndex.astro';
+import { industryTemplateCategories } from '../../engines/logo-studio/templates/industry-catalog';
+import { mockupCategoryPages } from '../../engines/logo-studio/mockups/categories';
+
+export function getStaticPaths() {
+	if (import.meta.env.PUBLIC_SHOW_HIDDEN !== 'true') return [];
+
+	return [
+		{ params: { slug: undefined }, props: { page: 'studio' } },
+		{ params: { slug: 'templates' }, props: { page: 'templates-index' } },
+		...industryTemplateCategories.map((category) => ({
+			params: { slug: `templates/${category.slug}` },
+			props: { page: 'template-category', category },
+		})),
+		{ params: { slug: 'mockups' }, props: { page: 'mockups-index' } },
+		...mockupCategoryPages.map((category) => ({
+			params: { slug: `mockups/${category.slug}` },
+			props: { page: 'mockup-category', category },
+		})),
+	];
+}
+
+const { page, category } = Astro.props;
+---
+
+{page === 'studio' && <LogoStudioLanding />}
+{page === 'templates-index' && <TemplatesIndex />}
+{page === 'template-category' && category && <TemplateCategory category={category} />}
+{page === 'mockups-index' && <MockupsIndex />}
+{page === 'mockup-category' && category && <MockupCategory category={category} />}

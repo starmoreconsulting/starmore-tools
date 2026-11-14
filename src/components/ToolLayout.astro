@@ -1,5 +1,5 @@
 ---
-import { departments } from '../data/tools';
+import { departments, tools } from '../data/tools';
 
 interface Props {
 	title: string;
@@ -7,6 +7,8 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+const previewBuild = import.meta.env.PUBLIC_SHOW_HIDDEN === 'true';
+const logoStudioIsLive = tools.some((tool) => tool.slug === 'logo-studio' && tool.live);
 ---
 
 <!doctype html>
@@ -17,11 +19,13 @@ const { title, description } = Astro.props;
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
+		{previewBuild && <meta name="robots" content="noindex" />}
 		<meta name="theme-color" content="#f8f7f2" />
 		<title>{title} — Starmore Tools</title>
 	</head>
 	<body>
 		<div class="site-shell">
+			{previewBuild && <aside class="preview-banner" role="status">Preview build: hidden tools are shown</aside>}
 			<header class="site-header">
 				<a class="brand" href="/" aria-label="Starmore Tools home">
 					<span class="brand-mark" aria-hidden="true">✳</span>
@@ -29,7 +33,7 @@ const { title, description } = Astro.props;
 				</a>
 				<nav class="main-nav" aria-label="Main navigation">
 					<a href="/#tool-library">All tools</a>
-					<a href="/logo-studio/">Logo Studio</a>
+					{(logoStudioIsLive || previewBuild) && <a href="/logo-studio/">Logo Studio</a>}
 					{departments.filter((department) => department.slug !== 'logo').map((department) => (
 						<a href={`/departments/${department.slug}`}>{department.name}</a>
 					))}
@@ -97,6 +101,7 @@ const { title, description } = Astro.props;
 	.footer-pages a:hover { color: var(--green); }
 	.footer-year { font-family: var(--mono); font-size: 10px; }
 	.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+	.preview-banner { margin-top: 10px; padding: 9px 12px; border: 1px solid #d5c996; border-radius: 6px; background: #fff7d7; color: #594b1b; font-size: 12px; font-weight: 700; text-align: center; }
 
 	.hero { min-height: 465px; position: relative; display: grid; grid-template-columns: 1fr 1fr; align-items: center; overflow: hidden; border-bottom: 1px solid var(--line); }
 	.hero-copy { z-index: 1; padding: 45px 0 58px 25px; }

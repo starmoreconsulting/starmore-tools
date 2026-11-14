@@ -1321,4 +1321,4 @@ export const tools: ToolDefinition[] = [
 	},
 ];
 
-export const liveTools = tools.filter((tool) => tool.live);
+export const publishedTools = tools.filter((tool) => tool.live || import.meta.env.PUBLIC_SHOW_HIDDEN === 'true');

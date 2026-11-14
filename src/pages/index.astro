@@ -1,6 +1,6 @@
 ---
 import ToolLayout from '../components/ToolLayout.astro';
-import { departments, liveTools } from '../data/tools';
+import { departments, publishedTools } from '../data/tools';
 ---
 
 <ToolLayout
@@ -48,7 +48,7 @@ import { departments, liveTools } from '../data/tools';
 		</div>
 
 		<nav class="department-links" aria-label="Browse by department">
-			<a class="department-chip active" href="#tool-library">All tools <span>{liveTools.length}</span></a>
+			<a class="department-chip active" href="#tool-library">All tools <span>{publishedTools.length}</span></a>
 			{departments.map((department) => (
 				<a class="department-chip" href={`/departments/${department.slug}`}>
 					{department.name} <span>↗</span>
@@ -57,7 +57,7 @@ import { departments, liveTools } from '../data/tools';
 		</nav>
 
 		<div class="tool-grid" id="tool-grid">
-			{liveTools.map((tool, index) => (
+			{publishedTools.map((tool, index) => (
 				<a
 					class="tool-card"
 					href={`/${tool.slug}`}

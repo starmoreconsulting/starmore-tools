@@ -1,7 +1,7 @@
 ---
-import ToolLayout from '../components/ToolLayout.astro';
-import LogoStudioApp from '../engines/logo-studio/panels/LogoStudioApp';
-import { tools } from '../data/tools';
+import ToolLayout from '../ToolLayout.astro';
+import LogoStudioApp from '../../engines/logo-studio/panels/LogoStudioApp';
+import { tools } from '../../data/tools';
 
 const tool = tools.find((entry) => entry.slug === 'logo-studio');
 if (!tool) throw new Error('Logo Studio is missing from the tool registry.');
