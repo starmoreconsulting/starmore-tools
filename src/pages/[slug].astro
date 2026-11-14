@@ -43,6 +43,7 @@ import BackgroundChanger from '../components/tools/BackgroundChanger';
 import LogoBackgroundRemover, { LogoTransparencyEditor } from '../components/tools/LogoBackgroundRemover';
 import PassportPhotoMaker from '../components/tools/PassportPhotoMaker';
 import ProfilePictureMaker from '../components/tools/ProfilePictureMaker';
+import PhotoCollageMaker from '../components/tools/PhotoCollageMaker';
 import MarkdownEditor from '../components/tools/MarkdownEditor';
 import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
 import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
@@ -89,6 +90,7 @@ export function getStaticPaths() {
 		'logo-transparency-editor',
 		'passport-photo-maker',
 		'profile-picture-maker',
+		'photo-collage-maker',
 	]);
 	return tools.filter((tool) => (tool.live || hiddenGeneratorSlugs.has(tool.slug)) && tool.slug !== 'logo-studio').map((tool) => ({
 		params: { slug: tool.slug },
@@ -158,6 +160,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'LogoTransparencyEditor' && <LogoTransparencyEditor client:load />}
 			{tool.component === 'PassportPhotoMaker' && <PassportPhotoMaker client:load />}
 			{tool.component === 'ProfilePictureMaker' && <ProfilePictureMaker client:load />}
+			{tool.component === 'PhotoCollageMaker' && <PhotoCollageMaker client:load />}
 			{tool.component === 'MarkdownEditor' && <MarkdownEditor client:load />}
 			{tool.component === 'TextLogoGenerator' && <TextLogoGenerator client:load />}
 			{tool.component === 'MonogramLogoGenerator' && <MonogramLogoGenerator client:load />}
