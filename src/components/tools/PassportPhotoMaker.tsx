@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { commonPhotoSizes, layoutPrintSheet, photoSizeToPixels, photoSizesLastChecked, printSheetSizes, type PhotoSize } from '../../data/photo-sizes';
 import { renderPassportPhoto, renderPassportSheet, type PassportMask, type PassportRenderOptions } from '../../engines/image/passport-engine';
+import { coverSourceCrop } from '../../engines/image/composition-math';
 import { decodeImageFile, downloadImage, formatImageBytes, getImageLimits, type DecodedImage, type ImageOutputType } from '../../engines/image/toolkit';
 import { initializeModelRuntime } from '../../engines/image/models/model-runtime';
 import { loadBackgroundModel } from '../../engines/image/models/model-loader';
@@ -16,22 +17,6 @@ const backgroundColors: Record<Exclude<BackgroundMode, 'keep' | 'quick' | 'high'
 	'off-white': '#f5f2ea',
 	'light-blue': '#dceaf5',
 };
-
-function coverCrop(sourceWidth: number, sourceHeight: number, aspect: number, zoom: number, center: Point) {
-	const sourceAspect = sourceWidth / sourceHeight;
-	let width = sourceWidth;
-	let height = sourceHeight;
-	if (sourceAspect > aspect) width = sourceHeight * aspect;
-	else height = sourceWidth / aspect;
-	width /= zoom;
-	height /= zoom;
-	return {
-		x: Math.max(0, Math.min(sourceWidth - width, center.x * sourceWidth - width / 2)),
-		y: Math.max(0, Math.min(sourceHeight - height, center.y * sourceHeight - height / 2)),
-		width,
-		height,
-	};
-}
 
 function download(blob: Blob, name: string) {
 	downloadImage(blob, name);
@@ -105,7 +90,7 @@ export default function PassportPhotoMaker() {
 		}
 	};
 
-	const crop = source ? coverCrop(source.width, source.height, aspect, zoom, center) : null;
+	const crop = source ? coverSourceCrop(source.width, source.height, aspect, zoom, center) : null;
 	const renderOptions = (): PassportRenderOptions | null => source && crop ? {
 		crop,
 		width: pixels.width,

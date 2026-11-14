@@ -61,6 +61,7 @@ export type ToolComponentName =
 	| 'LogoBackgroundRemover'
 	| 'LogoTransparencyEditor'
 	| 'PassportPhotoMaker'
+	| 'ProfilePictureMaker'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
