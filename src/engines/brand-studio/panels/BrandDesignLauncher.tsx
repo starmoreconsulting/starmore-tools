@@ -4,6 +4,7 @@ import { getDesignLayouts, generateDesign, type DesignType, type GeneratedDesign
 
 interface Props {
 	kit: BrandKit | null;
+	initialType?: DesignType;
 	onCreate: (design: GeneratedDesign) => void;
 	onSetupBrand: () => void;
 	onClose: () => void;
@@ -22,8 +23,8 @@ const LABELS: Record<DesignType, string> = {
 	'linkedin-banner': 'LinkedIn banner',
 };
 
-export default function BrandDesignLauncher({ kit, onCreate, onSetupBrand, onClose }: Props) {
-	const [type, setType] = useState<DesignType>('business-card-front');
+export default function BrandDesignLauncher({ kit, initialType, onCreate, onSetupBrand, onClose }: Props) {
+	const [type, setType] = useState<DesignType>(initialType ?? 'business-card-front');
 	const [layoutId, setLayoutId] = useState('centered');
 	const [cardSize, setCardSize] = useState<'85x55mm' | '3.5x2in'>('85x55mm');
 	const [error, setError] = useState('');

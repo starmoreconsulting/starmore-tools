@@ -1,5 +1,5 @@
 ---
-import { departments, getPublishedToolHref } from '../data/tools';
+import { departments, getPublishedToolHref, tools } from '../data/tools';
 
 interface Props {
 	title: string;
@@ -10,6 +10,7 @@ interface Props {
 const { title, description, robots } = Astro.props;
 const previewBuild = import.meta.env.PUBLIC_SHOW_HIDDEN === 'true';
 const logoStudioHref = getPublishedToolHref('/logo-studio/');
+const hasLiveBrandStudioTool = tools.some((tool) => tool.department === 'brand-studio' && tool.live);
 const robotsContent = previewBuild ? 'noindex' : robots;
 ---
 
@@ -36,7 +37,7 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 				<nav class="main-nav" aria-label="Main navigation">
 					<a href="/#tool-library">All tools</a>
 					{logoStudioHref && <a href={logoStudioHref}>Logo Studio</a>}
-					{departments.filter((department) => department.slug !== 'logo').map((department) => (
+					{departments.filter((department) => department.slug !== 'logo' && (department.slug !== 'brand-studio' || hasLiveBrandStudioTool)).map((department) => (
 						<a href={`/departments/${department.slug}`}>{department.name}</a>
 					))}
 				</nav>

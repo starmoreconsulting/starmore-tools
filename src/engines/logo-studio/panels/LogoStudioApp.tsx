@@ -83,7 +83,7 @@ function findTextElements(elements: Element[]): Element[] {
 	]);
 }
 
-export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } = {}) {
+export default function LogoStudioApp({ preset, designPreset }: { preset?: LogoStudioPreset; designPreset?: DesignType } = {}) {
 	const uploadPreset = preset === 'reference' || preset === 'redesign';
 	const mockupPreset = preset === 'mockups' || preset === 'business-card-mockup' || preset === 'tshirt-mockup' || preset === 'preview-mockup';
 	const initialMockupScene = preset === 'business-card-mockup'
@@ -129,7 +129,8 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [showProjects, setShowProjects] = useState(false);
 	const [showBrandKits, setShowBrandKits] = useState(false);
 	const [showBrandSetup, setShowBrandSetup] = useState(false);
-	const [showDesignLauncher, setShowDesignLauncher] = useState(false);
+	const [showDesignLauncher, setShowDesignLauncher] = useState(Boolean(designPreset));
+	const [resumeDesignAfterSetup, setResumeDesignAfterSetup] = useState(false);
 	const [resizeProfile, setResizeProfile] = useState<BrandProfile | null>(null);
 	const [printGuides, setPrintGuides] = useState(false);
 	const [activeBrandKit, setActiveBrandKit] = useState<BrandKit | null>(null);
@@ -608,13 +609,19 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				onActiveChange={(kit) => {
 					setActiveBrandKit(kit);
 					void refreshCustomFonts().catch((error: unknown) => setStatus(`Custom fonts could not be refreshed: ${error instanceof Error ? error.message : 'local font storage is unavailable.'}`));
+					if (resumeDesignAfterSetup) {
+						setShowDesignLauncher(true);
+						setResumeDesignAfterSetup(false);
+					}
 				}}
 				onClose={() => setShowBrandSetup(false)}
 			/>}
 			{showDesignLauncher && <BrandDesignLauncher
 				kit={activeBrandKit}
+				initialType={designPreset}
 				onCreate={openGeneratedDesign}
 				onSetupBrand={() => {
+					setResumeDesignAfterSetup(true);
 					setShowDesignLauncher(false);
 					setShowBrandSetup(true);
 				}}
