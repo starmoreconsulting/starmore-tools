@@ -64,6 +64,7 @@ export type ToolComponentName =
 	| 'ProfilePictureMaker'
 	| 'PhotoCollageMaker'
 	| 'MemeGenerator'
+	| 'ScreenshotBeautifier'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
