@@ -18,6 +18,8 @@ interface Props {
 	onBackgroundChange: (background: string) => void;
 	onReferenceChange: (patch: Partial<ReferenceLayer>) => void;
 	onReferenceRemove: () => void;
+	printGuides?: boolean;
+	onPrintGuidesChange?: (visible: boolean) => void;
 }
 
 interface CenterGuides {
@@ -281,7 +283,7 @@ function pointInSvg(svg: SVGSVGElement, clientX: number, clientY: number): { x: 
 	return { x: transformed.x, y: transformed.y };
 }
 
-export default function SvgArtboard({ project, variant, zoom, selectedId, selectedIds, onSelect, onUpdate, onBackgroundChange, reference, onReferenceChange, onReferenceRemove }: Props) {
+export default function SvgArtboard({ project, variant, zoom, selectedId, selectedIds, onSelect, onUpdate, onBackgroundChange, reference, onReferenceChange, onReferenceRemove, printGuides = false, onPrintGuidesChange }: Props) {
 	const svgRef = useRef<SVGSVGElement>(null);
 	const actionRef = useRef<PointerAction | null>(null);
 	const movedRef = useRef(false);
@@ -292,6 +294,8 @@ export default function SvgArtboard({ project, variant, zoom, selectedId, select
 	const [centerGuides, setCenterGuides] = useState<CenterGuides>({ vertical: false, horizontal: false });
 	const background = project.variantBackgrounds?.[variant] ?? project.artboard.background;
 	const elements = project.variants[variant] ?? [];
+	const printDesign = /^(business-card-front|business-card-back|letterhead|envelope):/.test(project.generation?.layoutId ?? '');
+	const bleedMm = 3;
 	const textLayoutKey = getTextLayoutKey(elements);
 
 	useEffect(() => {
@@ -441,6 +445,10 @@ export default function SvgArtboard({ project, variant, zoom, selectedId, select
 					Transparent background
 				</label>
 				<span>{project.artboard.width} × {project.artboard.height}</span>
+				{printDesign && onPrintGuidesChange && <label className="logo-print-guides-toggle">
+					<input type="checkbox" checked={printGuides} onChange={(event) => onPrintGuidesChange(event.target.checked)} />
+					Print guides
+				</label>}
 			</div>
 			{reference && (
 				<div className="logo-reference-controls" aria-label="Reference image controls">
@@ -502,6 +510,13 @@ export default function SvgArtboard({ project, variant, zoom, selectedId, select
 						textOutlines={textOutlines}
 					/>
 				))}
+				{printDesign && printGuides && (
+					<g className="logo-print-guides" pointerEvents="none">
+						<rect className="logo-print-bleed-guide" x={-bleedMm} y={-bleedMm} width={project.artboard.width + bleedMm * 2} height={project.artboard.height + bleedMm * 2} />
+						<rect className="logo-print-trim-guide" x="0" y="0" width={project.artboard.width} height={project.artboard.height} />
+						<rect className="logo-print-safe-guide" x={bleedMm} y={bleedMm} width={project.artboard.width - bleedMm * 2} height={project.artboard.height - bleedMm * 2} />
+					</g>
+				)}
 				{(centerGuides.vertical || centerGuides.horizontal) && (
 					<g className="logo-snap-guides" pointerEvents="none">
 						{centerGuides.vertical && <line x1={project.artboard.width / 2} y1="0" x2={project.artboard.width / 2} y2={project.artboard.height} />}

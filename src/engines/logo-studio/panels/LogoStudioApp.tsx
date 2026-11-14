@@ -124,6 +124,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [showProjects, setShowProjects] = useState(false);
 	const [showBrandKits, setShowBrandKits] = useState(false);
 	const [showBrandSetup, setShowBrandSetup] = useState(false);
+	const [printGuides, setPrintGuides] = useState(false);
 	const [activeBrandKit, setActiveBrandKit] = useState<BrandKit | null>(null);
 	const [customFonts, setCustomFonts] = useState<StoredCustomFont[]>([]);
 	const [showExportCenter, setShowExportCenter] = useState(false);
@@ -658,6 +659,8 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 						reference={referenceReady ? reference : null}
 						onReferenceChange={updateReference}
 						onReferenceRemove={removeReference}
+						printGuides={printGuides}
+						onPrintGuidesChange={setPrintGuides}
 					/>
 					<p className="logo-phase-status" role="status" aria-live="polite">{status}</p>
 					{fileError && <p className="logo-phase-error" role="alert">{fileError}</p>}

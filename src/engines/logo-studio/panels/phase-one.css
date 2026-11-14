@@ -40,6 +40,7 @@
 .logo-artboard-wrap.is-transparent { background-color: #f0efe9; background-image: linear-gradient(45deg, #e6e5dc 25%, transparent 25%), linear-gradient(-45deg, #e6e5dc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e6e5dc 75%), linear-gradient(-45deg, transparent 75%, #e6e5dc 75%); background-position: 0 0, 0 8px, 8px -8px, -8px 0; background-size: 16px 16px; }
 .logo-artboard-tools { display: flex; width: min(100%, 680px); align-items: center; justify-content: space-between; color: #6b756b; font-size: 11px; }
 .logo-artboard-tools label { display: inline-flex; align-items: center; gap: 7px; }
+.logo-artboard-tools .logo-print-guides-toggle { font-weight: 700; }
 .logo-reference-controls { display: flex; width: min(100%, 680px); flex-wrap: wrap; align-items: center; gap: 9px; padding: 6px 8px; border: 1px solid #dfe3d5; border-radius: 4px; background: #fffefa; color: #536054; font-size: 10px; }
 .logo-reference-controls > strong { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .logo-reference-controls > label { display: inline-flex; align-items: center; gap: 4px; }
@@ -145,6 +146,10 @@
 .logo-align-grid button:disabled { opacity: .45; cursor: not-allowed; }
 .logo-layer-actions button { min-width: 0; }
 .logo-snap-guides line { stroke: #387bd0; stroke-width: 1; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+.logo-print-guides rect { fill: none; vector-effect: non-scaling-stroke; }
+.logo-print-bleed-guide { stroke: #c0443b; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.logo-print-trim-guide { stroke: #286ab4; stroke-width: 1.5; }
+.logo-print-safe-guide { stroke: #3a7b51; stroke-width: 1.5; stroke-dasharray: 6 4; }
 .logo-effect-panel { padding-top: 12px; border-top: 1px solid #e6e5dc; margin-top: 14px; }
 .logo-effect-toggle { display: flex; align-items: center; gap: 7px; color: #59645b; font-size: 11px; font-weight: 650; }
 .logo-effect-toggle input { accent-color: #37694f; }
