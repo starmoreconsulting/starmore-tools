@@ -63,7 +63,10 @@ async function render(request: WorkerRequest): Promise<Blob> {
 		}
 		screenshot = await decode(file);
 		checkImageDimensions(screenshot.width, screenshot.height);
-		if (options.backgroundImage) background = await decode(options.backgroundImage);
+		if (options.backgroundImage) {
+			background = await decode(options.backgroundImage);
+			checkImageDimensions(background.width, background.height);
+		}
 		const scale = options.scale;
 		const padding = Math.round(options.padding * scale);
 		const browserBar = options.frame === 'browser' ? Math.round(42 * scale) : 0;

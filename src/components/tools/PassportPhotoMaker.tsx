@@ -56,6 +56,7 @@ export default function PassportPhotoMaker() {
 	const pixels = photoSizeToPixels(photoSize, 300);
 	const aspect = photoSize.width / photoSize.height;
 	const limits = getImageLimits();
+	const activeMask = backgroundMode === 'keep' ? undefined : mask ?? undefined;
 
 	useEffect(() => () => source?.bitmap.close(), [source]);
 	useEffect(() => {
@@ -167,7 +168,7 @@ export default function PassportPhotoMaker() {
 		if (!file || !renderOptions()) { setMessage('Choose a photo before generating a passport-size image.'); return; }
 		setBusy(true);
 		try {
-			const blob = await renderPassportPhoto(file, renderOptions()!, mask ?? undefined, format);
+			const blob = await renderPassportPhoto(file, renderOptions()!, activeMask, format);
 			setPhotoBlob(blob);
 			setPhotoUrl((previous) => {
 				if (previous) URL.revokeObjectURL(previous);
@@ -209,7 +210,7 @@ export default function PassportPhotoMaker() {
 		try {
 			const { sheet, layout, options } = sheetLayout();
 			if (!layout.copies) throw new Error('This photo size does not fit on the selected sheet with the current margins.');
-			const blob = await renderPassportSheet(file, options, mask ?? undefined);
+			const blob = await renderPassportSheet(file, options, activeMask);
 			setProgress(80);
 			if (!asPdf) {
 				download(blob, `passport-photo-sheet-${sheet.id}.png`);
