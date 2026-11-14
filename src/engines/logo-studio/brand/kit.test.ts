@@ -21,6 +21,47 @@ function jsonFile(value: unknown, name = 'brand-kit.json'): File {
 }
 
 describe('importKit', () => {
+	it('continues to import kits without profiles or colour roles', async () => {
+		const imported = await importKit(jsonFile(makeKit()));
+
+		expect(imported.profile).toBeUndefined();
+		expect(imported.colors[0]).toEqual({ name: 'Primary', hex: '#123456' });
+	});
+
+	it('imports profile data and assigned colour roles', async () => {
+		const profile = {
+			businessName: 'Example Co',
+			tagline: 'Made locally',
+			contactName: 'Ada Lovelace',
+			jobTitle: 'Founder',
+			phone: '+1 555 0100',
+			email: 'ada@example.com',
+			website: 'https://example.com',
+			address: '1 Main Street\nLondon',
+			socialHandles: { instagram: '@example', facebook: '', linkedin: '', youtube: '', x: '' },
+		};
+		const kit = makeKit({
+			profile,
+			colors: [{ name: 'Primary', hex: '#123456', role: 'primary' }],
+		});
+		const imported = await importKit(jsonFile(kit));
+
+		expect(imported.profile).toEqual(profile);
+		expect(imported.colors[0].role).toBe('primary');
+	});
+
+	it('validates email and URL formats without network checks', async () => {
+		const profile = {
+			businessName: '', tagline: '', contactName: '', jobTitle: '', phone: '', email: 'not-an-email',
+			website: '', address: '', socialHandles: { instagram: '', facebook: '', linkedin: '', youtube: '', x: '' },
+		};
+		await expect(importKit(jsonFile(makeKit({ profile }))))
+			.rejects.toThrow('Enter a valid email address or leave it blank.');
+		await expect(importKit(jsonFile(makeKit({
+			profile: { ...profile, email: '', website: 'javascript:alert(1)' },
+		})))).rejects.toThrow('Enter a valid website URL beginning with http:// or https://, or leave it blank.');
+	});
+
 	it('rejects a non-JSON file', async () => {
 		await expect(importKit(new File(['{}'], 'brand-kit.txt', { type: 'text/plain' })))
 			.rejects.toThrow('Choose a Starmore brand kit in JSON format.');

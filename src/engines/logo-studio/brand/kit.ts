@@ -10,10 +10,36 @@ export interface BrandKit {
 	name: string;
 	createdAt: number;
 	updatedAt: number;
-	colors: { name: string; hex: string }[];
+	colors: { name: string; hex: string; role?: BrandColorRole }[];
 	fonts: { heading: string; subheading: string; body: string };
+	profile?: BrandProfile;
 	logo?: LogoProject;
 	customFonts?: { family: string; filename: string; mime: string; dataUri: string }[];
+}
+
+export type BrandColorRole = 'primary' | 'secondary' | 'accent' | 'light' | 'dark';
+const BRAND_COLOR_ROLES = ['primary', 'secondary', 'accent', 'light', 'dark'] as const;
+
+function isBrandColorRole(value: unknown): value is BrandColorRole {
+	return BRAND_COLOR_ROLES.some((role) => role === value);
+}
+
+export interface BrandProfile {
+	businessName: string;
+	tagline: string;
+	contactName: string;
+	jobTitle: string;
+	phone: string;
+	email: string;
+	website: string;
+	address: string;
+	socialHandles: {
+		instagram: string;
+		facebook: string;
+		linkedin: string;
+		youtube: string;
+		x: string;
+	};
 }
 
 export interface ExportKitResult {
@@ -50,6 +76,51 @@ function requiredText(value: unknown, label: string, maximum: number): string {
 		throw new Error(`The brand kit has an invalid ${label}.`);
 	}
 	return value.trim();
+}
+
+function optionalText(value: unknown, label: string, maximum: number): string {
+	if (typeof value !== 'string' || value.length > maximum) {
+		throw new Error(`The brand profile has an invalid ${label}.`);
+	}
+	return value.trim();
+}
+
+export function validateBrandProfile(value: unknown): BrandProfile {
+	if (!isRecord(value)) throw new Error('The brand kit has an invalid brand profile.');
+	assertKeys(value, [
+		'businessName', 'tagline', 'contactName', 'jobTitle', 'phone', 'email', 'website', 'address', 'socialHandles',
+	], 'brand profile field');
+	if (!isRecord(value.socialHandles)) throw new Error('The brand profile has invalid social handles.');
+	assertKeys(value.socialHandles, ['instagram', 'facebook', 'linkedin', 'youtube', 'x'], 'social handle');
+	const profile: BrandProfile = {
+		businessName: optionalText(value.businessName, 'business name', 120),
+		tagline: optionalText(value.tagline, 'tagline', 240),
+		contactName: optionalText(value.contactName, 'contact name', 120),
+		jobTitle: optionalText(value.jobTitle, 'job title', 120),
+		phone: optionalText(value.phone, 'phone number', 80),
+		email: optionalText(value.email, 'email address', 254),
+		website: optionalText(value.website, 'website', 2048),
+		address: optionalText(value.address, 'address', 1000),
+		socialHandles: {
+			instagram: optionalText(value.socialHandles.instagram, 'Instagram handle', 200),
+			facebook: optionalText(value.socialHandles.facebook, 'Facebook handle', 200),
+			linkedin: optionalText(value.socialHandles.linkedin, 'LinkedIn handle', 200),
+			youtube: optionalText(value.socialHandles.youtube, 'YouTube handle', 200),
+			x: optionalText(value.socialHandles.x, 'X handle', 200),
+		},
+	};
+	if (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+		throw new Error('Enter a valid email address or leave it blank.');
+	}
+	if (profile.website) {
+		try {
+			const url = new URL(profile.website);
+			if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error();
+		} catch {
+			throw new Error('Enter a valid website URL beginning with http:// or https://, or leave it blank.');
+		}
+	}
+	return profile;
 }
 
 function decodeSvgDataUri(value: string): string | null {
@@ -116,7 +187,7 @@ export function validateBrandKit(value: unknown): BrandKit {
 		throw new Error('This brand kit was created with a newer version. Update the app to import it.');
 	}
 	if (value.starmore_brand_kit !== 1) throw new Error('This brand kit version is not supported.');
-	assertKeys(value, ['starmore_brand_kit', 'id', 'name', 'createdAt', 'updatedAt', 'colors', 'fonts', 'logo', 'customFonts'], 'field');
+	assertKeys(value, ['starmore_brand_kit', 'id', 'name', 'createdAt', 'updatedAt', 'colors', 'fonts', 'profile', 'logo', 'customFonts'], 'field');
 	if (typeof value.createdAt !== 'number' || !Number.isFinite(value.createdAt)
 		|| typeof value.updatedAt !== 'number' || !Number.isFinite(value.updatedAt)) {
 		throw new Error('The brand kit has invalid timestamps.');
@@ -126,12 +197,16 @@ export function validateBrandKit(value: unknown): BrandKit {
 	}
 	const colors = value.colors.map((color) => {
 		if (!isRecord(color)) throw new Error('The brand kit contains an invalid colour.');
-		assertKeys(color, ['name', 'hex'], 'colour property');
+		assertKeys(color, ['name', 'hex', 'role'], 'colour property');
 		const name = requiredText(color.name, 'colour name', 60);
 		if (typeof color.hex !== 'string' || !/^#[\da-f]{6}$/i.test(color.hex)) {
 			throw new Error(`The brand colour “${name}” must use a six-digit HEX value.`);
 		}
-		return { name, hex: color.hex.toUpperCase() };
+		const role = color.role;
+		if (role !== undefined && !isBrandColorRole(role)) {
+			throw new Error(`The brand colour “${name}” has an invalid role.`);
+		}
+		return { name, hex: color.hex.toUpperCase(), ...(role ? { role } : {}) };
 	});
 	if (!isRecord(value.fonts)) throw new Error('The brand kit is missing its font families.');
 	assertKeys(value.fonts, ['heading', 'subheading', 'body'], 'font field');
@@ -140,6 +215,7 @@ export function validateBrandKit(value: unknown): BrandKit {
 		subheading: requiredText(value.fonts.subheading, 'subheading font', 100),
 		body: requiredText(value.fonts.body, 'body font', 100),
 	};
+	const profile = value.profile === undefined ? undefined : validateBrandProfile(value.profile);
 	let logo: LogoProject | undefined;
 	if (value.logo !== undefined) {
 		logo = sanitizeProjectSvgImages(validateLogoProject(value.logo));
@@ -152,9 +228,23 @@ export function validateBrandKit(value: unknown): BrandKit {
 		updatedAt: value.updatedAt,
 		colors,
 		fonts,
+		...(profile ? { profile } : {}),
 		...(logo ? { logo } : {}),
 		...(value.customFonts === undefined ? {} : { customFonts: validateCustomFonts(value.customFonts) }),
 	};
+}
+
+export function createEmptyBrandKit(name = 'My brand'): BrandKit {
+	const now = Date.now();
+	return validateBrandKit({
+		starmore_brand_kit: 1,
+		id: globalThis.crypto?.randomUUID?.() ?? `brand-${now}-${Math.random().toString(36).slice(2)}`,
+		name: name.trim() || 'My brand',
+		createdAt: now,
+		updatedAt: now,
+		colors: [],
+		fonts: { heading: 'Inter', subheading: 'Inter', body: 'Inter' },
+	});
 }
 
 export function exportKit(kit: BrandKit, options: { includeFonts?: boolean } = {}): ExportKitResult {

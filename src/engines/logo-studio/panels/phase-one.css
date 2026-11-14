@@ -91,6 +91,25 @@
 .logo-brand-kit-swatches span { width: 19px; height: 19px; border: 1px solid #cfd4c7; border-radius: 50%; }
 .logo-brand-kit-buttons { display: flex; flex-wrap: wrap; gap: 5px; }
 .logo-brand-kit-buttons button { min-height: 29px; padding: 5px 7px; font-size: 9px; }
+.logo-brand-setup-dialog { display: flex; width: min(820px, 100%); max-height: 92vh; flex-direction: column; overflow: auto; padding: 18px; border: 1px solid #e2e1d8; border-radius: 7px; background: #fbfaf6; box-shadow: 0 24px 70px #1c29234a; }
+.logo-brand-setup-sources { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid #e2e6dc; }
+.logo-brand-setup-sources .logo-phase-field { min-width: min(100%, 220px); margin: 0; }
+.logo-brand-setup-sources select, .logo-brand-setup-color select, .logo-brand-setup-form input, .logo-brand-setup-form textarea { min-height: 34px; padding: 7px; border: 1px solid #dfe3d5; border-radius: 4px; background: white; color: #354139; font: inherit; }
+.logo-brand-setup-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 12px; }
+.logo-brand-setup-form .logo-phase-field { min-width: 0; margin: 0; }
+.logo-brand-setup-form .logo-phase-field input, .logo-brand-setup-form .logo-phase-field textarea { width: 100%; }
+.logo-brand-setup-social, .logo-brand-setup-fonts, .logo-brand-setup-colors, .logo-brand-setup-footer { grid-column: 1 / -1; }
+.logo-brand-setup-social { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; padding: 10px; border: 1px solid #e2e6dc; border-radius: 5px; }
+.logo-brand-setup-social legend { padding: 0 5px; color: #536b57; font-size: 11px; font-weight: 700; }
+.logo-brand-setup-fonts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.logo-brand-setup-colors h3 { margin: 0 0 7px; color: #28352d; font-size: 14px; }
+.logo-brand-setup-color { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px solid #e8e9e2; color: #354139; font-size: 11px; }
+.logo-brand-setup-color > span { display: flex; min-width: 0; align-items: center; gap: 7px; }
+.logo-brand-setup-color i { width: 20px; height: 20px; flex: 0 0 auto; border: 1px solid #cfd4c7; border-radius: 50%; }
+.logo-brand-setup-color small { color: #788177; }
+.logo-brand-setup-color select { min-width: 120px; text-transform: capitalize; }
+.logo-brand-setup-footer { display: flex; justify-content: flex-end; padding-top: 6px; }
+.logo-brand-setup-footer button { min-height: 38px; padding: 8px 14px; }
 .logo-gradient-stop-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
 .logo-font-list { display: grid; max-height: 380px; gap: 5px; overflow-y: auto; margin: 10px 0; }
 .logo-font-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 3px; padding: 8px !important; text-align: left; }
@@ -253,6 +272,10 @@
 	.logo-export-overlay { align-items: end; padding: 0; }
 	.logo-export-dialog { width: 100%; max-height: 94vh; padding: 17px 14px max(16px, env(safe-area-inset-bottom)); border-radius: 14px 14px 0 0; }
 	.logo-compare-dialog { width: 100%; max-height: 94vh; padding: 15px 12px max(16px, env(safe-area-inset-bottom)); border-radius: 14px 14px 0 0; }
+	.logo-brand-setup-dialog { width: 100%; max-height: 94vh; padding: 16px 13px max(16px, env(safe-area-inset-bottom)); border-radius: 14px 14px 0 0; }
+	.logo-brand-setup-form { grid-template-columns: 1fr; }
+	.logo-brand-setup-social, .logo-brand-setup-fonts, .logo-brand-setup-colors, .logo-brand-setup-footer { grid-column: auto; }
+	.logo-brand-setup-fonts { grid-template-columns: 1fr; }
 	.logo-compare-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.logo-variant-bar { margin-bottom: 8px; }
 	.logo-export-options { grid-template-columns: 1fr; }

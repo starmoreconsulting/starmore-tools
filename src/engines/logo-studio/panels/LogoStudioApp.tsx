@@ -22,6 +22,7 @@ import { createReferenceFromFile, deleteLocalReference, loadLocalReference, save
 import { importCustomSvgIcon, importSvg } from '../import/svg-import';
 import MockupStudio from '../mockups/MockupStudio';
 import BrandKitsScreen from './BrandKitsScreen';
+import BrandSetupScreen from './BrandSetupScreen';
 import { getActiveBrandKit } from '../store/brand-kits';
 import { restoreBrandKitFonts, type BrandKit } from '../brand/kit';
 import './phase-one.css';
@@ -122,6 +123,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [storageReady, setStorageReady] = useState(false);
 	const [showProjects, setShowProjects] = useState(false);
 	const [showBrandKits, setShowBrandKits] = useState(false);
+	const [showBrandSetup, setShowBrandSetup] = useState(false);
 	const [activeBrandKit, setActiveBrandKit] = useState<BrandKit | null>(null);
 	const [customFonts, setCustomFonts] = useState<StoredCustomFont[]>([]);
 	const [showExportCenter, setShowExportCenter] = useState(false);
@@ -471,6 +473,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				onReference={() => referenceInputRef.current?.click()}
 				onNewLogo={() => setShowSetup(true)}
 				onMockups={() => setShowMockups(true)}
+				onBrandSetup={() => setShowBrandSetup(true)}
 				onBrandKits={() => setShowBrandKits(true)}
 				onProjects={() => setShowProjects(true)}
 				onExport={() => setShowExportCenter(true)}
@@ -555,6 +558,15 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 					void refreshCustomFonts().catch((error: unknown) => setStatus(`Custom fonts could not be refreshed: ${error instanceof Error ? error.message : 'local font storage is unavailable.'}`));
 				}}
 				onBack={() => setShowBrandKits(false)}
+			/>}
+			{showBrandSetup && <BrandSetupScreen
+				project={project}
+				activeKit={activeBrandKit}
+				onActiveChange={(kit) => {
+					setActiveBrandKit(kit);
+					void refreshCustomFonts().catch((error: unknown) => setStatus(`Custom fonts could not be refreshed: ${error instanceof Error ? error.message : 'local font storage is unavailable.'}`));
+				}}
+				onClose={() => setShowBrandSetup(false)}
 			/>}
 			{showVariantComparison && <CompareVariants project={project} onClose={() => setShowVariantComparison(false)} />}
 			{showGallery && galleryBrief ? (
