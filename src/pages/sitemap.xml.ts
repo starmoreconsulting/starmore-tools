@@ -15,8 +15,8 @@ export const GET: APIRoute = ({ site }) => {
 		'/logo-studio/',
 		'/logo-studio/templates/',
 		'/logo-studio/mockups/',
-		...industryTemplateCategories.map((category) => `/logo-studio/templates/${category.slug}/`),
-		...mockupCategoryPages.map((category) => `/logo-studio/mockups/${category.slug}/`),
+		...industryTemplateCategories.filter((category) => category.indexable).map((category) => `/logo-studio/templates/${category.slug}/`),
+		...mockupCategoryPages.filter((category) => category.indexable).map((category) => `/logo-studio/mockups/${category.slug}/`),
 	] : [];
 	const routes = [...new Set([
 		'',

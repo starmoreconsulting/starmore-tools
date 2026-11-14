@@ -9,7 +9,11 @@ const mockupsHref = getPublishedToolHref('/logo-studio/mockups/');
 const mockupGeneratorHref = getPublishedToolHref('/logo-mockup-generator/');
 ---
 
-<ToolLayout title={category.title} description={category.description}>
+<ToolLayout
+	title={category.title}
+	description={category.metaDescription ?? category.description}
+	robots={!category.indexable ? 'noindex, follow' : undefined}
+>
 	<section class="tool-page mockup-category-page">
 		{mockupsHref && <a class="back-link" href={mockupsHref}>← All mockup categories</a>}
 		<header class="tool-page-header">

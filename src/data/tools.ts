@@ -290,7 +290,7 @@ export const tools: ToolDefinition[] = [
 		department: 'image',
 		description: 'Remove a photo background privately with a quick cutout or a higher-quality model.',
 		seoTitle: 'Private Background Remover for Photos | Starmore Tools',
-		seoDescription: 'Remove image backgrounds on your device with Quick U²-Netp or optional High quality IS-Net. Refine edges with erase and restore brushes, then export a transparent PNG or WebP.',
+		seoDescription: 'Remove photo backgrounds on your device, refine edges with erase and restore brushes, and export transparent PNG or WebP files.',
 		howTo: ['Choose a JPG, PNG, WebP, GIF or BMP photo; Quick mode makes the first cutout without a large model download.', 'Review the transparent preview, use Erase or Restore and tune feather or edge shift; choose High quality if you want a cleaner edge.', 'Compare before and after, then download a transparent PNG or WebP, a colour-backed JPG, or the mask PNG.'],
 		faqs: [
 			{ question: 'Does Quick mode need the large model download?', answer: 'No. Quick uses the smaller U²-Netp model. High quality uses an approximately 87 MiB model download after you consent and is cached on this device.' },
@@ -309,7 +309,7 @@ export const tools: ToolDefinition[] = [
 		department: 'image',
 		description: 'Replace a photo background with a colour, gradient, blur or another image, all in your browser.',
 		seoTitle: 'Private Photo Background Changer | Starmore Tools',
-		seoDescription: 'Change photo backgrounds locally with a solid colour, gradient, blurred original or uploaded image. Refine the cutout, reposition the background and choose a new canvas size.',
+		seoDescription: 'Change photo backgrounds locally with a colour, gradient, blur or uploaded image, then refine the cutout and reposition the scene.',
 		howTo: ['Choose a photo and create a Quick cutout; optionally request High quality for cleaner edges.', 'Choose a colour, gradient, blurred original, transparent background or upload an image and drag to reposition it.', 'Refine the subject, select original, square, 4:5, 16:9 or custom dimensions, then download.'],
 		faqs: [
 			{ question: 'Can I reposition an uploaded background?', answer: 'Yes. Choose Move background image in the preview interaction control, then drag the image to adjust its cover crop.' },
@@ -328,7 +328,7 @@ export const tools: ToolDefinition[] = [
 		department: 'image',
 		description: 'Crop a photo to a generic print size, position your own guides, and prepare print sheets locally.',
 		seoTitle: 'Passport Photo Maker and Print Sheet | Starmore Tools',
-		seoDescription: 'Create a generic 300 DPI photo crop, position guide lines yourself, optionally change the background, and export a print sheet. Requirements must be checked with the issuing authority.',
+		seoDescription: 'Crop a generic 300 DPI photo, position guide lines manually and export a print sheet; check requirements with the issuing authority.',
 		howTo: ['Choose a photo, select a generic size or enter a custom size, then drag and zoom to position it; adjust the guide lines yourself.', 'Optionally change the background with Quick or consent to the High quality model, then tune brightness and contrast.', 'Export a JPG or PNG, or arrange copies on a 4 × 6 in, A5 or A4 sheet and save it as PNG or PDF.'],
 		faqs: [
 			{ question: 'Will this photo be accepted for my document?', answer: 'Requirements differ by country and document. Check the current specifications with the issuing authority; this tool cannot certify acceptance.' },
@@ -347,7 +347,7 @@ export const tools: ToolDefinition[] = [
 		department: 'image',
 		description: 'Frame a profile image in a circle, rounded square or square, with optional background and ring.',
 		seoTitle: 'Profile Picture Maker: Circle, Square and Ring | Starmore Tools',
-		seoDescription: 'Drag and zoom a local image into a circle, rounded square or square. Add a colour, gradient, optional cutout or ring, preview at 48 px, and export at 400, 800 or 1080 px.',
+		seoDescription: 'Crop a profile image into a circle or square, add a background or ring, preview at 48 px and export at 400, 800 or 1080 px.',
 		howTo: ['Choose an image and drag or zoom it into a circle, rounded square or square crop.', 'Select a solid colour or gradient; optionally apply a Quick or consent-based High quality cutout and add a ring.', 'Preview at small social-avatar size, then export a 400, 800 or 1080 px PNG.'],
 		faqs: [
 			{ question: 'Can I preview a small avatar?', answer: 'Yes. The tool shows a 48 px preview alongside a larger version of the same crop.' },
@@ -366,7 +366,7 @@ export const tools: ToolDefinition[] = [
 		department: 'image',
 		description: 'Arrange two to nine of your photos in a flexible, data-driven collage layout.',
 		seoTitle: 'Photo Collage Maker: Layouts, Spacing and Crop | Starmore Tools',
-		seoDescription: 'Create a local collage from 2 to 9 photos using 15 layout templates. Swap images between cells, pan and zoom crops, set spacing and export PNG or JPG up to 4096 px.',
+		seoDescription: 'Arrange 2 to 9 photos in collage layouts, adjust each crop and spacing, then export PNG or JPG up to 4096 px.',
 		howTo: ['Choose 2 to 9 photos and select a layout for that photo count.', 'Choose an aspect ratio, drag photos between cells to swap them, and pan or zoom each crop.', 'Set spacing, padding, corner radius and background, then preview and export PNG or JPG.'],
 		faqs: [
 			{ question: 'Can I mix portrait and landscape images?', answer: 'Yes. Each photo is independently cover-cropped to its cell, and you can pan or zoom its crop.' },
@@ -404,7 +404,7 @@ export const tools: ToolDefinition[] = [
 		department: 'image',
 		description: 'Paste or upload a screenshot and place it on a styled background with optional frames.',
 		seoTitle: 'Screenshot Beautifier: Backgrounds, Frames and Shadow | Starmore Tools',
-		seoDescription: 'Paste with Ctrl+V or upload a screenshot, then add a gradient, solid or image background, padding, rounded corners, shadow or a code-drawn browser or phone frame. Export PNG or WebP at 1×, 2× or 4×.',
+		seoDescription: 'Style a pasted or uploaded screenshot with backgrounds, padding, corners, shadow and browser or phone frames; export PNG or WebP up to 4×.',
 		howTo: ['Paste a screenshot with Ctrl+V or upload an image from your device.', 'Choose a gradient preset, solid colour or uploaded background; adjust padding, corners, shadow and an optional browser or phone frame.', 'Preview and export as PNG or WebP at 1×, 2× or 4×, subject to your device’s image limits.'],
 		faqs: [
 			{ question: 'Can I paste directly from the clipboard?', answer: 'Yes. Use Ctrl+V or the Paste from clipboard button in a supported browser context.' },

@@ -4,11 +4,13 @@ import { departments, getPublishedToolHref } from '../data/tools';
 interface Props {
 	title: string;
 	description: string;
+	robots?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, robots } = Astro.props;
 const previewBuild = import.meta.env.PUBLIC_SHOW_HIDDEN === 'true';
 const logoStudioHref = getPublishedToolHref('/logo-studio/');
+const robotsContent = previewBuild ? 'noindex' : robots;
 ---
 
 <!doctype html>
@@ -19,7 +21,7 @@ const logoStudioHref = getPublishedToolHref('/logo-studio/');
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
-		{previewBuild && <meta name="robots" content="noindex" />}
+		{robotsContent && <meta name="robots" content={robotsContent} />}
 		<meta name="theme-color" content="#f8f7f2" />
 		<title>{title} — Starmore Tools</title>
 	</head>
