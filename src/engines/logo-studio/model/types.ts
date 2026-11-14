@@ -1,5 +1,5 @@
 export type ElementType = 'text' | 'shape' | 'icon' | 'image' | 'group' | 'path';
-export type ElementRole = 'icon' | 'name' | 'tagline' | 'decor' | 'other';
+export type ElementRole = 'icon' | 'name' | 'tagline' | 'contact' | 'background' | 'decor' | 'other';
 export type ImageFit = 'contain' | 'cover';
 
 export interface Element {
