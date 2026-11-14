@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createEmptyBrandKit, type BrandProfile } from '../../logo-studio/brand/kit';
+import { createDefaultElement, createDefaultProject } from '../../logo-studio/model/types';
 import { chooseTextColor, generateDesign, getDesignLayouts } from './generate';
 
 const profile: BrandProfile = {
@@ -77,6 +78,22 @@ describe('brand design generation', () => {
 		expect(generated.warnings.length).toBeGreaterThan(0);
 	});
 
+	it('keeps extreme profile text within each print safe zone and reports anything that cannot fit', () => {
+		const extreme = { ...profile, businessName: 'A'.repeat(60) };
+		for (const type of ['business-card-front', 'business-card-back', 'letterhead', 'envelope']) {
+			for (const layout of getDesignLayouts(type as Parameters<typeof getDesignLayouts>[0])) {
+				const generated = generateDesign(type as Parameters<typeof generateDesign>[0], layout, kit(), extreme);
+				const { width, height } = generated.project.artboard;
+				const text = generated.project.variants.primary.filter((element) => element.type === 'text');
+				expect(text.length, `${type}/${layout} should include text`).toBeGreaterThan(0);
+				expect(text.every((element) => element.x >= 3 && element.y >= 3
+					&& element.x + element.width <= width - 3
+					&& element.y + element.height <= height - 3), `${type}/${layout} text should stay inside the 3 mm safe zone`).toBe(true);
+				expect(generated.warnings.length, `${type}/${layout} should report unfit extreme text`).toBeGreaterThan(0);
+			}
+		}
+	});
+
 	it.each([
 		['very dark', '#111111'],
 		['very light', '#F8F8F8'],
@@ -84,6 +101,21 @@ describe('brand design generation', () => {
 		['midtone', '#777777'],
 	])('chooses readable contrast for %s backgrounds', (_label, background) => {
 		expect(chooseTextColor(background).ratio).toBeGreaterThanOrEqual(4.5);
+	});
+
+	it('uses the white logo variant on dark backgrounds and the black variant on light backgrounds', () => {
+		const brand = kit();
+		const logo = createDefaultProject('Logo variants');
+		logo.variants = {
+			black: [createDefaultElement('shape', { role: 'icon', shape: 'ellipse', width: 80, height: 80, fill: '#111111' })],
+			white: [createDefaultElement('shape', { role: 'icon', shape: 'ellipse', width: 80, height: 80, fill: '#FFFFFF' })],
+		};
+		brand.logo = logo;
+
+		const dark = generateDesign('instagram-post-square', 'centered', brand, profile, { backgroundColor: '#111111' });
+		const light = generateDesign('instagram-post-square', 'centered', brand, profile, { backgroundColor: '#F8F8F8' });
+		expect(dark.project.variants.primary.find((element) => element.role === 'icon')?.fill).toBe('#FFFFFF');
+		expect(light.project.variants.primary.find((element) => element.role === 'icon')?.fill).toBe('#111111');
 	});
 
 	it('keeps social text inside the central 60% safe area', () => {
