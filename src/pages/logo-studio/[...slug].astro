@@ -6,9 +6,10 @@ import TemplateCategory from '../../components/logo-studio/TemplateCategory.astr
 import TemplatesIndex from '../../components/logo-studio/TemplatesIndex.astro';
 import { industryTemplateCategories } from '../../engines/logo-studio/templates/industry-catalog';
 import { mockupCategoryPages } from '../../engines/logo-studio/mockups/categories';
+import { getPublishedToolHref } from '../../data/tools';
 
 export function getStaticPaths() {
-	if (import.meta.env.PUBLIC_SHOW_HIDDEN !== 'true') return [];
+	if (!getPublishedToolHref('/logo-studio/')) return [];
 
 	return [
 		{ params: { slug: undefined }, props: { page: 'studio' } },

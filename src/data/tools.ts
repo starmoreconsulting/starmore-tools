@@ -1027,7 +1027,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '✳',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'text-logo-generator',
@@ -1322,3 +1322,12 @@ export const tools: ToolDefinition[] = [
 ];
 
 export const publishedTools = tools.filter((tool) => tool.live || import.meta.env.PUBLIC_SHOW_HIDDEN === 'true');
+
+export function getPublishedToolHref(href: string): string | undefined {
+	const match = /^\/([^/?#]+)(?:[/?#]|$)/.exec(href);
+	if (!match) return href;
+
+	const tool = tools.find((entry) => entry.slug === match[1]);
+	if (!tool || tool.live || import.meta.env.PUBLIC_SHOW_HIDDEN === 'true') return href;
+	return undefined;
+}
