@@ -11,7 +11,7 @@ const MAX_PROJECT_FONT_BYTES = 10 * 1024 * 1024;
 const MAX_CUSTOM_FONTS = 30;
 const FONT_MIME_TYPES = new Set(['font/ttf', 'font/otf', 'font/woff']);
 const elementTypes = new Set<ElementType>(['text', 'shape', 'icon', 'image', 'group', 'path']);
-const elementRoles = new Set<ElementRole>(['icon', 'name', 'tagline', 'decor', 'other']);
+const elementRoles = new Set<ElementRole>(['icon', 'name', 'tagline', 'contact', 'background', 'decor', 'other']);
 const industries = new Set<LogoIndustry>(['Technology', 'Business', 'Fashion', 'Construction', 'Food', 'Transport', 'Education', 'Health', 'Creative', 'General']);
 const styles = new Set<LogoStyle>(['Minimalist', 'Modern', 'Corporate', 'Luxury', 'Futuristic', 'Geometric', 'Vintage', 'Elegant', 'Bold', 'Abstract', 'Playful', 'Professional']);
 const arrangements = new Set<LogoArrangement>(['icon-above-text', 'icon-left', 'icon-right', 'text-only', 'badge']);
@@ -183,6 +183,9 @@ export function validateLogoProject(value: unknown): LogoProject {
 		throw new Error('This project was created with a newer version of Logo Studio. Update the app to open it.');
 	}
 	if (value.version !== 1) throw new Error('This project version is not supported by this version of Logo Studio.');
+	if (value.kind !== undefined && value.kind !== 'logo' && value.kind !== 'design') {
+		throw new Error('The project file has an invalid project kind.');
+	}
 	if (!isRecord(value.artboard) || !isRecord(value.variants)) {
 		throw new Error('The project file is missing its artboard or design data.');
 	}
@@ -311,11 +314,14 @@ export function validateLogoProject(value: unknown): LogoProject {
 			return { family: font.family.trim(), filename: font.filename.trim(), mime: font.mime };
 		});
 	}
+	const brandName = optionalString(value, 'brandName', 120);
 
 	return {
 		version: 1,
+		...(value.kind === undefined ? {} : { kind: value.kind }),
 		id: requiredString(value, 'id', 160),
 		name: requiredString(value, 'name'),
+		...(brandName ? { brandName } : {}),
 		updatedAt: finiteNumber(value.updatedAt) ? value.updatedAt : Date.now(),
 		artboard: { width, height, background },
 		variants,

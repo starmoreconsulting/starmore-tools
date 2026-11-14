@@ -324,6 +324,8 @@ export function generateDesign(
 		}
 	}
 	const project = createDefaultProject(`${kit.name} ${type.replaceAll('-', ' ')}`);
+	project.kind = 'design';
+	project.brandName = kit.name;
 	project.artboard = { width, height, background };
 	project.variants = { primary: elements };
 	project.generation = {

@@ -55,6 +55,15 @@ export default function MyProjects({ onBack, onOpen, onImport }: Props) {
 			setError(cause instanceof Error ? cause.message : 'The project file could not be exported.');
 		}
 	};
+	const projectGroups = projects.reduce<Array<{ name: string; projects: LocalProjectSummary[] }>>((groups, summary) => {
+		const groupName = summary.project.kind === 'design'
+			? summary.project.brandName || summary.project.generation?.paletteName || 'Unassigned brand designs'
+			: 'Logo projects';
+		const group = groups.find((entry) => entry.name === groupName);
+		if (group) group.projects.push(summary);
+		else groups.push({ name: groupName, projects: [summary] });
+		return groups;
+	}, []);
 
 	return (
 		<section className="logo-projects-screen" aria-labelledby="logo-projects-title">
@@ -76,11 +85,15 @@ export default function MyProjects({ onBack, onOpen, onImport }: Props) {
 					<button type="button" onClick={onImport}>Import a project file</button>
 				</div>
 			) : (
-				<ul className="logo-projects-list">
-					{projects.map(({ project, thumbnail }) => (
+				<div className="logo-project-groups">
+					{projectGroups.map((group) => <section key={group.name} aria-labelledby={`project-group-${group.name.replace(/[^a-z0-9]+/gi, '-')}`}>
+						<h3 id={`project-group-${group.name.replace(/[^a-z0-9]+/gi, '-')}`}>{group.name}</h3>
+						<ul className="logo-projects-list">
+					{group.projects.map(({ project, thumbnail }) => (
 						<li className="logo-project-card" key={project.id}>
 							<img src={thumbnail} alt={`${project.name} preview`} />
 							<div className="logo-project-card-content">
+								<p className="logo-project-kind">{project.kind === 'design' ? `${project.generation?.layoutId.split(':')[0].replaceAll('-', ' ') ?? 'Brand design'} · ${project.brandName ?? group.name}` : 'Logo project'}</p>
 								<label className="logo-phase-field">
 									<span>Project name</span>
 									<input
@@ -110,7 +123,9 @@ export default function MyProjects({ onBack, onOpen, onImport }: Props) {
 							</div>
 						</li>
 					))}
-				</ul>
+						</ul>
+					</section>)}
+				</div>
 			)}
 		</section>
 	);

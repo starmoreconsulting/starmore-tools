@@ -23,8 +23,11 @@ import { importCustomSvgIcon, importSvg } from '../import/svg-import';
 import MockupStudio from '../mockups/MockupStudio';
 import BrandKitsScreen from './BrandKitsScreen';
 import BrandSetupScreen from './BrandSetupScreen';
+import BrandDesignLauncher from '../../brand-studio/panels/BrandDesignLauncher';
+import DesignDetailsPanel from '../../brand-studio/panels/DesignDetailsPanel';
+import { generateDesign, type DesignType, type GeneratedDesign } from '../../brand-studio/designs/generate';
 import { getActiveBrandKit } from '../store/brand-kits';
-import { restoreBrandKitFonts, type BrandKit } from '../brand/kit';
+import { restoreBrandKitFonts, type BrandKit, type BrandProfile } from '../brand/kit';
 import './phase-one.css';
 
 type MobilePanel = 'elements' | 'properties';
@@ -124,6 +127,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [showProjects, setShowProjects] = useState(false);
 	const [showBrandKits, setShowBrandKits] = useState(false);
 	const [showBrandSetup, setShowBrandSetup] = useState(false);
+	const [showDesignLauncher, setShowDesignLauncher] = useState(false);
 	const [printGuides, setPrintGuides] = useState(false);
 	const [activeBrandKit, setActiveBrandKit] = useState<BrandKit | null>(null);
 	const [customFonts, setCustomFonts] = useState<StoredCustomFont[]>([]);
@@ -243,6 +247,30 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			setFileError(message);
 			setStatus(message);
 		}
+	};
+	const openGeneratedDesign = (design: GeneratedDesign) => {
+		loadProject(design.project);
+		setPrintGuides(/^(business-card-front|business-card-back|letterhead|envelope):/.test(design.project.generation?.layoutId ?? ''));
+		setShowDesignLauncher(false);
+		setShowProjects(false);
+		setStatus(design.warnings.length ? design.warnings.join(' ') : `Opened ${design.project.name} in the Logo Studio editor.`);
+	};
+	const updateGeneratedDesign = (profile: BrandProfile, layoutId: string) => {
+		if (!activeBrandKit || project.kind !== 'design') return;
+		const type = project.generation?.layoutId.split(':')[0] as DesignType | undefined;
+		if (!type) return;
+		const cardSize = project.artboard.width === 88.9 ? '3.5x2in' : '85x55mm';
+		const generated = generateDesign(type, layoutId, activeBrandKit, profile, { cardSize });
+		updateProjectMetadata({
+			kind: 'design',
+			brandName: project.brandName ?? activeBrandKit.name,
+			name: project.name,
+			artboard: generated.project.artboard,
+			variants: generated.project.variants,
+			generation: generated.project.generation,
+			customFonts: generated.project.customFonts,
+		});
+		if (generated.warnings.length) setStatus(generated.warnings.join(' '));
 	};
 	const deleteCustomFont = async (family: string) => {
 		if (!window.confirm(`Remove “${family}” from this browser? Projects using it will need the font re-uploaded.`)) return;
@@ -434,6 +462,14 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			if (selectedId) updateElement(selectedId, patch);
 		}}
 	/>;
+	const editorPropertiesPanel = <>
+		{project.kind === 'design' && <DesignDetailsPanel
+			project={project}
+			kit={activeBrandKit}
+			onChange={updateGeneratedDesign}
+		/>}
+		{propertiesPanel}
+	</>;
 	const elementLibrary = <ElementSidebar
 		onAdd={addElement}
 		onImportSvg={() => svgInputRef.current?.click()}
@@ -475,6 +511,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 				onNewLogo={() => setShowSetup(true)}
 				onMockups={() => setShowMockups(true)}
 				onBrandSetup={() => setShowBrandSetup(true)}
+				onDesignStudio={() => setShowDesignLauncher(true)}
 				onBrandKits={() => setShowBrandKits(true)}
 				onProjects={() => setShowProjects(true)}
 				onExport={() => setShowExportCenter(true)}
@@ -568,6 +605,15 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 					void refreshCustomFonts().catch((error: unknown) => setStatus(`Custom fonts could not be refreshed: ${error instanceof Error ? error.message : 'local font storage is unavailable.'}`));
 				}}
 				onClose={() => setShowBrandSetup(false)}
+			/>}
+			{showDesignLauncher && <BrandDesignLauncher
+				kit={activeBrandKit}
+				onCreate={openGeneratedDesign}
+				onSetupBrand={() => {
+					setShowDesignLauncher(false);
+					setShowBrandSetup(true);
+				}}
+				onClose={() => setShowDesignLauncher(false)}
 			/>}
 			{showVariantComparison && <CompareVariants project={project} onClose={() => setShowVariantComparison(false)} />}
 			{showGallery && galleryBrief ? (
@@ -665,7 +711,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 					<p className="logo-phase-status" role="status" aria-live="polite">{status}</p>
 					{fileError && <p className="logo-phase-error" role="alert">{fileError}</p>}
 				</div>
-				<div className="logo-phase-desktop-properties">{propertiesPanel}</div>
+				<div className="logo-phase-desktop-properties">{editorPropertiesPanel}</div>
 			</div>
 			<div className={`logo-phase-mobile-sheet${mobileSheetOpen ? '' : ' is-collapsed'}`}>
 				<button
@@ -683,7 +729,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 							<button type="button" role="tab" aria-selected={mobilePanel === 'properties'} onClick={() => setMobilePanel('properties')}>Properties</button>
 						</div>
 						<div className="logo-phase-mobile-panel">
-							{mobilePanel === 'elements' ? elementLibrary : propertiesPanel}
+							{mobilePanel === 'elements' ? elementLibrary : editorPropertiesPanel}
 						</div>
 					</>
 				)}

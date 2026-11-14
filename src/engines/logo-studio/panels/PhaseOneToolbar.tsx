@@ -13,9 +13,10 @@ interface Props {
 	onMockups: () => void;
 	onBrandKits: () => void;
 	onBrandSetup: () => void;
+	onDesignStudio: () => void;
 }
 
-export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo, onZoomChange, onOpenProject, onReference, onNewLogo, onProjects, onExport, onMockups, onBrandKits, onBrandSetup }: Props) {
+export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo, onZoomChange, onOpenProject, onReference, onNewLogo, onProjects, onExport, onMockups, onBrandKits, onBrandSetup, onDesignStudio }: Props) {
 	return (
 		<header className="logo-phase-toolbar">
 			<a href="/" className="logo-phase-brand">Starmore <span>Logo Studio</span></a>
@@ -32,6 +33,7 @@ export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo
 				<button type="button" onClick={onNewLogo}>New Logo</button>
 				<button type="button" onClick={onMockups}>Mockups</button>
 				<button type="button" onClick={onBrandSetup}>Set up brand</button>
+				<button type="button" onClick={onDesignStudio}>Brand designs</button>
 				<button type="button" onClick={onBrandKits}>Brand Kits</button>
 				<button type="button" onClick={onExport}>Export</button>
 				<button type="button" onClick={onProjects}>My Projects</button>

@@ -44,8 +44,10 @@ export interface Element {
 
 export interface LogoProject {
 	version: 1;
+	kind?: 'logo' | 'design';
 	id: string;
 	name: string;
+	brandName?: string;
 	updatedAt: number;
 	artboard: { width: number; height: number; background: string };
 	variants: Record<string, Element[]>;
