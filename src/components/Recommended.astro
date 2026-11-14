@@ -1,4 +1,6 @@
 ---
+import { getPublishedToolHref } from '../data/tools';
+
 interface Props {
 	title: string;
 	description: string;
@@ -7,9 +9,10 @@ interface Props {
 }
 
 const { title, description, url, buttonText } = Astro.props;
+const publishedUrl = url ? getPublishedToolHref(url) : undefined;
 ---
 
-{url && (
+{publishedUrl && (
 	<aside class="recommended-card" aria-label="Recommended">
 		<div class="recommended-copy">
 			<p class="recommended-label">Recommended</p>
@@ -17,7 +20,7 @@ const { title, description, url, buttonText } = Astro.props;
 			<p>{description}</p>
 			<small>We may earn a commission if you sign up, at no cost to you.</small>
 		</div>
-		<a class="recommended-button" href={url} target="_blank" rel="sponsored noopener">{buttonText}<span aria-hidden="true">↗</span></a>
+		<a class="recommended-button" href={publishedUrl} target="_blank" rel="sponsored noopener">{buttonText}<span aria-hidden="true">↗</span></a>
 	</aside>
 )}
 

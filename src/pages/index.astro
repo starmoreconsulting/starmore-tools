@@ -1,6 +1,6 @@
 ---
 import ToolLayout from '../components/ToolLayout.astro';
-import { departments, publishedTools } from '../data/tools';
+import { departments, getPublishedToolHref, publishedTools } from '../data/tools';
 ---
 
 <ToolLayout
@@ -60,7 +60,7 @@ import { departments, publishedTools } from '../data/tools';
 			{publishedTools.map((tool, index) => (
 				<a
 					class="tool-card"
-					href={`/${tool.slug}`}
+					href={getPublishedToolHref(`/${tool.slug}/`)}
 					data-search={`${tool.name} ${tool.description} ${tool.department}`}
 					style={`--card-index: ${index}`}
 				>

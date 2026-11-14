@@ -1,13 +1,15 @@
 ---
 import ToolLayout from '../ToolLayout.astro';
 import TemplatePreviewGrid from '../../engines/logo-studio/templates/TemplatePreviewGrid';
+import { getPublishedToolHref } from '../../data/tools';
 
 const { category } = Astro.props;
+const templatesHref = getPublishedToolHref('/logo-studio/templates/');
 ---
 
 <ToolLayout title={`${category.industry} Logo Templates`} description={`${category.description} Browse sample designs made locally with Starmore Tools Logo Studio.`}>
 	<section class="tool-page template-library-page">
-		<a class="back-link" href="/logo-studio/templates/">← All industries</a>
+		{templatesHref && <a class="back-link" href={templatesHref}>← All industries</a>}
 		<header class="tool-page-header">
 			<p class="eyebrow">{category.industry.toUpperCase()} LOGO IDEAS</p>
 			<h1>{category.industry} logo templates</h1>

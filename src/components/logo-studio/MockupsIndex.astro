@@ -1,20 +1,24 @@
 ---
 import ToolLayout from '../ToolLayout.astro';
 import { mockupCategoryPages } from '../../engines/logo-studio/mockups/categories';
+import { getPublishedToolHref } from '../../data/tools';
+
+const studioHref = getPublishedToolHref('/logo-studio/');
+const mockupGeneratorHref = getPublishedToolHref('/logo-mockup-generator/');
 ---
 
 <ToolLayout title="Logo Mockups by Category" description="Browse local SVG logo mockup scenes for cards, packaging, signage, apparel, and digital previews.">
 	<section class="tool-page mockup-category-page">
-		<a class="back-link" href="/logo-studio/">← Logo Studio</a>
+		{studioHref && <a class="back-link" href={studioHref}>← Logo Studio</a>}
 		<header class="tool-page-header">
 			<p class="eyebrow">LOGO PRESENTATION LIBRARY</p>
 			<h1>Browse logo mockups</h1>
 			<p>Choose a category to explore hand-drawn SVG scenes. Add your own logo in Logo Studio to preview it in context; all scenes are rendered locally.</p>
-			<a href="/logo-mockup-generator/">Open Mockup Studio</a>
+			{mockupGeneratorHref && <a href={mockupGeneratorHref}>Open Mockup Studio</a>}
 		</header>
 		<div class="mockup-category-grid">
 			{mockupCategoryPages.map((category) => (
-				<a class="mockup-category-card" href={`/logo-studio/mockups/${category.slug}/`}>
+				<a class="mockup-category-card" href={getPublishedToolHref(`/logo-studio/mockups/${category.slug}/`)}>
 					<span>{category.name}</span>
 					<strong>{category.title}</strong>
 					<p>{category.description}</p>

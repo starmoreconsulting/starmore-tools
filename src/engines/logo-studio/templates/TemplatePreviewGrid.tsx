@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { loadBrowserFont } from '../library/fonts';
 import { loadLucideLibrary, type LucideIconNodes } from '../library/icons';
 import type { LogoBrief } from '../model/types';
+import { getPublishedToolHref } from '../../../data/tools';
 import { generateLogoDesigns, seedForBrief } from './generator';
 import { DesignPreview } from './DesignPreview';
 import type { IndustryTemplateCategory } from './industry-catalog';
@@ -24,6 +25,7 @@ export default function TemplatePreviewGrid({ category }: { category: IndustryTe
 	const designs = useMemo(() => generateLogoDesigns(brief, { seed: seedForBrief(brief) }).designs.slice(0, 12), [brief]);
 	const [icons, setIcons] = useState<LucideIconNodes | null>(null);
 	const [error, setError] = useState('');
+	const logoStudioHref = getPublishedToolHref('/logo-studio/');
 
 	useEffect(() => {
 		let active = true;
@@ -47,6 +49,6 @@ export default function TemplatePreviewGrid({ category }: { category: IndustryTe
 				<p>{design.palette.name} · {design.fontPair.name}</p>
 			</article>)}
 		</div>
-		<a className="template-preview-cta" href="/logo-studio/">Make a logo with your own name</a>
+		{logoStudioHref && <a className="template-preview-cta" href={logoStudioHref}>Make a logo with your own name</a>}
 	</section>;
 }

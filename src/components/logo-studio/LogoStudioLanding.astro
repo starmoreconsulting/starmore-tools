@@ -1,10 +1,12 @@
 ---
 import ToolLayout from '../ToolLayout.astro';
 import LogoStudioApp from '../../engines/logo-studio/panels/LogoStudioApp';
-import { tools } from '../../data/tools';
+import { getPublishedToolHref, tools } from '../../data/tools';
 
 const tool = tools.find((entry) => entry.slug === 'logo-studio');
 if (!tool) throw new Error('Logo Studio is missing from the tool registry.');
+const templatesHref = getPublishedToolHref('/logo-studio/templates/');
+const mockupsHref = getPublishedToolHref('/logo-studio/mockups/');
 ---
 
 <ToolLayout
@@ -17,8 +19,8 @@ if (!tool) throw new Error('Logo Studio is missing from the tool registry.');
 			<p class="eyebrow">LOGO DESIGN</p>
 			<h1>{tool.name}</h1>
 			<p>{tool.description} Nothing leaves your device.</p>
-			<a href="/logo-studio/templates/">Browse sample logos by industry</a>
-			<a href="/logo-studio/mockups/">Browse logo mockup scenes</a>
+			{templatesHref && <a href={templatesHref}>Browse sample logos by industry</a>}
+			{mockupsHref && <a href={mockupsHref}>Browse logo mockup scenes</a>}
 		</header>
 		<LogoStudioApp client:only="react" />
 		<section class="tool-guide" aria-labelledby="how-to-use">

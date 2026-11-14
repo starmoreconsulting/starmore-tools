@@ -1,5 +1,5 @@
 ---
-import { departments, tools } from '../data/tools';
+import { departments, getPublishedToolHref } from '../data/tools';
 
 interface Props {
 	title: string;
@@ -8,7 +8,7 @@ interface Props {
 
 const { title, description } = Astro.props;
 const previewBuild = import.meta.env.PUBLIC_SHOW_HIDDEN === 'true';
-const logoStudioIsLive = tools.some((tool) => tool.slug === 'logo-studio' && tool.live);
+const logoStudioHref = getPublishedToolHref('/logo-studio/');
 ---
 
 <!doctype html>
@@ -33,7 +33,7 @@ const logoStudioIsLive = tools.some((tool) => tool.slug === 'logo-studio' && too
 				</a>
 				<nav class="main-nav" aria-label="Main navigation">
 					<a href="/#tool-library">All tools</a>
-					{(logoStudioIsLive || previewBuild) && <a href="/logo-studio/">Logo Studio</a>}
+					{logoStudioHref && <a href={logoStudioHref}>Logo Studio</a>}
 					{departments.filter((department) => department.slug !== 'logo').map((department) => (
 						<a href={`/departments/${department.slug}`}>{department.name}</a>
 					))}

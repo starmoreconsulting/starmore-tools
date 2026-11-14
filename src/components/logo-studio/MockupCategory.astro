@@ -1,19 +1,22 @@
 ---
 import ToolLayout from '../ToolLayout.astro';
 import { mockupScenes } from '../../engines/logo-studio/mockups/scenes';
+import { getPublishedToolHref } from '../../data/tools';
 
 const { category } = Astro.props;
 const scenes = mockupScenes.filter((scene) => scene.category === category.name);
+const mockupsHref = getPublishedToolHref('/logo-studio/mockups/');
+const mockupGeneratorHref = getPublishedToolHref('/logo-mockup-generator/');
 ---
 
 <ToolLayout title={category.title} description={category.description}>
 	<section class="tool-page mockup-category-page">
-		<a class="back-link" href="/logo-studio/mockups/">← All mockup categories</a>
+		{mockupsHref && <a class="back-link" href={mockupsHref}>← All mockup categories</a>}
 		<header class="tool-page-header">
 			<p class="eyebrow">{category.name.toUpperCase()} MOCKUP SCENES</p>
 			<h1>{category.title}</h1>
 			<p>{category.description} These scenes use locally drawn vector artwork, with adjustable colours in Mockup Studio.</p>
-			<a href="/logo-mockup-generator/">Try your logo in these scenes</a>
+			{mockupGeneratorHref && <a href={mockupGeneratorHref}>Try your logo in these scenes</a>}
 		</header>
 		<div class="mockup-scene-list">
 			{scenes.map((scene) => (
