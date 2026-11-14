@@ -63,6 +63,7 @@ export type ToolComponentName =
 	| 'PassportPhotoMaker'
 	| 'ProfilePictureMaker'
 	| 'PhotoCollageMaker'
+	| 'MemeGenerator'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'

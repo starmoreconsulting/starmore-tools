@@ -19,6 +19,8 @@ This project uses the following third-party packages in Logo Studio. The table c
 
 The bundled Fontsource families are Abril Fatface, Allura, Anton, Archivo Black, Barlow Condensed, Bebas Neue, Bodoni Moda, Cormorant Garamond, Dancing Script, DM Sans, DM Serif Display, Great Vibes, Inter, Libre Baskerville, Lora, Manrope, Merriweather, Montserrat, Nunito, Open Sans, Oswald, Pacifico, Playfair Display, Quicksand, Raleway, Righteous, Roboto Condensed, Roboto Slab, Source Sans 3, and Work Sans. Preserve the relevant copyright and OFL notices when redistributing the bundled font files. Custom fonts uploaded by users are not bundled by the project; users must have permission to use them and to redistribute them when embedding them in exported project or brand-kit files.
 
+The Meme Generator uses the bundled Oswald 700 font from `@fontsource/oswald` (SIL Open Font License 1.1); the font is packaged locally and is not fetched from a third-party host at runtime.
+
 The background-removal models are distributed with their upstream notices under `public/licenses/`. U²-Netp weights are Apache-2.0; its ONNX export is from rembg and MIT-licensed. IS-Net weights are attributed to DIS under Apache-2.0; the approved rembg ONNX export is MIT-licensed. The locally converted IS-Net fp16 file is derived from that approved export. ONNX Runtime Web is MIT-licensed; see `public/licenses/onnxruntime-web-MIT.txt`.
 
 ## MIT License
