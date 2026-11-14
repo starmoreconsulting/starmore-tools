@@ -39,18 +39,28 @@ src/
   pages/
     index.astro                  # Searchable tool directory
     [slug].astro                 # Static page generated for each tool
+    logo-studio.astro            # Client-only React Logo Studio island
     departments/[dept].astro     # Static page generated for each department
+    about.astro                  # Placeholder about page
+    privacy.astro                # Placeholder privacy page
+    disclosure.astro             # Placeholder affiliate disclosure
+    contact.astro                # Placeholder contact page
   components/
     ToolLayout.astro             # Shared site frame and global styles
+    Recommended.astro            # Optional affiliate recommendation card
     tools/                       # One React component per interactive tool
-  engines/                       # Shared, UI-independent tool logic
+  engines/
+    logo-studio/
+      model/                      # Versioned JSON project and element types
+      store/                      # Zustand project state and document history
+      canvas/                     # SVG artboard and pointer geometry
+      panels/                     # Editor controls, Export Centre, and My Projects
+    ...                          # Other shared, UI-independent tool logic
 ```
 
-Add a tool by implementing a React component in `src/components/tools/`, then add its `slug`, `name`, `department`, card description, unique `seoTitle` and `seoDescription`, three `howTo` steps, 2–3 `faqs`, component export name, and `live` status to `src/data/tools.ts`. Only entries in `liveTools` appear in the directory, department listings, generated pages, and automatically generated `/sitemap.xml`. Keep unfinished tools at `live: false`. Add the corresponding static import and component branch in `src/pages/[slug].astro` before setting a tool to live; Astro needs explicit component imports for client hydration. Add new departments to the `departments` list in `src/data/tools.ts`.
+PDF and image conversion tools use browser-side `pdf-lib`, `fflate`, and browser image APIs. The Markdown preview uses `marked` with DOMPurify sanitization. Logo Studio is a client-only React island at `/logo-studio`; its JSON document renders as SVG and supports local text outlining with bundled Fontsource WOFF files, SVG/PNG/JPG/vector-PDF exports, validated project JSON files, and debounced IndexedDB autosave with a My Projects screen. Fonts, editing, storage, and exports stay on the device; no external service is used. The tool registry entry remains `live: false` until it is ready to be listed.
 
-## Logo Studio Phase 2
-
-Logo Studio lives at `/logo-studio/` as a client-only React island. Its JSON document renders as SVG and supports local text outlining with bundled Fontsource WOFF files, SVG/PNG/JPG/vector-PDF exports, validated project JSON files, and debounced IndexedDB autosave with a My Projects screen. Fonts, editing, storage, and exports stay on the device; no external service is used. Its tool registry entry remains `live: false` until it is ready to be listed.
+Add a tool by implementing a React component in `src/components/tools/`, then add its `slug`, `name`, `department`, card description, unique `seoTitle` and `seoDescription`, three `howTo` steps, 2–3 `faqs`, component export name, and `live` status to `src/data/tools.ts`. A tool may also include an optional `recommended` card with a title, description, URL, and button text. Only entries in `liveTools` appear in the directory, department listings, generated pages, and automatically generated `/sitemap.xml`. Keep unfinished tools at `live: false`. Add the corresponding static import and component branch in `src/pages/[slug].astro` before setting a tool to live; Astro needs explicit component imports for client hydration. Add new departments to the `departments` list in `src/data/tools.ts`.
 
 ## Commands
 
