@@ -26,6 +26,7 @@ import BrandSetupScreen from './BrandSetupScreen';
 import BrandDesignLauncher from '../../brand-studio/panels/BrandDesignLauncher';
 import DesignDetailsPanel from '../../brand-studio/panels/DesignDetailsPanel';
 import DesignResizeDialog from '../../brand-studio/panels/DesignResizeDialog';
+import DesignExportPanel from '../../brand-studio/panels/DesignExportPanel';
 import { generateDesign, type DesignType, type GeneratedDesign } from '../../brand-studio/designs/generate';
 import { getActiveBrandKit } from '../store/brand-kits';
 import { restoreBrandKitFonts, type BrandKit, type BrandProfile } from '../brand/kit';
@@ -471,6 +472,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			onChange={updateGeneratedDesign}
 			onResize={(profile) => setResizeProfile(profile)}
 		/>}
+		{project.kind === 'design' && <DesignExportPanel project={project} kit={activeBrandKit} />}
 		{propertiesPanel}
 	</>;
 	const elementLibrary = <ElementSidebar
