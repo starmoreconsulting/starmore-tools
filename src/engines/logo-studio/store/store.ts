@@ -176,8 +176,17 @@ interface LogoStudioState {
 export const useLogoStudioStore = create<LogoStudioState>()((set, get) => {
 	const commitProject = (project: LogoProject, recordHistory = true) => {
 		const current = get().project;
+		const changedDesignContent = current.kind === 'design'
+			&& project.kind === 'design'
+			&& project.generation === current.generation
+			&& (project.variants !== current.variants
+				|| project.artboard !== current.artboard
+				|| project.variantBackgrounds !== current.variantBackgrounds);
+		const committedProject = changedDesignContent && project.generation
+			? { ...project, generation: { ...project.generation, edited: true } }
+			: project;
 		set((state) => ({
-			project,
+			project: committedProject,
 			past: recordHistory ? [...state.past, clone(current)].slice(-HISTORY_LIMIT) : state.past,
 			future: recordHistory ? [] : state.future,
 		}));

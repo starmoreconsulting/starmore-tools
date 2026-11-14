@@ -80,7 +80,7 @@ function colorForRole(kit: BrandKit, role: BrandColorRole, fallback: string): st
 	return kit.colors.find((color) => color.role === role)?.hex ?? fallback;
 }
 
-function dimensions(type: DesignType, options: DesignOptions): { width: number; height: number; unit: 'mm' | 'px' } {
+export function getDesignDimensions(type: DesignType, options: DesignOptions = {}): { width: number; height: number; unit: 'mm' | 'px' } {
 	if (type === 'business-card-front' || type === 'business-card-back') {
 		return options.cardSize === '3.5x2in' ? { width: 88.9, height: 50.8, unit: 'mm' } : { width: 85, height: 55, unit: 'mm' };
 	}
@@ -209,7 +209,7 @@ export function generateDesign(
 ): GeneratedDesign {
 	if (!LAYOUT_IDS.includes(layoutId as DesignLayoutId)) throw new Error(`Unknown design layout: ${layoutId}`);
 	const layout = layoutId as DesignLayoutId;
-	const { width, height, unit } = dimensions(type, options);
+	const { width, height, unit } = getDesignDimensions(type, options);
 	const background = options.backgroundColor ?? colorForRole(kit, layout === 'bold-band' ? 'primary' : 'light', layout === 'bold-band' ? '#203B32' : WHITE);
 	const foreground = chooseTextColor(background, true);
 	const primary = colorForRole(kit, 'primary', '#203B32');
@@ -334,6 +334,7 @@ export function generateDesign(
 		paletteName: kit.name,
 		fontPair: { name: kit.name, primary: options.headingFont ?? kit.fonts.heading, secondary: options.bodyFont ?? kit.fonts.body },
 		icon: '',
+		edited: false,
 	};
 	project.customFonts = kit.logo?.customFonts;
 	return { project, warnings: [...new Set(warnings)] };

@@ -7,6 +7,7 @@ interface Props {
 	project: LogoProject;
 	kit: BrandKit | null;
 	onChange: (profile: BrandProfile, layoutId: string) => void;
+	onResize: (profile: BrandProfile) => void;
 }
 
 const EMPTY_PROFILE: BrandProfile = {
@@ -37,7 +38,7 @@ function currentProfile(kit: BrandKit | null): BrandProfile {
 	return kit?.profile ? structuredClone(kit.profile) : structuredClone(EMPTY_PROFILE);
 }
 
-export default function DesignDetailsPanel({ project, kit, onChange }: Props) {
+export default function DesignDetailsPanel({ project, kit, onChange, onResize }: Props) {
 	const layoutId = project.generation?.layoutId ?? '';
 	const [type, currentLayout = 'centered'] = layoutId.split(':');
 	const [profile, setProfile] = useState<BrandProfile>(() => currentProfile(kit));
@@ -63,6 +64,7 @@ export default function DesignDetailsPanel({ project, kit, onChange }: Props) {
 		<section className="logo-phase-panel brand-design-details" aria-labelledby="brand-design-details-title">
 			<h2 id="brand-design-details-title">Design details</h2>
 			<p className="brand-design-size">{project.artboard.width} × {project.artboard.height} {project.artboard.width > 500 ? 'px' : 'mm'}</p>
+			<button type="button" onClick={() => onResize(profile)}>Resize to another format</button>
 			<label className="logo-phase-field">
 				<span>Layout</span>
 				<select value={currentLayout} onChange={(event) => onChange(profile, event.target.value)}>

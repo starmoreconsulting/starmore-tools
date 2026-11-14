@@ -251,7 +251,8 @@ export function validateLogoProject(value: unknown): LogoProject {
 			|| typeof value.generation.icon !== 'string'
 			|| typeof value.generation.fontPair.name !== 'string'
 			|| typeof value.generation.fontPair.primary !== 'string'
-			|| typeof value.generation.fontPair.secondary !== 'string') {
+			|| typeof value.generation.fontPair.secondary !== 'string'
+			|| (value.generation.edited !== undefined && typeof value.generation.edited !== 'boolean')) {
 			throw new Error('The project file contains invalid generator information.');
 		}
 		generation = {
@@ -264,6 +265,7 @@ export function validateLogoProject(value: unknown): LogoProject {
 				primary: value.generation.fontPair.primary.slice(0, 100),
 				secondary: value.generation.fontPair.secondary.slice(0, 100),
 			},
+			...(value.generation.edited === undefined ? {} : { edited: value.generation.edited }),
 		};
 	}
 

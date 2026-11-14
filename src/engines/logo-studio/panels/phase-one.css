@@ -95,7 +95,7 @@
 .logo-brand-setup-dialog { display: flex; width: min(820px, 100%); max-height: 92vh; flex-direction: column; overflow: auto; padding: 18px; border: 1px solid #e2e1d8; border-radius: 7px; background: #fbfaf6; box-shadow: 0 24px 70px #1c29234a; }
 .logo-brand-setup-sources { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid #e2e6dc; }
 .logo-brand-setup-sources .logo-phase-field { min-width: min(100%, 220px); margin: 0; }
-.logo-brand-setup-sources select, .logo-brand-setup-color select, .logo-brand-setup-form input, .logo-brand-setup-form textarea { min-height: 34px; padding: 7px; border: 1px solid #dfe3d5; border-radius: 4px; background: white; color: #354139; font: inherit; }
+.logo-brand-setup-sources select, .logo-brand-setup-color select, .logo-brand-setup-form select, .logo-brand-setup-form input, .logo-brand-setup-form textarea { min-height: 34px; padding: 7px; border: 1px solid #dfe3d5; border-radius: 4px; background: white; color: #354139; font: inherit; }
 .logo-brand-setup-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-top: 12px; }
 .logo-brand-setup-form .logo-phase-field { min-width: 0; margin: 0; }
 .logo-brand-setup-form .logo-phase-field input, .logo-brand-setup-form .logo-phase-field textarea { width: 100%; }
@@ -111,6 +111,13 @@
 .logo-brand-setup-color select { min-width: 120px; text-transform: capitalize; }
 .logo-brand-setup-footer { display: flex; justify-content: flex-end; padding-top: 6px; }
 .logo-brand-setup-footer button { min-height: 38px; padding: 8px 14px; }
+.brand-resize-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.brand-resize-controls .logo-phase-field { display: grid; min-width: 180px; flex: 1; gap: 4px; margin: 0; color: #536054; font-size: 10px; }
+.brand-resize-controls select { width: 100%; min-height: 36px; padding: 7px; border: 1px solid #dfe3d5; border-radius: 4px; background: white; font: inherit; }
+.brand-resize-preview { display: grid; justify-items: center; gap: 6px; padding: 14px 0; }
+.brand-resize-preview-frame { display: grid; width: min(100%, 560px); min-height: 180px; place-items: center; padding: 12px; border: 1px solid #e4e6dc; border-radius: 5px; background: #f0efe9; }
+.brand-resize-preview-frame img { display: block; max-width: 100%; max-height: 340px; object-fit: contain; box-shadow: 0 5px 20px #2839291c; }
+.brand-resize-preview > p { margin: 0; color: #667167; font-size: 11px; }
 .logo-gradient-stop-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
 .logo-font-list { display: grid; max-height: 380px; gap: 5px; overflow-y: auto; margin: 10px 0; }
 .logo-font-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 3px; padding: 8px !important; text-align: left; }

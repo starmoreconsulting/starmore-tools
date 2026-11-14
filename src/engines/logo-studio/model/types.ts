@@ -60,6 +60,7 @@ export interface LogoProject {
 		paletteName: string;
 		fontPair: { name: string; primary: string; secondary: string };
 		icon: string;
+		edited?: boolean;
 	};
 	brief?: LogoBrief;
 	customFonts?: { family: string; filename: string; mime: string }[];

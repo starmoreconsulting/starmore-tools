@@ -25,6 +25,7 @@ import BrandKitsScreen from './BrandKitsScreen';
 import BrandSetupScreen from './BrandSetupScreen';
 import BrandDesignLauncher from '../../brand-studio/panels/BrandDesignLauncher';
 import DesignDetailsPanel from '../../brand-studio/panels/DesignDetailsPanel';
+import DesignResizeDialog from '../../brand-studio/panels/DesignResizeDialog';
 import { generateDesign, type DesignType, type GeneratedDesign } from '../../brand-studio/designs/generate';
 import { getActiveBrandKit } from '../store/brand-kits';
 import { restoreBrandKitFonts, type BrandKit, type BrandProfile } from '../brand/kit';
@@ -128,6 +129,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 	const [showBrandKits, setShowBrandKits] = useState(false);
 	const [showBrandSetup, setShowBrandSetup] = useState(false);
 	const [showDesignLauncher, setShowDesignLauncher] = useState(false);
+	const [resizeProfile, setResizeProfile] = useState<BrandProfile | null>(null);
 	const [printGuides, setPrintGuides] = useState(false);
 	const [activeBrandKit, setActiveBrandKit] = useState<BrandKit | null>(null);
 	const [customFonts, setCustomFonts] = useState<StoredCustomFont[]>([]);
@@ -467,6 +469,7 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 			project={project}
 			kit={activeBrandKit}
 			onChange={updateGeneratedDesign}
+			onResize={(profile) => setResizeProfile(profile)}
 		/>}
 		{propertiesPanel}
 	</>;
@@ -614,6 +617,26 @@ export default function LogoStudioApp({ preset }: { preset?: LogoStudioPreset } 
 					setShowBrandSetup(true);
 				}}
 				onClose={() => setShowDesignLauncher(false)}
+			/>}
+			{resizeProfile && <DesignResizeDialog
+				project={project}
+				kit={activeBrandKit}
+				profile={resizeProfile}
+				onApply={(resized, note) => {
+					updateProjectMetadata({
+						kind: 'design',
+						brandName: resized.brandName,
+						name: resized.name,
+						artboard: resized.artboard,
+						variants: resized.variants,
+						generation: resized.generation,
+						customFonts: resized.customFonts,
+					});
+					setPrintGuides(/^(business-card-front|business-card-back|letterhead|envelope):/.test(resized.generation?.layoutId ?? ''));
+					setStatus(note ?? 'Resized design applied. You can undo this change.');
+					setResizeProfile(null);
+				}}
+				onClose={() => setResizeProfile(null)}
 			/>}
 			{showVariantComparison && <CompareVariants project={project} onClose={() => setShowVariantComparison(false)} />}
 			{showGallery && galleryBrief ? (
