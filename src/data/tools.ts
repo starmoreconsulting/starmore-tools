@@ -86,6 +86,7 @@ export interface ToolDefinition {
 	description: string;
 	seoTitle: string;
 	seoDescription: string;
+	guideCopy?: string;
 	howTo: [string, string, string];
 	faqs: { question: string; answer: string }[];
 	limitations?: string;
@@ -1348,6 +1349,7 @@ export const tools: ToolDefinition[] = [
 		description: 'Lay out branded A4 correspondence with your logo and business contact details.',
 		seoTitle: 'A4 Letterhead Designer with Brand Kits',
 		seoDescription: 'Create an A4 letterhead using your brand logo, colours and contact profile, then refine the vector layout and export a print PDF.',
+		guideCopy: 'An A4 letterhead gives recurring correspondence a consistent starting point without locking your team into a single document. Use the header area for your mark and business identity, then keep sender details compact so the page remains practical for longer letters. Review the safe area before printing, especially when your chosen logo or address wraps. Keep a clean copy of the exported PDF for print; use SVG or PNG when you need to place the artwork in another document.',
 		howTo: ['Choose a saved brand kit or create one from a logo project.', 'Select a letterhead layout and review your logo, sender details and brand colours.', 'Edit the design and export an A4 PDF, SVG or PNG from the editor.'],
 		faqs: [
 			{ question: 'What page size does the letterhead use?', answer: 'The generated page is A4 at 210 × 297 mm.' },
@@ -1366,6 +1368,7 @@ export const tools: ToolDefinition[] = [
 		description: 'Create a DL envelope layout with your brand mark and selected contact information.',
 		seoTitle: 'DL Envelope Designer for Brand Stationery',
 		seoDescription: 'Design a DL envelope at 220 × 110 mm using your brand profile, logo and colours, with editable layouts and local print exports.',
+		guideCopy: 'DL envelopes are designed for business correspondence, so prioritize a readable return address and a clear logo rather than filling every available corner. Choose a layout that leaves room for postage and the recipient address on your final physical envelope; the editor’s design is for your branded return side. Check that long business names or multi-line addresses remain inside the safe area, then inspect the exported PDF at its trim size before printing.',
 		howTo: ['Activate a brand kit and fill in the contact fields you want to show.', 'Choose an envelope layout to place your logo and address details.', 'Review the print guides, adjust elements and export the envelope artwork.'],
 		faqs: [
 			{ question: 'What size is the envelope artboard?', answer: 'The design artboard uses 220 × 110 mm dimensions for a DL envelope.' },

@@ -139,8 +139,9 @@ const departmentName = departments.find((department) => department.slug === tool
 		<section class="tool-guide" aria-labelledby="how-to-use">
 			{tool.limitations && <p class="inline-note">{tool.limitations}</p>}
 			{tool.privacyNote && <p class="privacy-note">{tool.privacyNote}</p>}
-			{tool.slug === 'business-card-designer' && <SpecialCharactersNote />}
+			{['business-card-designer', 'letterhead-designer', 'envelope-designer'].includes(tool.slug) && <SpecialCharactersNote />}
 			<h2 id="how-to-use">How to use {tool.name}</h2>
+			{tool.guideCopy && <p class="tool-guide-copy">{tool.guideCopy}</p>}
 			<ol>
 				{tool.howTo.map((step) => <li>{step}</li>)}
 			</ol>
