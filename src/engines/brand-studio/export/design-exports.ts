@@ -4,9 +4,23 @@ import { exportProjectToSvg } from '../../logo-studio/export/svg';
 import { renderSvgToRaster, type RasterFormat, type RasterScale } from '../../logo-studio/export/raster';
 import { exportPrintPdf } from '../../logo-studio/export/print';
 import { exportSvgToPdf } from '../../logo-studio/export/pdf';
+import { findUnbundledCharacters } from '../../logo-studio/export/outline';
 import type { LogoProject } from '../../logo-studio/model/types';
+import { choosePrintRasterScale, getCurrentPrintRasterLimits } from './print-raster-scale';
 
 export type DesignExportFormat = 'svg' | 'png' | 'jpg' | 'pdf';
+
+export interface DesignExportNotice {
+	type: 'live-svg-text' | 'raster-pdf';
+	text: string[];
+	unbundledCharacters: string[];
+	effectiveDpi?: number;
+}
+
+export interface DesignExportResult {
+	blob: Blob;
+	notice?: DesignExportNotice;
+}
 
 function safeFileName(value: string): string {
 	return value.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'brand-design';
@@ -32,14 +46,28 @@ function blobDataUrl(blob: Blob): Promise<string> {
 	});
 }
 
-export async function exportDesignAsset(
+export async function exportDesignAssetWithReport(
 	project: LogoProject,
 	format: DesignExportFormat,
-	scale: RasterScale = 1,
-): Promise<Blob> {
+	scale: number = 1,
+): Promise<DesignExportResult> {
 	if (project.kind !== 'design') throw new Error('Only Brand Studio designs can be exported here.');
 	const vector = await exportProjectToSvg(project, { outlineText: format === 'pdf' });
-	if (format === 'svg') return new Blob([vector.svg], { type: 'image/svg+xml;charset=utf-8' });
+	if (format === 'svg') {
+		const text = /<text(?:\s|>)/i.test(vector.svg)
+			? project.variants.primary.filter((element) => element.type === 'text').map((element) => element.text ?? '').filter(Boolean)
+			: [];
+		return {
+			blob: new Blob([vector.svg], { type: 'image/svg+xml;charset=utf-8' }),
+			...(text.length ? {
+				notice: {
+					type: 'live-svg-text' as const,
+					text,
+					unbundledCharacters: await findUnbundledCharacters(project),
+				},
+			} : {}),
+		};
+	}
 	if (format === 'png' || format === 'jpg') {
 		const raster = await renderSvgToRaster(vector.svg, {
 			width: project.artboard.width,
@@ -48,18 +76,30 @@ export async function exportDesignAsset(
 			scale,
 			background: format === 'jpg' ? (project.artboard.background === 'transparent' ? '#ffffff' : project.artboard.background) : undefined,
 		});
-		return raster.blob;
+		return { blob: raster.blob };
 	}
 	if (isPrintDesign(project)) {
-		const rasterDataUrl = /<text(?:\s|>)/i.test(vector.svg)
-			? await renderSvgToRaster(vector.svg, {
+		const remainingText = /<text(?:\s|>)/i.test(vector.svg);
+		let rasterDataUrl: string | undefined;
+		let notice: DesignExportNotice | undefined;
+		if (remainingText) {
+			const choice = choosePrintRasterScale(project.artboard.width, project.artboard.height, getCurrentPrintRasterLimits());
+			const unbundledCharacters = await findUnbundledCharacters(project);
+			const raster = await renderSvgToRaster(vector.svg, {
 				width: project.artboard.width,
 				height: project.artboard.height,
 				format: 'png',
-				scale: 12,
+				scale: choice.scale,
 				background: project.artboard.background === 'transparent' ? undefined : project.artboard.background,
-			}).then(({ blob }) => blobDataUrl(blob))
-			: undefined;
+			});
+			rasterDataUrl = await blobDataUrl(raster.blob);
+			notice = {
+				type: 'raster-pdf',
+				text: project.variants.primary.filter((element) => element.type === 'text').map((element) => element.text ?? '').filter(Boolean),
+				unbundledCharacters,
+				effectiveDpi: choice.effectiveDpi,
+			};
+		}
 		const result = await exportPrintPdf([{
 			svg: vector.svg,
 			rasterDataUrl,
@@ -68,10 +108,18 @@ export async function exportDesignAsset(
 			unit: 'mm',
 			background: project.artboard.background,
 		}], { preset: 'standard', extendBackgroundColourIntoBleed: true });
-		return result.blob;
+		return { blob: result.blob, ...(notice ? { notice } : {}) };
 	}
-	if (isSocialDesign(project)) return exportSvgToPdf(vector.svg, project.artboard.width, project.artboard.height);
+	if (isSocialDesign(project)) return { blob: await exportSvgToPdf(vector.svg, project.artboard.width, project.artboard.height) };
 	throw new Error('The design format is not supported for PDF export.');
+}
+
+export async function exportDesignAsset(
+	project: LogoProject,
+	format: DesignExportFormat,
+	scale: RasterScale = 1,
+): Promise<Blob> {
+	return (await exportDesignAssetWithReport(project, format, scale)).blob;
 }
 
 async function addLogoVariantFiles(files: Record<string, Uint8Array>, kit: BrandKit): Promise<string[]> {

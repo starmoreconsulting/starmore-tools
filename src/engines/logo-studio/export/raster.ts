@@ -5,7 +5,7 @@ export interface RasterExportOptions {
 	width: number;
 	height: number;
 	format: RasterFormat;
-	scale: RasterScale;
+	scale: number;
 	background?: string;
 	quality?: number;
 }
@@ -50,6 +50,10 @@ export async function renderSvgToRaster(svg: string, options: RasterExportOption
 
 	const width = Math.round(options.width * options.scale);
 	const height = Math.round(options.height * options.scale);
+	if (!Number.isFinite(width) || !Number.isFinite(height) || width < 1 || height < 1
+		|| width > 12_000 || height > 12_000 || width * height > 48_000_000) {
+		throw new Error('The requested image exceeds the browser canvas size limits.');
+	}
 	const canvas = document.createElement('canvas');
 	canvas.width = width;
 	canvas.height = height;

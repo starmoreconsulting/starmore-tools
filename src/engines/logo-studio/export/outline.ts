@@ -67,6 +67,28 @@ function fontContainsText(font: opentype.Font, text: string): boolean {
 	});
 }
 
+export async function findUnbundledCharacters(project: LogoProject): Promise<string[]> {
+	const characters = new Set<string>();
+	const collect = (elements: Element[]) => elements.forEach((element) => {
+		if (element.type === 'text') {
+			for (const character of Array.from((element.text ?? '').normalize('NFC'))) {
+				const codePoint = character.codePointAt(0) ?? 0;
+				if (!/\s/.test(character) && codePoint !== 0x200d && !(codePoint >= 0xfe00 && codePoint <= 0xfe0f)) {
+					characters.add(character);
+				}
+			}
+		}
+		if (element.children) collect(element.children);
+	});
+	collect(Object.values(project.variants).flat());
+	if (!characters.size) return [];
+
+	const fonts = await Promise.allSettled(logoFonts.map(({ family }) => getOpenTypeFont(family, 400)));
+	const loadedFonts = fonts.flatMap((result) => result.status === 'fulfilled' ? [result.value.font] : []);
+	if (!loadedFonts.length) throw new Error('Bundled fonts could not be checked for missing characters.');
+	return [...characters].filter((character) => !loadedFonts.some((font) => fontContainsText(font, character)));
+}
+
 function getFontForText(family: string, weight: number, text: string): Promise<{ font: opentype.Font; family: string }> {
 	const key = `${family}:${weight}:${text}`;
 	const cached = textFontCache.get(key);
