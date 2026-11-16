@@ -114,10 +114,12 @@ function createText(
 	size: number,
 	align: 'left' | 'center' | 'right',
 	warnings: string[],
+	minimumFontSize = 6,
 ): Element | null {
 	const clean = text.trim();
 	if (!clean) return null;
-	const fit = fitTextToBox(clean, box, size, 0, { minimumFontSize: 6 });
+	const maximumLines = Math.max(1, Math.floor(box.height / (minimumFontSize * 1.25)));
+	const fit = fitTextToBox(clean, box, size, 0, { minimumFontSize, maxLines: maximumLines });
 	if (fit.overflow) warnings.push(`The “${fieldName}” text may overflow at the minimum font size.`);
 	return createDefaultElement('text', {
 		...box,
@@ -222,6 +224,9 @@ export function generateDesign(
 	const isPortrait = height > width * 1.15;
 	const warnings: string[] = [];
 	if (foreground.warning) warnings.push(foreground.warning);
+	if (contrastRatio(primary, WHITE) < 3) {
+		warnings.push('The primary brand colour has low contrast on white; generated text uses a contrasting colour for readability.');
+	}
 	const elements: Element[] = [
 		createDefaultElement('shape', {
 			name: 'Background', role: 'background', shape: 'rectangle', x: 0, y: 0, width, height,
@@ -261,14 +266,18 @@ export function generateDesign(
 		x: contentX,
 		y: nameY,
 		width: contentWidth,
-		height: Math.max(isSocial ? height * 0.12 : 7, isLetter ? height * 0.06 : height * 0.12),
+		height: isSocial ? height * 0.12
+			: isLetter ? Math.max(height * 0.12, 24)
+				: isEnvelope ? Math.max(height * 0.18, 18)
+					: Math.max(height * 0.27, 14),
 	};
-	const title = createText(name, 'businessName', 'name', nameBox, options.headingFont ?? kit.fonts.heading, foreground.color, height * (isSocial ? 0.075 : 0.13), align, warnings);
+	const printMinimumFontSize = unit === 'mm' ? 1.4 : 6;
+	const title = createText(name, 'businessName', 'name', nameBox, options.headingFont ?? kit.fonts.heading, foreground.color, height * (isSocial ? 0.075 : 0.13), align, warnings, printMinimumFontSize);
 	if (title) elements.push(title);
 	let cursorY = nameBox.y + nameBox.height;
 	if (tagline) {
 		const taglineBox = { x: contentX, y: cursorY, width: contentWidth, height: Math.max(isSocial ? height * 0.08 : 5, height * 0.075) };
-		const taglineElement = createText(tagline, 'tagline', 'tagline', taglineBox, options.bodyFont ?? kit.fonts.body, foreground.color, height * (isSocial ? 0.045 : 0.07), align, warnings);
+		const taglineElement = createText(tagline, 'tagline', 'tagline', taglineBox, options.bodyFont ?? kit.fonts.body, foreground.color, height * (isSocial ? 0.045 : 0.07), align, warnings, printMinimumFontSize);
 		if (taglineElement) {
 			elements.push(taglineElement);
 			cursorY += taglineBox.height;
@@ -282,28 +291,39 @@ export function generateDesign(
 	].filter(Boolean).slice(0, 2);
 	if (isBack || isEnvelope || type === 'instagram-story' || type === 'facebook-cover' || type === 'youtube-banner' || type === 'linkedin-banner') {
 		const displayedContacts = isSocial ? socialContacts : contacts;
-		let contactY = isBack ? cursorY + height * 0.04 : isEnvelope ? height * 0.58 : isSocial
+		const contactY = isBack ? cursorY + height * 0.04 : isEnvelope ? height * 0.58 : isSocial
 			? height * (tagline ? 0.69 : 0.64)
 			: cursorY + height * 0.02;
-		const availableContactHeight = isSocial ? Math.max(height * 0.02, height * 0.79 - contactY) : height;
-		const lineHeight = isSocial
-			? Math.min(height * 0.045, availableContactHeight / Math.max(1, displayedContacts.length))
-			: Math.max(2.2, height * 0.012);
+		const availableContactHeight = isSocial
+			? Math.max(height * 0.02, height * 0.79 - contactY)
+			: Math.max(2, height - margin - contactY);
 		const contactAlign = isBack || center ? 'center' : align;
-		for (const [index, value] of displayedContacts.entries()) {
-			const box = { x: contentX, y: contactY, width: contentWidth, height: lineHeight };
-			const field = `contact_${index + 1}`;
-			const item = createText(value, field, 'contact', box, options.bodyFont ?? kit.fonts.body, foreground.color, lineHeight * 0.7, contactAlign, warnings);
-			if (item) elements.push(item);
-			contactY += lineHeight;
-		}
+		const contactText = displayedContacts.join('\n');
+		const contactMinimumFontSize = isSocial ? 6 : 1.2;
+		const contactSize = Math.max(
+			contactMinimumFontSize,
+			Math.min(height * (isSocial ? 0.025 : 0.012), availableContactHeight / Math.max(1, contactText.split('\n').length)),
+		);
+		const item = createText(
+			contactText,
+			'contact_1',
+			'contact',
+			{ x: contentX, y: contactY, width: contentWidth, height: availableContactHeight },
+			options.bodyFont ?? kit.fonts.body,
+			foreground.color,
+			contactSize,
+			contactAlign,
+			warnings,
+			contactMinimumFontSize,
+		);
+		if (item) elements.push(item);
 	}
 
 	if (isLetter && contacts.length) {
 		const sender = contacts.slice(0, 3).join(' · ');
 		const senderElement = createText(sender, 'senderDetails', 'contact', {
 			x: contentX, y: height * 0.31, width: contentWidth, height: height * 0.06,
-		}, options.bodyFont ?? kit.fonts.body, foreground.color, height * 0.025, 'left', warnings);
+		}, options.bodyFont ?? kit.fonts.body, foreground.color, height * 0.025, 'left', warnings, printMinimumFontSize);
 		if (senderElement) elements.push(senderElement);
 	}
 

@@ -37,7 +37,7 @@ export function fitTextToBox(
 	box: { width: number; height: number },
 	fontSize: number,
 	letterSpacing = 0,
-	options: { minimumFontSize?: number; maxCharacters?: number } = {},
+	options: { minimumFontSize?: number; maxCharacters?: number; maxLines?: number } = {},
 ): TextFitResult {
 	if (!value) return { text: value, fontSize, overflow: false };
 	const minimum = Math.max(0.5, options.minimumFontSize ?? 8);
@@ -80,7 +80,7 @@ export function fitTextToBox(
 	return {
 		text,
 		fontSize: Math.max(minimum, fitted),
-		overflow: fitted < minimum || lines.length > 2,
+		overflow: fitted < minimum || lines.length > (options.maxLines ?? 2),
 	};
 }
 

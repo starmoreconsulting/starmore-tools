@@ -1338,7 +1338,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'business-card-front',
 		icon: '▤',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'letterhead-designer',

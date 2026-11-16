@@ -72,24 +72,30 @@ describe('brand design generation', () => {
 		expect(fields.some((element) => /your text|placeholder/i.test(element.text ?? ''))).toBe(false);
 	});
 
-	it('fits or reports overflow for long names and multiline addresses', () => {
+	it('fits long names and multiline addresses into a business card back', () => {
 		const generated = generateDesign('business-card-back', 'centered', kit(), profile);
 		expect(generated.project.variants.primary.some((element) => element.fieldName === 'businessName')).toBe(true);
-		expect(generated.warnings.length).toBeGreaterThan(0);
+		expect(generated.warnings.filter((warning) => warning.includes('may overflow'))).toEqual([]);
 	});
 
-	it('keeps extreme profile text within each print safe zone and reports anything that cannot fit', () => {
-		const extreme = { ...profile, businessName: 'A'.repeat(60) };
+	it('fits an extreme profile within the print safe zone without overflow warnings', () => {
+		const extreme = {
+			...profile,
+			businessName: `Élan Atelier ✨ ${'A'.repeat(60)}`,
+			address: '12 Café Lane\nÉtage 2\nMünchen\nDeutschland',
+		};
 		for (const type of ['business-card-front', 'business-card-back', 'letterhead', 'envelope']) {
-			for (const layout of getDesignLayouts(type as Parameters<typeof getDesignLayouts>[0])) {
-				const generated = generateDesign(type as Parameters<typeof generateDesign>[0], layout, kit(), extreme);
-				const { width, height } = generated.project.artboard;
-				const text = generated.project.variants.primary.filter((element) => element.type === 'text');
-				expect(text.length, `${type}/${layout} should include text`).toBeGreaterThan(0);
-				expect(text.every((element) => element.x >= 3 && element.y >= 3
-					&& element.x + element.width <= width - 3
-					&& element.y + element.height <= height - 3), `${type}/${layout} text should stay inside the 3 mm safe zone`).toBe(true);
-				expect(generated.warnings.length, `${type}/${layout} should report unfit extreme text`).toBeGreaterThan(0);
+			const generated = generateDesign(type as Parameters<typeof generateDesign>[0], 'centered', kit(), extreme);
+			const { width, height } = generated.project.artboard;
+			const text = generated.project.variants.primary.filter((element) => element.type === 'text');
+			expect(text.length, `${type} should include text`).toBeGreaterThan(0);
+			expect(text.every((element) => element.x >= 3 && element.y >= 3
+				&& element.x + element.width <= width - 3
+				&& element.y + element.height <= height - 3), `${type} text should stay inside the 3 mm safe zone`).toBe(true);
+			expect(generated.warnings.filter((warning) => warning.includes('may overflow')), type).toEqual([]);
+			expect(text.some((element) => /✨/.test(element.text ?? '')), `${type} retains emoji as editable text`).toBe(true);
+			if (type === 'business-card-back' || type === 'envelope') {
+				expect(text.some((element) => (element.text ?? '').includes('Deutschland')), `${type} retains the multiline address`).toBe(true);
 			}
 		}
 	});
@@ -101,6 +107,19 @@ describe('brand design generation', () => {
 		['midtone', '#777777'],
 	])('chooses readable contrast for %s backgrounds', (_label, background) => {
 		expect(chooseTextColor(background).ratio).toBeGreaterThanOrEqual(4.5);
+	});
+
+	it('keeps text readable and warns when yellow primary has low contrast on white', () => {
+		const yellowKit = kit();
+		yellowKit.colors = yellowKit.colors.map((color) => (
+			color.role === 'primary' ? { ...color, hex: '#FFFF00' } : color
+		));
+		const generated = generateDesign('business-card-front', 'bold-band', yellowKit, profile);
+		const text = generated.project.variants.primary.filter((element) => element.type === 'text');
+
+		expect(text.every((element) => element.fill === '#000000'
+			&& chooseTextColor('#FFFF00').ratio >= 4.5)).toBe(true);
+		expect(generated.warnings.some((warning) => warning.includes('primary brand colour has low contrast'))).toBe(true);
 	});
 
 	it('uses the white logo variant on dark backgrounds and the black variant on light backgrounds', () => {

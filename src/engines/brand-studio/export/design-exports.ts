@@ -20,6 +20,18 @@ function isSocialDesign(project: LogoProject): boolean {
 	return /^(instagram-post-square|instagram-post-portrait|instagram-story|facebook-cover|youtube-banner|linkedin-banner):/.test(project.generation?.layoutId ?? '');
 }
 
+function blobDataUrl(blob: Blob): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = () => {
+			if (typeof reader.result === 'string') resolve(reader.result);
+			else reject(new Error('The print artwork could not be prepared for PDF export.'));
+		};
+		reader.onerror = () => reject(new Error('The print artwork could not be prepared for PDF export.'));
+		reader.readAsDataURL(blob);
+	});
+}
+
 export async function exportDesignAsset(
 	project: LogoProject,
 	format: DesignExportFormat,
@@ -39,8 +51,18 @@ export async function exportDesignAsset(
 		return raster.blob;
 	}
 	if (isPrintDesign(project)) {
+		const rasterDataUrl = /<text(?:\s|>)/i.test(vector.svg)
+			? await renderSvgToRaster(vector.svg, {
+				width: project.artboard.width,
+				height: project.artboard.height,
+				format: 'png',
+				scale: 12,
+				background: project.artboard.background === 'transparent' ? undefined : project.artboard.background,
+			}).then(({ blob }) => blobDataUrl(blob))
+			: undefined;
 		const result = await exportPrintPdf([{
 			svg: vector.svg,
+			rasterDataUrl,
 			width: project.artboard.width,
 			height: project.artboard.height,
 			unit: 'mm',

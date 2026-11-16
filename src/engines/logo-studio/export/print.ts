@@ -5,6 +5,7 @@ export type PrintPreset = 'screen' | 'standard' | 'custom';
 
 export interface PrintPdfPage {
 	svg: string;
+	rasterDataUrl?: string;
 	width: number;
 	height: number;
 	unit: PrintUnit;
@@ -144,9 +145,16 @@ export async function exportPrintPdf(
 			}
 		}
 
-		const svgElement = parsePageSvg(page.svg);
-		const svgOptions: Svg2pdfOptions = { x: trimX, y: trimY, width: trimWidth, height: trimHeight };
-		await pdf.svg(svgElement, svgOptions);
+		if (page.rasterDataUrl) {
+			if (!page.rasterDataUrl.startsWith('data:image/png;base64,')) {
+				throw new Error('A print page raster fallback must be a PNG data URL.');
+			}
+			pdf.addImage(page.rasterDataUrl, 'PNG', trimX, trimY, trimWidth, trimHeight);
+		} else {
+			const svgElement = parsePageSvg(page.svg);
+			const svgOptions: Svg2pdfOptions = { x: trimX, y: trimY, width: trimWidth, height: trimHeight };
+			await pdf.svg(svgElement, svgOptions);
+		}
 		if (cropMarks) drawCropMarks(pdf, trimX, trimY, trimWidth, trimHeight, bleed);
 	}
 

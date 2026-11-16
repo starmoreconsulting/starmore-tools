@@ -1,5 +1,5 @@
 export type RasterFormat = 'png' | 'jpg';
-export type RasterScale = 1 | 2 | 4;
+export type RasterScale = 1 | 2 | 4 | 8 | 12;
 
 export interface RasterExportOptions {
 	width: number;
