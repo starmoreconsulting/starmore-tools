@@ -1,5 +1,6 @@
 ---
 import ToolLayout from '../components/ToolLayout.astro';
+import SpecialCharactersNote from '../components/brand-studio/SpecialCharactersNote.astro';
 import Recommended from '../components/Recommended.astro';
 import AgeCalculator from '../components/tools/AgeCalculator';
 import CaseConverter from '../components/tools/CaseConverter';
@@ -138,6 +139,7 @@ const departmentName = departments.find((department) => department.slug === tool
 		<section class="tool-guide" aria-labelledby="how-to-use">
 			{tool.limitations && <p class="inline-note">{tool.limitations}</p>}
 			{tool.privacyNote && <p class="privacy-note">{tool.privacyNote}</p>}
+			{tool.slug === 'business-card-designer' && <SpecialCharactersNote />}
 			<h2 id="how-to-use">How to use {tool.name}</h2>
 			<ol>
 				{tool.howTo.map((step) => <li>{step}</li>)}

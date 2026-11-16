@@ -1333,6 +1333,7 @@ export const tools: ToolDefinition[] = [
 		faqs: [
 			{ question: 'Can I choose the card dimensions?', answer: 'Yes. Choose 85 × 55 mm or 3.5 × 2 inches when starting a card design.' },
 			{ question: 'Does the print PDF include bleed?', answer: 'The print PDF uses 3 mm bleed and crop marks through the existing local print engine.' },
+			{ question: 'Why might my PDF use an image instead of vector text?', answer: 'If a character is missing from bundled fonts, the PDF uses an image at the reported DPI. Remove that character to export vector text.' },
 		],
 		privacyNote: 'Your contact details, logo and design stay on this device unless you export or share a file.',
 		component: 'LogoStudioApp',
