@@ -1359,7 +1359,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'letterhead',
 		icon: '▧',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'envelope-designer',
@@ -1378,7 +1378,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'envelope',
 		icon: '✉',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'instagram-post-template-creator',
