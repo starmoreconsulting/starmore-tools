@@ -1,6 +1,7 @@
 ---
 import ToolLayout from '../components/ToolLayout.astro';
-import { departments, getPublishedToolHref, publishedTools } from '../data/tools';
+import { departments, getPublishedDepartmentHref, getPublishedDepartments, getPublishedToolHref, publishedTools } from '../data/tools';
+const visibleDepartments = getPublishedDepartments();
 ---
 
 <ToolLayout
@@ -49,8 +50,8 @@ import { departments, getPublishedToolHref, publishedTools } from '../data/tools
 
 		<nav class="department-links" aria-label="Browse by department">
 			<a class="department-chip active" href="#tool-library">All tools <span>{publishedTools.length}</span></a>
-			{departments.map((department) => (
-				<a class="department-chip" href={`/departments/${department.slug}`}>
+			{visibleDepartments.map((department) => (
+				<a class="department-chip" href={getPublishedDepartmentHref(department.slug)}>
 					{department.name} <span>↗</span>
 				</a>
 			))}

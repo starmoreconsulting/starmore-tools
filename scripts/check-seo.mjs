@@ -57,6 +57,23 @@ function xmlText(value) {
 	return value.replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&apos;', "'");
 }
 
+function toolRegistryByDepartment(source) {
+	const registry = new Map();
+	const toolBlocks = [...source.matchAll(/^\s*slug:\s*'([^']+)',([\s\S]*?)^\s*live:\s*(true|false),/gm)];
+	for (const match of toolBlocks) {
+		const department = match[2].match(/^\s*department:\s*'([^']+)',/m)?.[1];
+		if (!department) continue;
+		registry.set(match[1], { department, live: match[3] === 'true' });
+	}
+	return registry;
+}
+
+function departmentSlugs(source) {
+	const departmentList = source.match(/export const departments = \[([\s\S]*?)\] as const;/)?.[1];
+	if (!departmentList) throw new Error('Could not parse department registry in src/data/tools.ts.');
+	return [...departmentList.matchAll(/\bslug:\s*'([^']+)'/g)].map((match) => match[1]);
+}
+
 const files = await htmlFiles(distRoot);
 const pages = [];
 
@@ -97,12 +114,51 @@ if (!previewBuild) {
 		if (sitemapUrlSet.has(page.url)) failures.push(`${page.url}: noindex page is listed in the sitemap.`);
 	}
 
-	const hiddenTools = [...toolsSource.matchAll(/^\s*slug:\s*'([^']+)',([\s\S]*?)^\s*live:\s*(true|false),/gm)]
-		.filter((match) => match[3] === 'false')
-		.map((match) => match[1]);
+	const toolBlocks = [...toolsSource.matchAll(/^\s*slug:\s*'([^']+)',([\s\S]*?)^\s*live:\s*(true|false),/gm)];
+	const hiddenTools = toolBlocks.filter((match) => match[3] === 'false').map((match) => match[1]);
 	for (const slug of hiddenTools) {
 		if (await exists(path.join(distRoot, slug, 'index.html'))) {
 			failures.push(`/${slug}/: hidden tool page exists in a production build.`);
+		}
+	}
+
+	const toolsByDepartment = toolRegistryByDepartment(toolsSource);
+	const builtPageUrls = new Set(pages.map((page) => new URL(page.url).pathname));
+	const sitemapPaths = new Set(sitemapUrls.map((url) => new URL(url, site).pathname));
+	for (const slug of departmentSlugs(toolsSource)) {
+		const publishedToolCount = [...toolsByDepartment.values()]
+			.filter((tool) => tool.department === slug && tool.live).length;
+		const departmentPath = `/departments/${slug}/`;
+		const departmentExists = builtPageUrls.has(departmentPath);
+		if (publishedToolCount === 0 && departmentExists) {
+			failures.push(`${departmentPath}: department page exists but has no published tools.`);
+		}
+		if (publishedToolCount > 0 && !departmentExists) {
+			failures.push(`${departmentPath}: department has published tools but its page is missing.`);
+		}
+		if (publishedToolCount === 0 && sitemapPaths.has(departmentPath)) {
+			failures.push(`${departmentPath}: department with no published tools is listed in the sitemap.`);
+		}
+	}
+
+	const siteOrigin = new URL(site).origin;
+	for (const page of pages) {
+		const html = await readFile(page.file, 'utf8');
+		const anchors = [...html.matchAll(/<a\b[^>]*>/gi)].map((match) => match[0]);
+		for (const anchor of anchors) {
+			const href = attribute(anchor, 'href');
+			if (!href) continue;
+			let target;
+			try {
+				target = new URL(href, page.url);
+			} catch {
+				continue;
+			}
+			if (target.origin !== siteOrigin || !/^\/departments\/[^/]+\/?$/.test(target.pathname)) continue;
+			const departmentPath = target.pathname.endsWith('/') ? target.pathname : `${target.pathname}/`;
+			if (!builtPageUrls.has(departmentPath)) {
+				failures.push(`${page.url}: internal link points to missing department page ${departmentPath}.`);
+			}
 		}
 	}
 }

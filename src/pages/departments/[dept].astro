@@ -1,9 +1,9 @@
 ---
 import ToolLayout from '../../components/ToolLayout.astro';
-import { departments, getPublishedToolHref, publishedTools } from '../../data/tools';
+import { getPublishedDepartments, getPublishedToolHref, publishedTools } from '../../data/tools';
 
 export function getStaticPaths() {
-	return departments.map((department) => ({
+	return getPublishedDepartments().map((department) => ({
 		params: { dept: department.slug },
 		props: { department },
 	}));

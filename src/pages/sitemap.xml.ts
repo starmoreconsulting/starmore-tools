@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { departments, tools } from '../data/tools';
+import { getPublishedDepartments, tools } from '../data/tools';
 import { industryTemplateCategories } from '../engines/logo-studio/templates/industry-catalog';
 import { mockupCategoryPages } from '../engines/logo-studio/mockups/categories';
 
@@ -25,7 +25,7 @@ export const GET: APIRoute = ({ site }) => {
 		'/disclosure/',
 		'/contact/',
 		...logoStudioRoutes,
-		...departments.map((department) => `/departments/${department.slug}/`),
+		...getPublishedDepartments().map((department) => `/departments/${department.slug}/`),
 		...tools.filter((tool) => tool.live).map((tool) => `/${tool.slug}/`),
 	])];
 	const entries = routes.map((route) => `  <url><loc>${escapeXml(new URL(route, site).href)}</loc></url>`).join('\n');

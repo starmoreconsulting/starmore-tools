@@ -1524,6 +1524,29 @@ export const tools: ToolDefinition[] = [
 
 export const publishedTools = tools.filter((tool) => tool.live || import.meta.env.PUBLIC_SHOW_HIDDEN === 'true');
 
+export function filterDepartmentsWithPublishedTools<TDepartment extends { slug: string }, TTool extends { department: string; live: boolean }>(
+	departmentList: readonly TDepartment[],
+	toolList: readonly TTool[],
+	includeHidden = false,
+): TDepartment[] {
+	return departmentList.filter((department) => toolList.some((tool) => (
+		tool.department === department.slug && (includeHidden || tool.live)
+	)));
+}
+
+export function getPublishedDepartments() {
+	return filterDepartmentsWithPublishedTools(
+		departments,
+		tools,
+		import.meta.env.PUBLIC_SHOW_HIDDEN === 'true',
+	);
+}
+
+export function getPublishedDepartmentHref(slug: string): string | undefined {
+	if (!getPublishedDepartments().some((department) => department.slug === slug)) return undefined;
+	return `/departments/${slug}/`;
+}
+
 export function getPublishedToolHref(href: string): string | undefined {
 	const match = /^\/([^/?#]+)(?:[/?#]|$)/.exec(href);
 	if (!match) return href;
