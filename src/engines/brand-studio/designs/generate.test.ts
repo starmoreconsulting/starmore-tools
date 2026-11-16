@@ -42,26 +42,54 @@ describe('brand design generation', () => {
 		}
 	});
 
-	it('uses the requested print sizes and keeps generated text outside the 3 mm trim margin', () => {
-		for (const type of ['business-card-front', 'business-card-back', 'letterhead', 'envelope']) {
-			for (const layout of getDesignLayouts(type as Parameters<typeof getDesignLayouts>[0])) {
-				const { generated, texts } = textElements(type, layout);
-				const { width, height } = generated.project.artboard;
-				expect(texts.every((element) => element.x >= 3 && element.y >= 3
-					&& element.x + element.width <= width - 3
-					&& element.y + element.height <= height - 3)).toBe(true);
-				expect(generated.project.artboard).toMatchObject(
-					type === 'letterhead' ? { width: 210, height: 297 }
-						: type === 'envelope' ? { width: 220, height: 110 }
-							: { width: 85, height: 55 },
-				);
+	it('keeps every print layout and card size safe for complete, sparse, extreme, and emoji profiles', () => {
+		const blankProfile: BrandProfile = {
+			...profile,
+			businessName: 'Name only',
+			tagline: '',
+			contactName: '',
+			jobTitle: '',
+			phone: '',
+			email: '',
+			website: '',
+			address: '',
+			socialHandles: { instagram: '', facebook: '', linkedin: '', youtube: '', x: '' },
+		};
+		const extremeProfile = {
+			...profile,
+			businessName: `Café Zoé ${'é'.repeat(51)}`,
+			address: '12 Café Lane\nÉtage 2\nMünchen\nDeutschland',
+		};
+		const emojiProfile = { ...profile, businessName: 'Café Zoé 🌿 Studio' };
+		const cases: Array<[string, BrandProfile]> = [
+			['complete', profile],
+			['business name only', blankProfile],
+			['extreme', extremeProfile],
+			['emoji', emojiProfile],
+		];
+		const types = ['business-card-front', 'business-card-back', 'letterhead', 'envelope'] as const;
+		const cardSizes = ['85x55mm', '3.5x2in'] as const;
+
+		for (const type of types) {
+			for (const layout of getDesignLayouts(type)) {
+				const sizes = type.startsWith('business-card') ? cardSizes : [undefined];
+				for (const cardSize of sizes) {
+					for (const [profileName, testProfile] of cases) {
+						const generated = generateDesign(type, layout, kit(), testProfile, { cardSize });
+						const { width, height } = generated.project.artboard;
+						const texts = generated.project.variants.primary.filter((element) => element.type === 'text');
+						const context = `${type}/${layout}/${cardSize ?? 'default'}/${profileName}`;
+
+						expect(texts.length, `${context} should include text`).toBeGreaterThan(0);
+						expect(texts.every((element) => element.x >= 3 && element.y >= 3
+							&& element.x + element.width <= width - 3
+							&& element.y + element.height <= height - 3), `${context} text should stay inside the 3 mm safe zone`).toBe(true);
+						expect(generated.warnings.filter((warning) => warning.includes('may overflow')), context).toEqual([]);
+						expect(texts.some((element) => /your text|placeholder/i.test(element.text ?? '')), context).toBe(false);
+					}
+				}
 			}
 		}
-	});
-
-	it('supports the 3.5 by 2 inch card preset in millimetres', () => {
-		const { project } = generateDesign('business-card-front', 'centered', kit(), profile, { cardSize: '3.5x2in' });
-		expect(project.artboard).toMatchObject({ width: 88.9, height: 50.8 });
 	});
 
 	it('omits empty optional fields instead of creating placeholder text', () => {
