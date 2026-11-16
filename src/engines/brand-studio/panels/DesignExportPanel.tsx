@@ -3,7 +3,7 @@ import type { BrandKit } from '../../logo-studio/brand/kit';
 import { downloadBlob } from '../../logo-studio/export/raster';
 import type { LogoProject } from '../../logo-studio/model/types';
 import { listLocalProjects } from '../../logo-studio/store/local-projects';
-import { exportBrandPack, exportDesignAsset, type DesignExportFormat } from '../export/design-exports';
+import { exportBrandPack, exportDesignAssetWithReport, type DesignExportFormat, type DesignExportNotice } from '../export/design-exports';
 
 interface Props {
 	project: LogoProject;
@@ -12,6 +12,18 @@ interface Props {
 
 function safeName(value: string): string {
 	return value.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').slice(0, 100) || 'brand-design';
+}
+
+function exportNoticeText(notice: DesignExportNotice): string {
+	const characters = notice.unbundledCharacters.map((character) => `“${character}”`).join(' ');
+	if (notice.type === 'raster-pdf') {
+		const reason = characters
+			? `Characters ${characters} are not available in a bundled font.`
+			: `The text ${notice.text.map((text) => `“${text}”`).join(', ')} could not be outlined.`;
+		return `${reason} This PDF contains the design as an image at ${Math.round(notice.effectiveDpi ?? 0)} DPI instead of vector text. Remove unsupported characters to export vector text.`;
+	}
+	const liveText = characters || notice.text.map((text) => `“${text}”`).join(', ');
+	return `${characters ? `Characters ${characters}` : `Text ${liveText}`} remain live text in this SVG and may look different on other devices. Remove unsupported characters or convert the text to outlines for a consistent vector file.`;
 }
 
 export default function DesignExportPanel({ project, kit }: Props) {
@@ -35,10 +47,10 @@ export default function DesignExportPanel({ project, kit }: Props) {
 	const exportOne = (format: DesignExportFormat, scale: 1 | 2 = 1) => run(
 		`${format}-${scale}`,
 		async () => {
-			const blob = await exportDesignAsset(project, format, scale);
+			const result = await exportDesignAssetWithReport(project, format, scale);
 			const suffix = format === 'pdf' || format === 'svg' ? '' : `-${scale}x`;
-			downloadBlob(blob, `${safeName(project.name)}${suffix}.${format}`);
-			setNotice(`${format.toUpperCase()} export downloaded.`);
+			downloadBlob(result.blob, `${safeName(project.name)}${suffix}.${format}`);
+			setNotice(result.notice ? exportNoticeText(result.notice) : `${format.toUpperCase()} export downloaded.`);
 		},
 	);
 	const exportPack = () => run('brand-pack', async () => {
