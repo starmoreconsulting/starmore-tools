@@ -54,6 +54,26 @@ describe('exportPrintPdf', () => {
 		expect(page.getHeight()).toBeCloseTo((55 + 6 + 12) * 72 / 25.4);
 	});
 
+	it.each([
+		['A4 letterhead', 210, 297, 228, 315],
+		['DL envelope', 220, 110, 238, 128],
+	])('exports a %s page at trim plus bleed and crop-mark margins', async (_label, width, height, finalWidth, finalHeight) => {
+		const result = await exportPrintPdf([{
+			svg: '',
+			rasterDataUrl: transparentPixelDataUrl(),
+			width,
+			height,
+			unit: 'mm',
+		}], { preset: 'standard', extendBackgroundColourIntoBleed: true });
+
+		expect(result.pageSizes[0].widthPt).toBeCloseTo(finalWidth * 72 / 25.4);
+		expect(result.pageSizes[0].heightPt).toBeCloseTo(finalHeight * 72 / 25.4);
+		const document = await PDFDocument.load(await result.blob.arrayBuffer());
+		const page = document.getPage(0);
+		expect(page.getWidth()).toBeCloseTo(finalWidth * 72 / 25.4);
+		expect(page.getHeight()).toBeCloseTo(finalHeight * 72 / 25.4);
+	});
+
 	it('rejects a raster fallback that is not a PNG data URL', async () => {
 		await expect(exportPrintPdf([{
 			svg: '',
