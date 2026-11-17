@@ -71,6 +71,7 @@ export type ToolComponentName =
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
 	| 'BrandNameGenerator'
+	| 'BrandSloganGenerator'
 	| 'LogoStudioApp';
 
 export interface RecommendedDefinition {

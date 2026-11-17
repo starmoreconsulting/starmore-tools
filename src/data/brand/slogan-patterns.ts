@@ -1,4 +1,6 @@
 export const sloganPatterns = [
+	'{business} for {audience}: {benefit}',
+	'{business} makes {action} feel {toneWord}',
 	'{benefit}, made for {audience}',
 	'{action} your {audience} with {benefit}',
 	'{benefit} for a more {toneWord} day',
