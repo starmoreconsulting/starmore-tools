@@ -74,6 +74,7 @@ export type ToolComponentName =
 	| 'BrandSloganGenerator'
 	| 'BrandStrategyGenerator'
 	| 'BrandColourPaletteGenerator'
+	| 'BrandTypographyTool'
 	| 'LogoStudioApp';
 
 export interface RecommendedDefinition {

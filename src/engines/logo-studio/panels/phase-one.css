@@ -299,6 +299,8 @@
 .brand-contrast-table { display: grid; gap: 6px; }
 .brand-contrast-table > div { display: grid; grid-template-columns: minmax(180px, 1fr) 90px 100px; gap: 8px; align-items: center; }
 .brand-contrast-table > div > span:first-child { padding: 8px; }
+.brand-type-preview { display: grid; gap: 12px; padding: 24px; border: 1px solid #e6e5dc; border-radius: 8px; background: #fffefa; overflow-wrap: anywhere; }
+.brand-type-preview h2, .brand-type-preview h3, .brand-type-preview p { margin: 0; }
 @media (max-width: 520px) { .brand-contrast-table > div { grid-template-columns: 1fr auto; } .brand-contrast-table > div > span:last-child { grid-column: 2; } }
 .logo-selection-controls { pointer-events: all; }
 .logo-selection-controls rect, .logo-selection-controls circle { vector-effect: non-scaling-stroke; }
