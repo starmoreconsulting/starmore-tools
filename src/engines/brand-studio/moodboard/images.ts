@@ -13,7 +13,13 @@ export function getDownscaledDimensions(width: number, height: number, maxSide =
 function isLowMemoryDevice(): boolean {
 	if (typeof navigator === 'undefined') return false;
 	const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-	return typeof deviceMemory === 'number' && deviceMemory <= 4;
+	return typeof deviceMemory === 'number'
+		? deviceMemory <= 4
+		: navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4;
+}
+
+export function shouldRefuseLargeMoodBoardUpload(fileSize: number, lowMemoryDevice: boolean): boolean {
+	return lowMemoryDevice && fileSize > LOW_MEMORY_IMAGE_BYTES;
 }
 
 export async function prepareMoodBoardImage(file: File): Promise<{ blob: Blob; dataUrl: string }> {
@@ -21,7 +27,7 @@ export async function prepareMoodBoardImage(file: File): Promise<{ blob: Blob; d
 	if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
 		throw new Error('Choose a PNG, JPG, or WebP image.');
 	}
-	if (isLowMemoryDevice() && file.size > LOW_MEMORY_IMAGE_BYTES) {
+	if (shouldRefuseLargeMoodBoardUpload(file.size, isLowMemoryDevice())) {
 		throw new Error('This photo is too large to safely prepare on a low-memory device. Choose a smaller image or reduce it before uploading.');
 	}
 	let bitmap: ImageBitmap;

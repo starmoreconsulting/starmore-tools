@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createMoodBoardProject } from './project';
+import { MOOD_BOARD_IMAGE_COUNTS, MOOD_BOARD_PRESETS } from './layouts';
 
 const kit = {
 	starmore_brand_kit: 1 as const,
@@ -42,5 +43,27 @@ describe('mood board projects', () => {
 		const project = createMoodBoardProject(kit, 'a4-landscape', 3);
 		expect(project.artboard).toMatchObject({ width: 3508, height: 2480 });
 		expect(() => createMoodBoardProject(kit, 'square', 2)).toThrow('between 3 and 9');
+	});
+
+	it('keeps every generated image cell inside each artboard without overlapping another cell', () => {
+		for (const preset of Object.keys(MOOD_BOARD_PRESETS)) {
+			for (const count of MOOD_BOARD_IMAGE_COUNTS) {
+				const project = createMoodBoardProject(kit, preset, count);
+				const cells = project.variants.primary.filter((element) => element.fieldName === 'moodboardImage');
+				for (const cell of cells) {
+					expect(cell.x).toBeGreaterThanOrEqual(0);
+					expect(cell.y).toBeGreaterThanOrEqual(0);
+					expect(cell.x + cell.width).toBeLessThanOrEqual(project.artboard.width);
+					expect(cell.y + cell.height).toBeLessThanOrEqual(project.artboard.height);
+				}
+				for (let first = 0; first < cells.length; first += 1) {
+					for (let second = first + 1; second < cells.length; second += 1) {
+						const a = cells[first];
+						const b = cells[second];
+						expect(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y).toBe(true);
+					}
+				}
+			}
+		}
 	});
 });

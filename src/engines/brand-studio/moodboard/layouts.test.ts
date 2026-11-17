@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getDownscaledDimensions } from './images';
+import { getDownscaledDimensions, shouldRefuseLargeMoodBoardUpload } from './images';
 import { getMoodBoardCells, MOOD_BOARD_IMAGE_COUNTS, MOOD_BOARD_PRESETS } from './layouts';
 
 describe('mood board layouts', () => {
@@ -28,5 +28,11 @@ describe('mood board layouts', () => {
 	it('downscales oversized photos while preserving their aspect ratio', () => {
 		expect(getDownscaledDimensions(6000, 4000)).toEqual({ width: 2048, height: 1365 });
 		expect(getDownscaledDimensions(800, 600)).toEqual({ width: 800, height: 600 });
+	});
+
+	it('refuses large source files on devices classified as low-memory', () => {
+		expect(shouldRefuseLargeMoodBoardUpload(4 * 1024 * 1024, true)).toBe(true);
+		expect(shouldRefuseLargeMoodBoardUpload(2 * 1024 * 1024, true)).toBe(false);
+		expect(shouldRefuseLargeMoodBoardUpload(4 * 1024 * 1024, false)).toBe(false);
 	});
 });

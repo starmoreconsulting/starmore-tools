@@ -5,6 +5,8 @@ import { deflateSync } from 'node:zlib';
 import { strFromU8, unzipSync } from 'fflate';
 import { createEmptyBrandKit } from '../../logo-studio/brand/kit';
 import * as outline from '../../logo-studio/export/outline';
+import * as pdf from '../../logo-studio/export/pdf';
+import * as print from '../../logo-studio/export/print';
 import * as raster from '../../logo-studio/export/raster';
 import * as svg from '../../logo-studio/export/svg';
 import { createDefaultElement, createDefaultProject } from '../../logo-studio/model/types';
@@ -64,6 +66,20 @@ function emojiBusinessCard() {
 	return project;
 }
 
+function moodBoardProject(preset: string, width: number, height: number) {
+	const project = createDefaultProject('Mood board');
+	project.kind = 'design';
+	project.artboard = { width, height, background: '#ffffff' };
+	project.generation = {
+		layoutId: `moodboard:${preset}`,
+		seed: 0,
+		paletteName: 'Test',
+		fontPair: { name: 'Test', primary: 'Inter', secondary: 'Inter' },
+		icon: '',
+	};
+	return project;
+}
+
 afterEach(() => vi.restoreAllMocks());
 
 describe('exportBrandPack', () => {
@@ -111,5 +127,36 @@ describe('exportBrandPack', () => {
 		const page = document.getPage(0);
 		expect(page.getWidth()).toBeCloseTo(103 * 72 / 25.4);
 		expect(page.getHeight()).toBeCloseTo(73 * 72 / 25.4);
+	});
+
+	it('exports mood boards through the existing raster and PDF engines, including A4 print sizing', async () => {
+		vi.spyOn(svg, 'exportProjectToSvg').mockResolvedValue({
+			svg: '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080"></svg>',
+			warnings: [],
+		});
+		const rasterExport = vi.spyOn(raster, 'renderSvgToRaster').mockResolvedValue({
+			blob: transparentPixel(),
+			width: 1,
+			height: 1,
+		});
+		const screenPdf = vi.spyOn(pdf, 'exportSvgToPdf').mockResolvedValue(new Blob(['screen pdf']));
+		const printPdf = vi.spyOn(print, 'exportPrintPdf').mockResolvedValue({
+			blob: new Blob(['print pdf']),
+			pageSizes: [],
+		});
+
+		await exportDesignAssetWithReport(moodBoardProject('square', 1080, 1080), 'png');
+		await exportDesignAssetWithReport(moodBoardProject('square', 1080, 1080), 'jpg');
+		await exportDesignAssetWithReport(moodBoardProject('square', 1080, 1080), 'pdf');
+		await exportDesignAssetWithReport(moodBoardProject('a4-landscape', 3508, 2480), 'pdf');
+
+		expect(rasterExport).toHaveBeenCalledTimes(2);
+		expect(rasterExport).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ format: 'png' }));
+		expect(rasterExport).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ format: 'jpg' }));
+		expect(screenPdf).toHaveBeenCalledTimes(1);
+		expect(printPdf).toHaveBeenCalledWith(
+			[expect.objectContaining({ width: 297, height: 210, unit: 'mm' })],
+			expect.objectContaining({ preset: 'standard' }),
+		);
 	});
 });
