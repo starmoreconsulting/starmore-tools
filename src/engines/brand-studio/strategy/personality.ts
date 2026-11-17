@@ -1,5 +1,6 @@
 import { styleRules } from '../../logo-studio/templates/rules';
 import type { LogoStyle } from '../../logo-studio/model/types';
+import { sanitizeGeneratedText } from './sanitize';
 
 export const personalityScales = [
 	{ ends: ['Formal', 'Casual'], axis: 'formality' },
@@ -53,9 +54,9 @@ export function buildPersonality(traits: string[]): PersonalityResult {
 	})))];
 	return {
 		traits: selected,
-		notes: selected.map((trait) => VOICE[trait]?.note).filter((note): note is string => Boolean(note)),
-		doList: selected.map((trait) => VOICE[trait]?.do).filter((note): note is string => Boolean(note)),
-		dontList: selected.map((trait) => VOICE[trait]?.dont).filter((note): note is string => Boolean(note)),
+		notes: selected.map((trait) => VOICE[trait]?.note).filter((note): note is string => Boolean(note)).map(sanitizeGeneratedText),
+		doList: selected.map((trait) => VOICE[trait]?.do).filter((note): note is string => Boolean(note)).map(sanitizeGeneratedText),
+		dontList: selected.map((trait) => VOICE[trait]?.dont).filter((note): note is string => Boolean(note)).map(sanitizeGeneratedText),
 		styles,
 		palettes,
 		fontCategories,

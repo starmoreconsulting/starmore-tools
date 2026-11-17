@@ -3,6 +3,7 @@ import { industryWords, styleWords } from '../../../data/brand/word-banks';
 import { namePatterns, namePrefixes, nameSuffixes } from '../../../data/brand/name-patterns';
 import type { LogoIndustry, LogoStyle } from '../../logo-studio/model/types';
 import { createSeededRandom } from './random';
+import { sanitizeGeneratedText } from './sanitize';
 
 export type NameLength = 'short' | 'balanced' | 'long';
 
@@ -79,7 +80,7 @@ export function generateBrandNames(options: BrandNameOptions): string[] {
 			.replace('{blend}', blend(root, other))
 			.replace('{invented}', invented)
 			.trim();
-		candidate = candidate.replace(/\s+/g, ' ');
+		candidate = sanitizeGeneratedText(candidate);
 		if (startingLetter && !candidate.toLocaleLowerCase().startsWith(startingLetter.toLocaleLowerCase())) {
 			candidate = `${startingLetter}${candidate}`;
 		}

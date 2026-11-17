@@ -2,6 +2,7 @@ import { knownSlogans } from '../../../data/brand/blocklist-slogans';
 import { sloganPatterns } from '../../../data/brand/slogan-patterns';
 import { toneWords } from '../../../data/brand/tone-words';
 import { createSeededRandom, seededShuffle } from './random';
+import { sanitizeGeneratedText } from './sanitize';
 
 export type BrandTone = keyof typeof toneWords;
 
@@ -62,13 +63,13 @@ export function generateBrandSlogans(options: BrandSloganOptions): string[] {
 	for (let attempt = 0; attempt < 1600 && results.length < count; attempt += 1) {
 		const pattern = patterns[attempt % patterns.length];
 		const toneWord = words[Math.floor(random() * words.length)];
-		const candidate = pattern.replace(/\{(business|action|audience|benefit|toneWord)\}/g, (_match, slot: string) => ({
+		const candidate = sanitizeGeneratedText(pattern.replace(/\{(business|action|audience|benefit|toneWord)\}/g, (_match, slot: string) => ({
 			business: business || 'Good work',
 			action,
 			audience,
 			benefit,
 			toneWord,
-		})[slot as 'business' | 'action' | 'audience' | 'benefit' | 'toneWord']).trim();
+		})[slot as 'business' | 'action' | 'audience' | 'benefit' | 'toneWord']));
 		if (/\{[^}]+\}/.test(candidate) || candidate.length > 120 || isKnownSloganMatch(candidate)) continue;
 		const key = normalized(candidate);
 		if (!key || seen.has(key)) continue;

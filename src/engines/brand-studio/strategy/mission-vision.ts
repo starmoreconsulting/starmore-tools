@@ -17,7 +17,7 @@ export interface MissionVisionResult {
 }
 
 function clean(value: string): string {
-	return value.trim().replace(/\s+/g, ' ').replace(/[.!?]+$/g, '');
+	return sanitizeGeneratedText(value).replace(/[.!?]+$/g, '');
 }
 
 export function generateMissionVision(answers: MissionVisionAnswers): MissionVisionResult {
@@ -35,14 +35,15 @@ export function generateMissionVision(answers: MissionVisionAnswers): MissionVis
 
 	return {
 		mission: {
-			plain: `${subject} ${action}${method}${purpose}.`,
-			inspiring: `Together, we ${action}${who ? ` for ${who}` : ''}${method}${purpose}, creating a more hopeful way forward.`,
-			concise: `${action}${who ? ` for ${who}` : ''}${how ? `, with ${how}` : ''}.`,
+			plain: sanitizeGeneratedText(`${subject} ${action}${method}${purpose}.`),
+			inspiring: sanitizeGeneratedText(`Together, we ${action}${who ? ` for ${who}` : ''}${method}${purpose}, creating a more hopeful way forward.`),
+			concise: sanitizeGeneratedText(`${action}${who ? ` for ${who}` : ''}${how ? `, with ${how}` : ''}.`),
 		},
 		vision: {
-			plain: `A future where ${futureSubject} ${futureAction}${futurePurpose}.`,
-			inspiring: `A brighter future where ${who || 'communities'} ${futureAction}${futurePurpose}, and more people have room to thrive.`,
-			concise: `More ${what || 'possibility'} for ${who || 'people'}${why ? `, built on ${why}` : ''}.`,
+			plain: sanitizeGeneratedText(`A future where ${futureSubject} ${futureAction}${futurePurpose}.`),
+			inspiring: sanitizeGeneratedText(`A brighter future where ${who || 'communities'} ${futureAction}${futurePurpose}, and more people have room to thrive.`),
+			concise: sanitizeGeneratedText(`More ${what || 'possibility'} for ${who || 'people'}${why ? `, built on ${why}` : ''}.`),
 		},
 	};
 }
+import { sanitizeGeneratedText } from './sanitize';

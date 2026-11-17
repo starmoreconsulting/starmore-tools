@@ -17,7 +17,7 @@ export interface PositioningResult {
 }
 
 function clean(value: string): string {
-	return value.trim().replace(/\s+/g, ' ').replace(/[.!?]+$/g, '');
+	return sanitizeGeneratedText(value).replace(/[.!?]+$/g, '');
 }
 
 export function generatePositioning(answers: PositioningAnswers): PositioningResult {
@@ -32,9 +32,9 @@ export function generatePositioning(answers: PositioningAnswers): PositioningRes
 	const helpful = `${brand} helps${target ? ` ${target}` : ' people'}${benefit ? ` ${benefit}` : ' move forward'}${reason ? `, supported by ${reason}` : ''}.`;
 	const categoryLed = `${category ? `A ${category}` : 'A thoughtful choice'}${target ? ` for ${target}` : ''}: ${benefit || 'clear value'}${reason ? `, grounded in ${reason}` : ''}.`;
 	const options = [
-		{ label: 'For / is / that / because', statement: direct },
-		{ label: 'Helpful outcome', statement: helpful },
-		{ label: 'Category first', statement: categoryLed },
+		{ label: 'For / is / that / because', statement: sanitizeGeneratedText(direct) },
+		{ label: 'Helpful outcome', statement: sanitizeGeneratedText(helpful) },
+		{ label: 'Category first', statement: sanitizeGeneratedText(categoryLed) },
 	];
 	return {
 		options,
@@ -46,3 +46,4 @@ export function generatePositioning(answers: PositioningAnswers): PositioningRes
 		],
 	};
 }
+import { sanitizeGeneratedText } from './sanitize';
