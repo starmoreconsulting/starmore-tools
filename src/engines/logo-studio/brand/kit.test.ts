@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { createDefaultElement, createDefaultProject } from '../model/types';
-import { BRAND_KIT_MAX_BYTES, exportKit, importKit, type BrandKit } from './kit';
+import { applyBrandKitUpdates, BRAND_KIT_MAX_BYTES, exportKit, importKit, type BrandKit } from './kit';
 
 function makeKit(overrides: Partial<BrandKit> = {}): BrandKit {
 	return {
@@ -124,5 +124,50 @@ describe('importKit', () => {
 		const imported = await importKit(new File([exported.blob], 'brand-kit.json', { type: 'application/json' }));
 
 		expect(imported).toEqual(original);
+	});
+
+	it('imports old version-one kits without a strategy block', async () => {
+		const imported = await importKit(jsonFile(makeKit()));
+		expect(imported.starmore_brand_kit).toBe(1);
+		expect(imported.strategy).toBeUndefined();
+	});
+
+	it('round-trips validated strategy fields without changing kit version', async () => {
+		const strategy = {
+			positioning: 'A clear local choice',
+			personality: ['warm', 'curious'],
+			tone: ['plain', 'friendly'],
+			mission: 'Make useful things.',
+			vision: 'Help more neighbours thrive.',
+		};
+		const original = makeKit({ strategy });
+		const imported = await importKit(new File([exportKit(original).blob], 'kit.json', { type: 'application/json' }));
+		expect(imported.starmore_brand_kit).toBe(1);
+		expect(imported.strategy).toEqual(strategy);
+	});
+
+	it('rejects invalid strategy types, text lengths, and more than 12 items', async () => {
+		const strategy = { positioning: '', personality: [], tone: [], mission: '', vision: '' };
+		await expect(importKit(jsonFile({ ...makeKit(), strategy: { ...strategy, mission: 42 } })))
+			.rejects.toThrow('The brand strategy has an invalid mission; text must be 1,000 characters or fewer.');
+		await expect(importKit(jsonFile({ ...makeKit(), strategy: { ...strategy, vision: 'v'.repeat(1001) } })))
+			.rejects.toThrow('The brand strategy has an invalid vision; text must be 1,000 characters or fewer.');
+		await expect(importKit(jsonFile({ ...makeKit(), strategy: { ...strategy, tone: Array(13).fill('clear') } })))
+			.rejects.toThrow('The brand strategy tone must contain at most 12 items.');
+	});
+
+	it('updates only fields produced by the selected tool', () => {
+		const kit = makeKit({
+			profile: {
+				businessName: 'Existing Co', tagline: 'Old line', contactName: '', jobTitle: '', phone: '',
+				email: '', website: '', address: '', socialHandles: { instagram: '@old', facebook: '', linkedin: '', youtube: '', x: '' },
+			},
+			strategy: { positioning: 'Existing position', personality: ['warm'], tone: ['clear'], mission: '', vision: '' },
+		});
+		const updated = applyBrandKitUpdates(kit, { profile: { tagline: 'New line' } });
+		expect(updated.profile?.tagline).toBe('New line');
+		expect(updated.profile?.businessName).toBe('Existing Co');
+		expect(updated.profile?.socialHandles.instagram).toBe('@old');
+		expect(updated.strategy).toEqual(kit.strategy);
 	});
 });

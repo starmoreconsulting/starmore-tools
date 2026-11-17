@@ -13,6 +13,7 @@ export interface BrandKit {
 	colors: { name: string; hex: string; role?: BrandColorRole }[];
 	fonts: { heading: string; subheading: string; body: string };
 	profile?: BrandProfile;
+	strategy?: BrandStrategy;
 	logo?: LogoProject;
 	customFonts?: { family: string; filename: string; mime: string; dataUri: string }[];
 }
@@ -40,6 +41,54 @@ export interface BrandProfile {
 		youtube: string;
 		x: string;
 	};
+}
+
+export interface BrandStrategy {
+	positioning: string;
+	personality: string[];
+	tone: string[];
+	mission: string;
+	vision: string;
+}
+
+export interface BrandKitUpdates {
+	profile?: Partial<Omit<BrandProfile, 'socialHandles'>> & { socialHandles?: Partial<BrandProfile['socialHandles']> };
+	strategy?: Partial<BrandStrategy>;
+	fonts?: Partial<BrandKit['fonts']>;
+	colors?: BrandKit['colors'];
+}
+
+const EMPTY_BRAND_PROFILE: BrandProfile = {
+	businessName: '', tagline: '', contactName: '', jobTitle: '', phone: '', email: '', website: '', address: '',
+	socialHandles: { instagram: '', facebook: '', linkedin: '', youtube: '', x: '' },
+};
+
+const EMPTY_BRAND_STRATEGY: BrandStrategy = {
+	positioning: '', personality: [], tone: [], mission: '', vision: '',
+};
+
+export function applyBrandKitUpdates(kit: BrandKit, updates: BrandKitUpdates): BrandKit {
+	return validateBrandKit({
+		...kit,
+		...(updates.profile ? {
+			profile: {
+				...EMPTY_BRAND_PROFILE,
+				...kit.profile,
+				...updates.profile,
+				socialHandles: {
+					...EMPTY_BRAND_PROFILE.socialHandles,
+					...kit.profile?.socialHandles,
+					...updates.profile.socialHandles,
+				},
+			},
+		} : {}),
+		...(updates.strategy ? {
+			strategy: { ...EMPTY_BRAND_STRATEGY, ...kit.strategy, ...updates.strategy },
+		} : {}),
+		...(updates.fonts ? { fonts: { ...kit.fonts, ...updates.fonts } } : {}),
+		...(updates.colors ? { colors: updates.colors } : {}),
+		updatedAt: Date.now(),
+	});
 }
 
 export interface ExportKitResult {
@@ -123,6 +172,35 @@ export function validateBrandProfile(value: unknown): BrandProfile {
 	return profile;
 }
 
+export function validateBrandStrategy(value: unknown): BrandStrategy {
+	if (!isRecord(value)) throw new Error('The brand kit has an invalid strategy block.');
+	assertKeys(value, ['positioning', 'personality', 'tone', 'mission', 'vision'], 'brand strategy field');
+	const text = (input: unknown, label: string) => {
+		if (typeof input !== 'string' || input.length > 1000) {
+			throw new Error(`The brand strategy has an invalid ${label}; text must be 1,000 characters or fewer.`);
+		}
+		return input.trim();
+	};
+	const list = (input: unknown, label: string) => {
+		if (!Array.isArray(input) || input.length > 12) {
+			throw new Error(`The brand strategy ${label} must contain at most 12 items.`);
+		}
+		return input.map((item, index) => {
+			if (typeof item !== 'string' || item.length > 1000) {
+				throw new Error(`The brand strategy ${label} item ${index + 1} is invalid.`);
+			}
+			return item.trim();
+		});
+	};
+	return {
+		positioning: text(value.positioning, 'positioning'),
+		personality: list(value.personality, 'personality'),
+		tone: list(value.tone, 'tone'),
+		mission: text(value.mission, 'mission'),
+		vision: text(value.vision, 'vision'),
+	};
+}
+
 function decodeSvgDataUri(value: string): string | null {
 	const match = /^data:image\/svg\+xml(?:;[^,]*)?,(.*)$/is.exec(value);
 	if (!match) return null;
@@ -187,7 +265,7 @@ export function validateBrandKit(value: unknown): BrandKit {
 		throw new Error('This brand kit was created with a newer version. Update the app to import it.');
 	}
 	if (value.starmore_brand_kit !== 1) throw new Error('This brand kit version is not supported.');
-	assertKeys(value, ['starmore_brand_kit', 'id', 'name', 'createdAt', 'updatedAt', 'colors', 'fonts', 'profile', 'logo', 'customFonts'], 'field');
+	assertKeys(value, ['starmore_brand_kit', 'id', 'name', 'createdAt', 'updatedAt', 'colors', 'fonts', 'profile', 'strategy', 'logo', 'customFonts'], 'field');
 	if (typeof value.createdAt !== 'number' || !Number.isFinite(value.createdAt)
 		|| typeof value.updatedAt !== 'number' || !Number.isFinite(value.updatedAt)) {
 		throw new Error('The brand kit has invalid timestamps.');
@@ -216,6 +294,7 @@ export function validateBrandKit(value: unknown): BrandKit {
 		body: requiredText(value.fonts.body, 'body font', 100),
 	};
 	const profile = value.profile === undefined ? undefined : validateBrandProfile(value.profile);
+	const strategy = value.strategy === undefined ? undefined : validateBrandStrategy(value.strategy);
 	let logo: LogoProject | undefined;
 	if (value.logo !== undefined) {
 		logo = sanitizeProjectSvgImages(validateLogoProject(value.logo));
@@ -229,6 +308,7 @@ export function validateBrandKit(value: unknown): BrandKit {
 		colors,
 		fonts,
 		...(profile ? { profile } : {}),
+		...(strategy ? { strategy } : {}),
 		...(logo ? { logo } : {}),
 		...(value.customFonts === undefined ? {} : { customFonts: validateCustomFonts(value.customFonts) }),
 	};
