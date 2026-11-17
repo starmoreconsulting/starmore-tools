@@ -72,6 +72,7 @@ export type ToolComponentName =
 	| 'MonogramLogoGenerator'
 	| 'BrandNameGenerator'
 	| 'BrandSloganGenerator'
+	| 'BrandStrategyGenerator'
 	| 'LogoStudioApp';
 
 export interface RecommendedDefinition {
@@ -98,6 +99,7 @@ export interface ToolDefinition {
 	live: boolean;
 	preset?: LogoStudioPreset;
 	designPreset?: DesignType;
+	strategyKind?: 'mission-vision' | 'positioning' | 'personality';
 	imagePreset?: 'brightness-contrast' | 'blurry-photo';
 	recommended?: RecommendedDefinition;
 }
