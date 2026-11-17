@@ -33,6 +33,7 @@ const VOICE: Record<string, { note: string; do: string; dont: string }> = {
 
 export interface PersonalityResult {
 	traits: string[];
+	missing: { field: string; hint: string }[];
 	notes: string[];
 	doList: string[];
 	dontList: string[];
@@ -42,7 +43,15 @@ export interface PersonalityResult {
 }
 
 export function buildPersonality(traits: string[]): PersonalityResult {
-	const selected = [...new Set(traits)].slice(0, 5);
+	const knownTraits = new Set(personalityScales.flatMap(({ ends }) => ends));
+	const selected = [...new Set(traits.filter((trait) => knownTraits.has(trait)))].slice(0, 5);
+	const missing = selected.length >= 3 ? [] : Array.from({ length: 3 - selected.length }, (_, index) => ({
+		field: `Trait ${selected.length + index + 1}`,
+		hint: 'Choose a trait that reflects your brand voice or visual style.',
+	}));
+	if (missing.length) {
+		return { traits: selected, missing, notes: [], doList: [], dontList: [], styles: [], palettes: [], fontCategories: [] };
+	}
 	const styles = [...new Set(selected.map((trait) => TRAIT_STYLES[trait]).filter((style): style is LogoStyle => Boolean(style)))];
 	const palettes = [...new Set(styles.flatMap((style) => styleRules[style].palettes))];
 	const fontCategories = [...new Set(styles.flatMap((style) => styleRules[style].fontPairs.map((pair) => {
@@ -54,6 +63,7 @@ export function buildPersonality(traits: string[]): PersonalityResult {
 	})))];
 	return {
 		traits: selected,
+		missing,
 		notes: selected.map((trait) => VOICE[trait]?.note).filter((note): note is string => Boolean(note)).map(sanitizeGeneratedText),
 		doList: selected.map((trait) => VOICE[trait]?.do).filter((note): note is string => Boolean(note)).map(sanitizeGeneratedText),
 		dontList: selected.map((trait) => VOICE[trait]?.dont).filter((note): note is string => Boolean(note)).map(sanitizeGeneratedText),

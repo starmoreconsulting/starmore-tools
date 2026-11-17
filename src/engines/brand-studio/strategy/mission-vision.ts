@@ -1,3 +1,5 @@
+import { sanitizeGeneratedText } from './sanitize';
+
 export interface MissionVisionAnswers {
 	who: string;
 	what: string;
@@ -12,12 +14,13 @@ export interface StatementVariants {
 }
 
 export interface MissionVisionResult {
-	mission: StatementVariants;
-	vision: StatementVariants;
+	mission: StatementVariants | null;
+	vision: StatementVariants | null;
+	missing: { field: string; hint: string }[];
 }
 
 function clean(value: string): string {
-	return sanitizeGeneratedText(value).replace(/[.!?]+$/g, '');
+	return sanitizeGeneratedText(value).replace(/[.!?]+$/g, '').trim();
 }
 
 export function generateMissionVision(answers: MissionVisionAnswers): MissionVisionResult {
@@ -25,25 +28,27 @@ export function generateMissionVision(answers: MissionVisionAnswers): MissionVis
 	const what = clean(answers.what);
 	const how = clean(answers.how);
 	const why = clean(answers.why);
-	const subject = who ? `We help ${who}` : 'We help people';
-	const action = what || 'make useful progress';
+	const missing = [
+		...(who ? [] : [{ field: 'Who you serve', hint: 'Name a group of people, such as “local makers”.' }]),
+		...(what ? [] : [{ field: 'What you do', hint: 'Describe your work, such as “build useful spaces”.' }]),
+	];
+	if (missing.length) return { mission: null, vision: null, missing };
+
 	const method = how ? ` through ${how}` : '';
 	const purpose = why ? ` so ${why}` : '';
-	const futureSubject = who ? `${who} can` : 'people can';
-	const futureAction = what ? `benefit from ${what}` : 'do meaningful work';
-	const futurePurpose = why ? `, with ${why}` : '';
+	const futurePurpose = why ? ` and, as a result, ${why}` : '';
 
 	return {
 		mission: {
-			plain: sanitizeGeneratedText(`${subject} ${action}${method}${purpose}.`),
-			inspiring: sanitizeGeneratedText(`Together, we ${action}${who ? ` for ${who}` : ''}${method}${purpose}, creating a more hopeful way forward.`),
-			concise: sanitizeGeneratedText(`${action}${who ? ` for ${who}` : ''}${how ? `, with ${how}` : ''}.`),
+			plain: sanitizeGeneratedText(`We help ${who} ${what}${method}${purpose}.`),
+			inspiring: sanitizeGeneratedText(`Together, we ${what} for ${who}${method}${purpose}, creating a more hopeful way forward.`),
+			concise: sanitizeGeneratedText(`${what} for ${who}${how ? `, with ${how}` : ''}.`),
 		},
 		vision: {
-			plain: sanitizeGeneratedText(`A future where ${futureSubject} ${futureAction}${futurePurpose}.`),
-			inspiring: sanitizeGeneratedText(`A brighter future where ${who || 'communities'} ${futureAction}${futurePurpose}, and more people have room to thrive.`),
-			concise: sanitizeGeneratedText(`More ${what || 'possibility'} for ${who || 'people'}${why ? `, built on ${why}` : ''}.`),
+			plain: sanitizeGeneratedText(`A future where ${who} can ${what}${futurePurpose}.`),
+			inspiring: sanitizeGeneratedText(`A brighter future where ${who} can ${what}, with more room to thrive.`),
+			concise: sanitizeGeneratedText(`More opportunity for ${who} to ${what}${why ? `, so ${why}` : ''}.`),
 		},
+		missing: [],
 	};
 }
-import { sanitizeGeneratedText } from './sanitize';

@@ -48,11 +48,15 @@ export default function BrandStrategyGenerator({ kind }: Props) {
 					{textField('How do you do it?', how, setHow)}
 					{textField('Why does it matter?', why, setWhy)}
 				</div>
-				<div className="brand-strategy-columns">
+				{missionVision.missing.length > 0 && <aside className="brand-tool-notice">
+					<strong>Still needed:</strong>
+					<ul>{missionVision.missing.map(({ field, hint }) => <li key={field}><strong>{field}:</strong> {hint}</li>)}</ul>
+				</aside>}
+				{missionVision.mission && missionVision.vision && <div className="brand-strategy-columns">
 					{(['mission', 'vision'] as const).map((field) => (
 						<section key={field} className="brand-strategy-result">
 							<h2>{field === 'mission' ? 'Mission' : 'Vision'}</h2>
-							{Object.entries(missionVision[field]).map(([variant, value]) => (
+							{Object.entries(missionVision[field]!).map(([variant, value]) => (
 								<article key={variant}>
 									<h3>{variant}</h3>
 									<p>{value}</p>
@@ -63,7 +67,7 @@ export default function BrandStrategyGenerator({ kind }: Props) {
 							))}
 						</section>
 					))}
-				</div>
+				</div>}
 			</>}
 			{kind === 'positioning' && <>
 				<div className="brand-tool-fields">
@@ -105,7 +109,11 @@ export default function BrandStrategyGenerator({ kind }: Props) {
 						</fieldset>
 					))}
 				</div>
-				<section className="brand-strategy-result">
+				{personality.missing.length > 0 && <aside className="brand-tool-notice">
+					<strong>Still needed:</strong>
+					<ul>{personality.missing.map(({ field, hint }) => <li key={field}><strong>{field}:</strong> {hint}</li>)}</ul>
+				</aside>}
+				{personality.missing.length === 0 && <section className="brand-strategy-result">
 					<h2>Tone of voice</h2>
 					<ul>{personality.notes.map((note) => <li key={note}>{note}</li>)}</ul>
 					<div className="brand-strategy-columns">
@@ -118,7 +126,7 @@ export default function BrandStrategyGenerator({ kind }: Props) {
 					<SaveToBrandKitButton updates={{
 						strategy: { personality: personality.traits, tone: personality.notes },
 					}} />
-				</section>
+				</section>}
 			</>}
 		</section>
 	);
