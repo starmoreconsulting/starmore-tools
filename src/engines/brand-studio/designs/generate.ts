@@ -2,8 +2,10 @@ import { socialSizePresets } from '../../../data/social-sizes';
 import type { BrandColorRole, BrandKit, BrandProfile } from '../../logo-studio/brand/kit';
 import { fitTextToBox } from '../../logo-studio/templates/layouts/helpers';
 import { createDefaultElement, createDefaultProject, type Element, type ElementRole, type LogoProject } from '../../logo-studio/model/types';
+import { createMoodBoardProject } from '../moodboard/project';
 
 export type DesignType =
+	| 'moodboard'
 	| 'business-card-front'
 	| 'business-card-back'
 	| 'letterhead'
@@ -15,13 +17,15 @@ export type DesignType =
 	| 'youtube-banner'
 	| 'linkedin-banner';
 
-export type DesignLayoutId = 'centered' | 'editorial' | 'bold-band';
+export type DesignLayoutId = 'centered' | 'editorial' | 'bold-band' | 'square' | 'wide' | 'a4-landscape';
 
 export interface DesignOptions {
 	cardSize?: '85x55mm' | '3.5x2in';
 	backgroundColor?: string;
 	headingFont?: string;
 	bodyFont?: string;
+	imageCount?: number;
+	keywords?: string;
 }
 
 export interface GeneratedDesign {
@@ -30,6 +34,7 @@ export interface GeneratedDesign {
 }
 
 const LAYOUT_IDS: DesignLayoutId[] = ['centered', 'editorial', 'bold-band'];
+const MOOD_BOARD_LAYOUT_IDS: DesignLayoutId[] = ['square', 'wide', 'a4-landscape'];
 const WHITE = '#FFFFFF';
 const BLACK = '#000000';
 
@@ -81,12 +86,13 @@ function colorForRole(kit: BrandKit, role: BrandColorRole, fallback: string): st
 }
 
 export function getDesignDimensions(type: DesignType, options: DesignOptions = {}): { width: number; height: number; unit: 'mm' | 'px' } {
+	if (type === 'moodboard') return { width: 1080, height: 1080, unit: 'px' };
 	if (type === 'business-card-front' || type === 'business-card-back') {
 		return options.cardSize === '3.5x2in' ? { width: 88.9, height: 50.8, unit: 'mm' } : { width: 85, height: 55, unit: 'mm' };
 	}
 	if (type === 'letterhead') return { width: 210, height: 297, unit: 'mm' };
 	if (type === 'envelope') return { width: 220, height: 110, unit: 'mm' };
-	const presetIds: Record<Exclude<DesignType, 'business-card-front' | 'business-card-back' | 'letterhead' | 'envelope'>, string> = {
+	const presetIds: Record<Exclude<DesignType, 'moodboard' | 'business-card-front' | 'business-card-back' | 'letterhead' | 'envelope'>, string> = {
 		'instagram-post-square': 'instagram-square',
 		'instagram-post-portrait': 'instagram-portrait',
 		'instagram-story': 'instagram-story',
@@ -100,8 +106,7 @@ export function getDesignDimensions(type: DesignType, options: DesignOptions = {
 }
 
 export function getDesignLayouts(type: DesignType): DesignLayoutId[] {
-	void type;
-	return [...LAYOUT_IDS];
+	return type === 'moodboard' ? [...MOOD_BOARD_LAYOUT_IDS] : [...LAYOUT_IDS];
 }
 
 function createText(
@@ -209,6 +214,10 @@ export function generateDesign(
 	},
 	options: DesignOptions = {},
 ): GeneratedDesign {
+	if (type === 'moodboard') {
+		if (!MOOD_BOARD_LAYOUT_IDS.includes(layoutId as DesignLayoutId)) throw new Error(`Unknown mood board preset: ${layoutId}`);
+		return { project: createMoodBoardProject(kit, layoutId, options.imageCount ?? 6, options.keywords ?? ''), warnings: [] };
+	}
 	if (!LAYOUT_IDS.includes(layoutId as DesignLayoutId)) throw new Error(`Unknown design layout: ${layoutId}`);
 	const layout = layoutId as DesignLayoutId;
 	const { width, height, unit } = getDesignDimensions(type, options);

@@ -347,7 +347,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 	});
 }
 
-async function projectWithEmbeddedFonts(project: LogoProject): Promise<Record<string, unknown>> {
+async function projectWithEmbeddedFonts(project: LogoProject, includeMoodBoardImages = false): Promise<Record<string, unknown>> {
 	const embedded: { family: string; filename: string; mime: string; data: string }[] = [];
 	let totalBytes = 0;
 	const metadata = new Map((project.customFonts ?? []).map((font) => [font.family.toLocaleLowerCase(), font]));
@@ -374,22 +374,31 @@ async function projectWithEmbeddedFonts(project: LogoProject): Promise<Record<st
 			data: await blobToBase64(stored.blob),
 		});
 	}
+	const projectData = includeMoodBoardImages || !project.generation?.layoutId.startsWith('moodboard:')
+		? project
+		: {
+			...project,
+			variants: Object.fromEntries(Object.entries(project.variants).map(([name, elements]) => [
+				name,
+				elements.map((element) => element.fieldName === 'moodboardImage' ? { ...element, src: undefined } : element),
+			])),
+		};
 	return {
-		...project,
+		...projectData,
 		...(metadata.size ? { customFonts: [...metadata.values()] } : {}),
 		...(embedded.length ? { fontFiles: embedded } : {}),
 	};
 }
 
-export async function createProjectFile(project: LogoProject): Promise<Blob> {
-	const serialized = `${JSON.stringify(await projectWithEmbeddedFonts(project), null, 2)}\n`;
+export async function createProjectFile(project: LogoProject, includeMoodBoardImages = false): Promise<Blob> {
+	const serialized = `${JSON.stringify(await projectWithEmbeddedFonts(project, includeMoodBoardImages), null, 2)}\n`;
 	const file = new Blob([serialized], { type: 'application/json' });
 	if (file.size > MAX_FILE_BYTES) throw new Error('The project file exceeds the 16 MB size limit.');
 	return file;
 }
 
-export async function createProjectFileWithReference(project: LogoProject, reference: ReferenceLayer | null): Promise<Blob> {
-	const payload = await projectWithEmbeddedFonts(project);
+export async function createProjectFileWithReference(project: LogoProject, reference: ReferenceLayer | null, includeMoodBoardImages = false): Promise<Blob> {
+	const payload = await projectWithEmbeddedFonts(project, includeMoodBoardImages);
 	if (!reference) {
 		const file = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: 'application/json' });
 		if (file.size > MAX_FILE_BYTES) throw new Error('The project file exceeds the 16 MB size limit.');

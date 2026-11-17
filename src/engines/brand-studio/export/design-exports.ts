@@ -34,6 +34,10 @@ function isSocialDesign(project: LogoProject): boolean {
 	return /^(instagram-post-square|instagram-post-portrait|instagram-story|facebook-cover|youtube-banner|linkedin-banner):/.test(project.generation?.layoutId ?? '');
 }
 
+function isMoodBoard(project: LogoProject): boolean {
+	return project.generation?.layoutId.startsWith('moodboard:') ?? false;
+}
+
 function blobDataUrl(blob: Blob): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
@@ -110,7 +114,19 @@ export async function exportDesignAssetWithReport(
 		}], { preset: 'standard', extendBackgroundColourIntoBleed: true });
 		return { blob: result.blob, ...(notice ? { notice } : {}) };
 	}
-	if (isSocialDesign(project)) return { blob: await exportSvgToPdf(vector.svg, project.artboard.width, project.artboard.height) };
+	if (isSocialDesign(project) || isMoodBoard(project)) {
+		if (project.generation?.layoutId === 'moodboard:a4-landscape') {
+			const result = await exportPrintPdf([{
+				svg: vector.svg,
+				width: 297,
+				height: 210,
+				unit: 'mm',
+				background: project.artboard.background,
+			}], { preset: 'standard', extendBackgroundColourIntoBleed: true });
+			return { blob: result.blob };
+		}
+		return { blob: await exportSvgToPdf(vector.svg, project.artboard.width, project.artboard.height) };
+	}
 	throw new Error('The design format is not supported for PDF export.');
 }
 

@@ -131,6 +131,7 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 	const [jpgBackground, setJpgBackground] = useState('#ffffff');
 	const [jpgQuality, setJpgQuality] = useState(0.92);
 	const [includeReference, setIncludeReference] = useState(false);
+	const [includeMoodBoardImages, setIncludeMoodBoardImages] = useState(false);
 	const [trimPreset, setTrimPreset] = useState<TrimPreset>('current');
 	const [customPrintWidth, setCustomPrintWidth] = useState(210);
 	const [customPrintHeight, setCustomPrintHeight] = useState(297);
@@ -258,8 +259,8 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 	});
 	const exportProjectFile = () => runExport('Project file', async () => {
 		const file = includeReference
-			? await createProjectFileWithReference(project, reference)
-			: await createProjectFile(project);
+			? await createProjectFileWithReference(project, reference, includeMoodBoardImages)
+			: await createProjectFile(project, includeMoodBoardImages);
 		downloadBlob(file, `${safeFileName(project.name)}.json`);
 		return {};
 	});
@@ -469,6 +470,7 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 					<section className="logo-export-format">
 						<div><h3>Project file</h3><p>Save an editable JSON backup of this design.</p></div>
 						<label className="logo-export-check"><input type="checkbox" checked={includeReference} disabled={!reference} onChange={(event) => setIncludeReference(event.target.checked)} /> Include the local reference image (off by default)</label>
+						{project.generation?.layoutId.startsWith('moodboard:') && <label className="logo-export-check"><input type="checkbox" checked={includeMoodBoardImages} onChange={(event) => setIncludeMoodBoardImages(event.target.checked)} /> Include mood board photos (off by default)</label>}
 						<button type="button" onClick={() => void exportProjectFile()} disabled={Boolean(busy)}>{busy === 'Project file' ? 'Preparing…' : 'Save project file'}</button>
 					</section>
 

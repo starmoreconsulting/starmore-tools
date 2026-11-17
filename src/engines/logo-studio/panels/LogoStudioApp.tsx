@@ -27,7 +27,9 @@ import BrandDesignLauncher from '../../brand-studio/panels/BrandDesignLauncher';
 import DesignDetailsPanel from '../../brand-studio/panels/DesignDetailsPanel';
 import DesignResizeDialog from '../../brand-studio/panels/DesignResizeDialog';
 import DesignExportPanel from '../../brand-studio/panels/DesignExportPanel';
+import MoodBoardAssets from '../../brand-studio/panels/MoodBoardAssets';
 import { generateDesign, type DesignType, type GeneratedDesign } from '../../brand-studio/designs/generate';
+import { restoreMoodBoardImages, storeMoodBoardImagesFromProject } from '../store/moodboard-images';
 import { getActiveBrandKit } from '../store/brand-kits';
 import { restoreBrandKitFonts, type BrandKit, type BrandProfile } from '../brand/kit';
 import './phase-one.css';
@@ -160,6 +162,7 @@ export default function LogoStudioApp({ preset, designPreset }: { preset?: LogoS
 		if (!file) return;
 		try {
 			const imported = await readProjectFileWithReference(file);
+			await storeMoodBoardImagesFromProject(imported.project);
 			setCustomFonts(await listCustomFonts());
 			loadProject(imported.project);
 			await saveLocalProject(imported.project);
@@ -309,11 +312,12 @@ export default function LogoStudioApp({ preset, designPreset }: { preset?: LogoS
 
 	useEffect(() => {
 		let active = true;
-		void restoreLastProject().then((restored) => {
+		void restoreLastProject().then(async (restored) => {
 			if (!active) return;
 			if (restored) {
-				loadProject(restored);
-				setStatus(`Restored “${restored.name}” from this device.`);
+				const projectWithImages = await restoreMoodBoardImages(restored);
+				loadProject(projectWithImages);
+				setStatus(`Restored “${projectWithImages.name}” from this device.`);
 			}
 			setStorageReady(true);
 		}).catch((error: unknown) => {
@@ -477,11 +481,15 @@ export default function LogoStudioApp({ preset, designPreset }: { preset?: LogoS
 		}}
 	/>;
 	const editorPropertiesPanel = <>
-		{project.kind === 'design' && <DesignDetailsPanel
+		{project.kind === 'design' && !project.generation?.layoutId.startsWith('moodboard:') && <DesignDetailsPanel
 			project={project}
 			kit={activeBrandKit}
 			onChange={updateGeneratedDesign}
 			onResize={(profile) => setResizeProfile(profile)}
+		/>}
+		{project.kind === 'design' && project.generation?.layoutId.startsWith('moodboard:') && <MoodBoardAssets
+			project={project}
+			onUpdate={updateElement}
 		/>}
 		{project.kind === 'design' && <DesignExportPanel project={project} kit={activeBrandKit} />}
 		{propertiesPanel}

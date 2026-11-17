@@ -11,6 +11,7 @@ interface Props {
 }
 
 const LABELS: Record<DesignType, string> = {
+	moodboard: 'Mood board',
 	'business-card-front': 'Business card front',
 	'business-card-back': 'Business card back',
 	letterhead: 'Letterhead',
@@ -25,8 +26,10 @@ const LABELS: Record<DesignType, string> = {
 
 export default function BrandDesignLauncher({ kit, initialType, onCreate, onSetupBrand, onClose }: Props) {
 	const [type, setType] = useState<DesignType>(initialType ?? 'business-card-front');
-	const [layoutId, setLayoutId] = useState('centered');
+	const [layoutId, setLayoutId] = useState(getDesignLayouts(initialType ?? 'business-card-front')[0]);
 	const [cardSize, setCardSize] = useState<'85x55mm' | '3.5x2in'>('85x55mm');
+	const [imageCount, setImageCount] = useState(6);
+	const [keywords, setKeywords] = useState('');
 	const [error, setError] = useState('');
 	const create = () => {
 		if (!kit) {
@@ -34,7 +37,7 @@ export default function BrandDesignLauncher({ kit, initialType, onCreate, onSetu
 			return;
 		}
 		try {
-			onCreate(generateDesign(type, layoutId, kit, kit.profile, { cardSize }));
+			onCreate(generateDesign(type, layoutId, kit, kit.profile, { cardSize, imageCount, keywords }));
 			setError('');
 		} catch (cause) {
 			setError(cause instanceof Error ? cause.message : 'The brand design could not be generated.');
@@ -76,6 +79,18 @@ export default function BrandDesignLauncher({ kit, initialType, onCreate, onSetu
 							<option value="3.5x2in">3.5 × 2 in</option>
 						</select>
 					</label>}
+					{type === 'moodboard' && <>
+						<label className="logo-phase-field">
+							<span>Image cells</span>
+							<select value={imageCount} onChange={(event) => setImageCount(Number(event.target.value))}>
+								{Array.from({ length: 7 }, (_, index) => index + 3).map((count) => <option key={count} value={count}>{count} images</option>)}
+							</select>
+						</label>
+						<label className="logo-phase-field">
+							<span>Keywords, separated by commas</span>
+							<input maxLength={160} value={keywords} onChange={(event) => setKeywords(event.target.value)} placeholder="calm, handmade, outdoors" />
+						</label>
+					</>}
 				</div>
 				{!kit && <div className="logo-brand-setup-footer">
 					<button type="button" className="logo-phase-primary" onClick={onSetupBrand}>Set up brand</button>

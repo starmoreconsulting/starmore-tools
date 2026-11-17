@@ -31,6 +31,7 @@ export default function DesignExportPanel({ project, kit }: Props) {
 	const [error, setError] = useState('');
 	const [notice, setNotice] = useState('');
 	const social = project.artboard.width > 500;
+	const moodBoard = project.generation?.layoutId.startsWith('moodboard:') ?? false;
 	const run = async (label: string, operation: () => Promise<void>) => {
 		if (busy) return;
 		setBusy(label);
@@ -75,13 +76,14 @@ export default function DesignExportPanel({ project, kit }: Props) {
 			<div className="brand-design-export-buttons">
 				<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('svg')}>SVG</button>
 				<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('png', 1)}>PNG 1×</button>
-				{social && <>
+				{(social || moodBoard) && <>
 					<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('png', 2)}>PNG 2×</button>
 					<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('jpg', 1)}>JPG 1×</button>
 					<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('jpg', 2)}>JPG 2×</button>
 					<button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('pdf')}>Screen PDF</button>
 				</>}
-				{!social && <button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('pdf')}>Print PDF · 3 mm bleed + marks</button>}
+				{!social && !moodBoard && <button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('pdf')}>Print PDF · 3 mm bleed + marks</button>}
+				{moodBoard && <button type="button" disabled={Boolean(busy)} onClick={() => void exportOne('pdf')}>PDF</button>}
 				<button type="button" className="logo-phase-primary" disabled={Boolean(busy)} onClick={() => void exportPack()}>
 					{busy === 'brand-pack' ? 'Preparing Brand pack…' : 'Download Brand pack ZIP'}
 				</button>
