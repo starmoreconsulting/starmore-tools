@@ -16,6 +16,12 @@ export interface BrandSloganOptions {
 	count?: number;
 }
 
+export interface BrandSloganGenerationReport {
+	slogans: string[];
+	filterFailures: Record<string, number>;
+	candidatesChecked: number;
+}
+
 type SloganSlots = Record<SloganSlot, string>;
 
 const COMMON_VERBS = new Set([
@@ -113,7 +119,7 @@ export function getSloganQualityFailures(
 	return failures;
 }
 
-export function generateBrandSlogans(options: BrandSloganOptions): string[] {
+export function generateBrandSlogansWithStats(options: BrandSloganOptions): BrandSloganGenerationReport {
 	const slots: SloganSlots = {
 		business: options.businessName.trim().slice(0, 100),
 		action: sanitizeGeneratedText(options.whatYouDo.trim().replace(/[.!?]+$/g, '').slice(0, 100)),
@@ -127,20 +133,48 @@ export function generateBrandSlogans(options: BrandSloganOptions): string[] {
 	const seen = new Set<string>();
 	const count = Math.min(60, Math.max(1, options.count ?? 20));
 	const maxAttempts = Math.max(600, count * patterns.length * 20);
+	const filterFailures: Record<string, number> = {};
+	let candidatesChecked = 0;
+	const recordFailure = (failure: string) => {
+		filterFailures[failure] = (filterFailures[failure] ?? 0) + 1;
+	};
 
 	for (let attempt = 0; attempt < maxAttempts && results.length < count; attempt += 1) {
 		const pattern = patterns[attempt % patterns.length];
 		const toneWordList = toneWords[options.tone];
 		slots.toneWord = toneWordList[Math.floor(random() * toneWordList.length)];
-		if (!patternFits(pattern, slots, options.tone)) continue;
-		if (!slotCapitalizationFits(pattern, slots)) continue;
+		candidatesChecked += 1;
+		if (!patternFits(pattern, slots, options.tone)) {
+			recordFailure('slot-form');
+			continue;
+		}
+		if (!slotCapitalizationFits(pattern, slots)) {
+			recordFailure('capitalized-slot-in-middle');
+			continue;
+		}
 		const candidate = sanitizeGeneratedText(pattern.template.replace(/\{(business|action|audience|benefit|toneWord)\}/g, (_match, slot: SloganSlot) => slots[slot]));
 		const input = [slots.business, slots.action, slots.audience, slots.benefit].filter(Boolean);
-		if (getSloganQualityFailures(candidate, input, pattern, slots).length > 0 || isKnownSloganMatch(candidate)) continue;
+		const failures = getSloganQualityFailures(candidate, input, pattern, slots);
+		if (isKnownSloganMatch(candidate)) failures.push('known-slogan-match');
+		if (failures.length > 0) {
+			for (const failure of failures) recordFailure(failure);
+			continue;
+		}
 		const key = normalized(candidate);
-		if (!key || seen.has(key)) continue;
+		if (!key) {
+			recordFailure('empty');
+			continue;
+		}
+		if (seen.has(key)) {
+			recordFailure('duplicate');
+			continue;
+		}
 		seen.add(key);
 		results.push(candidate);
 	}
-	return results;
+	return { slogans: results, filterFailures, candidatesChecked };
+}
+
+export function generateBrandSlogans(options: BrandSloganOptions): string[] {
+	return generateBrandSlogansWithStats(options).slogans;
 }

@@ -17,6 +17,12 @@ export interface BrandNameOptions {
 	count?: number;
 }
 
+export interface BrandNameGenerationReport {
+	names: string[];
+	filterFailures: Record<string, number>;
+	candidatesChecked: number;
+}
+
 const LENGTHS: Record<NameLength, [number, number]> = {
 	short: [3, 8],
 	balanced: [5, 13],
@@ -74,16 +80,18 @@ function choose<T>(items: readonly T[], random: () => number): T {
 	return items[Math.floor(random() * items.length)];
 }
 
-export function generateBrandNames(options: BrandNameOptions): string[] {
+export function generateBrandNamesWithStats(options: BrandNameOptions): BrandNameGenerationReport {
 	const random = createSeededRandom(options.seed);
-	const count = Math.min(24, Math.max(1, options.count ?? 24));
+	const count = Math.min(100, Math.max(1, options.count ?? 24));
 	const keywords = options.keywords.map((keyword) => keyword.trim()).filter(Boolean).slice(0, 5);
 	const roots = keywords.length ? keywords : [...industryWords[options.industry]];
 	const words = [...new Set([...industryWords[options.industry], ...styleWords[options.style]])];
 	const results: string[] = [];
 	const seen = new Set<string>();
+	const filterFailures: Record<string, number> = {};
 	const startingLetter = options.startingLetter?.trim().slice(0, 1) ?? '';
 	const attempts = Math.max(3000, count * 500);
+	let candidatesChecked = 0;
 
 	for (let attempt = 0; attempt < attempts && results.length < count; attempt += 1) {
 		const root = choose(roots, random);
@@ -120,11 +128,23 @@ export function generateBrandNames(options: BrandNameOptions): string[] {
 		if (startingLetter && !candidate.toLocaleLowerCase().startsWith(startingLetter.toLocaleLowerCase())) {
 			candidate = `${startingLetter}${candidate}`;
 		}
-		if (getNameFilterFailures(candidate, options.length).length > 0) continue;
+		candidatesChecked += 1;
+		const failures = getNameFilterFailures(candidate, options.length);
+		if (failures.length > 0) {
+			for (const failure of failures) filterFailures[failure] = (filterFailures[failure] ?? 0) + 1;
+			continue;
+		}
 		const key = candidate.normalize('NFKC').toLocaleLowerCase().replace(/\s+/g, ' ').trim();
-		if (seen.has(key)) continue;
+		if (seen.has(key)) {
+			filterFailures.duplicate = (filterFailures.duplicate ?? 0) + 1;
+			continue;
+		}
 		seen.add(key);
 		results.push(candidate);
 	}
-	return results;
+	return { names: results, filterFailures, candidatesChecked };
+}
+
+export function generateBrandNames(options: BrandNameOptions): string[] {
+	return generateBrandNamesWithStats(options).names;
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { sloganPatterns } from '../../../data/brand/slogan-patterns';
 import { assertCleanOutput } from './clean-output.test-helper';
-import { generateBrandSlogans, getSloganQualityFailures, isKnownSloganMatch } from './slogans';
+import { generateBrandSlogans, generateBrandSlogansWithStats, getSloganQualityFailures, isKnownSloganMatch } from './slogans';
 
 const base = {
 	businessName: 'Harbor Studio',
@@ -27,9 +27,11 @@ describe('brand slogan generation', () => {
 	});
 
 	it('supports report generation up to 60 results without exceeding the requested cap', () => {
-		const slogans = generateBrandSlogans({ ...base, count: 60 });
-		expect(slogans.length).toBeGreaterThanOrEqual(8);
-		expect(slogans.length).toBeLessThanOrEqual(60);
+		const report = generateBrandSlogansWithStats({ ...base, count: 60 });
+		expect(report.slogans.length).toBeGreaterThanOrEqual(8);
+		expect(report.slogans.length).toBeLessThanOrEqual(60);
+		expect(report.candidatesChecked).toBeGreaterThanOrEqual(report.slogans.length);
+		expect(report.filterFailures['slot-form']).toBeGreaterThan(0);
 	});
 
 	it('filters exact and near matches to well-known slogans', () => {

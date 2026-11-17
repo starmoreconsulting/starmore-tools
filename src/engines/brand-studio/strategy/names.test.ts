@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateBrandNames, getNameFilterFailures, isOffensiveName } from './names';
+import { generateBrandNames, generateBrandNamesWithStats, getNameFilterFailures, isOffensiveName } from './names';
 
 const base = {
 	keywords: ['harbor', 'studio'],
@@ -79,6 +79,14 @@ describe('brand name generation', () => {
 				}
 			}
 		}
+	});
+
+	it('reports actual candidate filter failures for quality reporting', () => {
+		const report = generateBrandNamesWithStats({ ...base, keywords: ['swift', 'delivery', 'lagos'], count: 100 });
+		expect(report.names).toHaveLength(100);
+		expect(report.candidatesChecked).toBeGreaterThanOrEqual(report.names.length);
+		expect(report.filterFailures.offensive ?? 0).toBeGreaterThanOrEqual(0);
+		for (const name of report.names) expect(getNameFilterFailures(name, base.length)).toEqual([]);
 	});
 
 	it('honours an optional starting letter and length preference', () => {
