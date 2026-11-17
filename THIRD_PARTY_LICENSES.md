@@ -2,6 +2,8 @@
 
 This project uses the following third-party packages in Logo Studio. The table covers runtime export, local storage, sanitizing and font-outline dependencies, as well as the test runner.
 
+Brand Studio strategy generators use original local word banks and patterns and add no third-party generation service or dependency. Brand Studio shares the listed local export, IndexedDB and bundled-font dependencies.
+
 | Package | Version | License | Copyright / source |
 |---|---:|---|---|
 | [ag-psd](https://github.com/Agamnentzar/ag-psd) | 34.2.0 | MIT | Copyright (c) 2016 Agamnentzar |
