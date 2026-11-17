@@ -11,6 +11,10 @@ export function getStaticPaths() {
 
 const { department } = Astro.props;
 const departmentTools = publishedTools.filter((tool) => tool.department === department.slug);
+const brandStudioGroups = [
+	{ slug: 'strategy', name: 'Brand strategy', tools: departmentTools.filter((tool) => tool.departmentGroup === 'strategy') },
+	{ slug: 'visuals', name: 'Brand visuals', tools: departmentTools.filter((tool) => tool.departmentGroup !== 'strategy') },
+].filter((group) => group.tools.length > 0);
 ---
 
 <ToolLayout title={`${department.name} tools`} description={department.description}>
@@ -21,21 +25,45 @@ const departmentTools = publishedTools.filter((tool) => tool.department === depa
 			<h1>{department.name} tools</h1>
 			<p>{department.description}</p>
 		</header>
-		<div class="tool-grid">
-			{departmentTools.map((tool, index) => (
-				<a class="tool-card" href={getPublishedToolHref(`/${tool.slug}/`)} style={`--card-index: ${index}`}>
-					<div class="tool-card-top">
-						<span class="tool-icon" aria-hidden="true">{tool.icon}</span>
-						<span class="tool-arrow" aria-hidden="true">↗</span>
-					</div>
-					<div class="tool-card-copy">
-						<span class="tool-category">{department.name}</span>
-						<h3>{tool.name}</h3>
-						<p>{tool.description}</p>
-					</div>
-					<span class="card-bottom"><span>Open tool</span><span aria-hidden="true">→</span></span>
-				</a>
-			))}
-		</div>
+		{department.slug === 'brand-studio'
+			? <div class="department-groups">
+				{brandStudioGroups.map((group) => (
+					<section class="department-group" aria-labelledby={`group-${group.slug}`}>
+						<h2 id={`group-${group.slug}`}>{group.name}</h2>
+						<div class="tool-grid">
+							{group.tools.map((tool, index) => (
+								<a class="tool-card" href={getPublishedToolHref(`/${tool.slug}/`)} style={`--card-index: ${index}`}>
+									<div class="tool-card-top">
+										<span class="tool-icon" aria-hidden="true">{tool.icon}</span>
+										<span class="tool-arrow" aria-hidden="true">↗</span>
+									</div>
+									<div class="tool-card-copy">
+										<span class="tool-category">{group.name}</span>
+										<h3>{tool.name}</h3>
+										<p>{tool.description}</p>
+									</div>
+									<span class="card-bottom"><span>Open tool</span><span aria-hidden="true">→</span></span>
+								</a>
+							))}
+						</div>
+					</section>
+				))}
+			</div>
+			: <div class="tool-grid">
+				{departmentTools.map((tool, index) => (
+					<a class="tool-card" href={getPublishedToolHref(`/${tool.slug}/`)} style={`--card-index: ${index}`}>
+						<div class="tool-card-top">
+							<span class="tool-icon" aria-hidden="true">{tool.icon}</span>
+							<span class="tool-arrow" aria-hidden="true">↗</span>
+						</div>
+						<div class="tool-card-copy">
+							<span class="tool-category">{department.name}</span>
+							<h3>{tool.name}</h3>
+							<p>{tool.description}</p>
+						</div>
+						<span class="card-bottom"><span>Open tool</span><span aria-hidden="true">→</span></span>
+					</a>
+				))}
+			</div>}
 	</section>
 </ToolLayout>
