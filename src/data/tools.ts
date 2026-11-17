@@ -75,6 +75,7 @@ export type ToolComponentName =
 	| 'BrandStrategyGenerator'
 	| 'BrandColourPaletteGenerator'
 	| 'BrandTypographyTool'
+	| 'BrandFontLoadCheck'
 	| 'LogoStudioApp';
 
 export interface RecommendedDefinition {
@@ -1699,6 +1700,27 @@ export const tools: ToolDefinition[] = [
 		limitations: 'Pairing suggestions do not test every language, layout or device; inspect the final design and font licence.',
 		privacyNote: 'Nothing leaves your device; preview copy and exported CSS are handled locally.',
 		component: 'BrandTypographyTool',
+		icon: 'Aa',
+		live: false,
+	},
+	{
+		slug: 'brand-font-load-check',
+		name: 'Bundled Font Load Check',
+		department: 'brand-studio',
+		departmentGroup: 'visuals',
+		description: 'Development-only page to inspect bundled font rendering and browser load status.',
+		seoTitle: 'Development Font Load Check — Starmore Tools',
+		seoDescription: 'Inspect locally bundled font samples and exact browser load status in the hidden development preview.',
+		guideCopy: 'This diagnostic page helps developers check that each bundled typeface can be fetched, loaded and rendered in the browser. Each family and available weight is requested explicitly through the Font Loading API, then checked against the browser font set. A failure is displayed beside the sample so a fallback cannot be mistaken for a successful load. The page lists only families already included in the application and makes no external font requests. It is a troubleshooting aid for the development preview, not a font chooser or a guarantee of language coverage on every device. Compare the rendered sample and status when updating font packages, import paths or metadata, and repeat the check in browsers used for release testing.',
+		howTo: ['Open the preview-only diagnostic page with the hidden-tools build enabled.', 'Wait for each family and weight to show Loaded successfully or a visible FAILED status.', 'Use failed entries to investigate the bundled package, font URL, or browser compatibility.'],
+		faqs: [
+			{ question: 'Does this page download fonts from a third party?', answer: 'No. It requests the font files bundled with this site.' },
+			{ question: 'Does a loaded status guarantee every character is covered?', answer: 'No. It confirms the family and weight loaded; language and glyph coverage still need separate checking.' },
+			{ question: 'Can normal visitors see this page?', answer: 'No. It is hidden with the other unreleased tools and is only included in a preview build.' },
+		],
+		limitations: 'This diagnostic confirms browser loading for the listed family and weights, but does not certify every glyph, operating system, or production layout.',
+		privacyNote: 'Nothing leaves your device; samples use bundled files and are checked locally.',
+		component: 'BrandFontLoadCheck',
 		icon: 'Aa',
 		live: false,
 	},

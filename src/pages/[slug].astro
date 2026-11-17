@@ -62,6 +62,7 @@ import BrandSloganGenerator from '../engines/brand-studio/panels/BrandSloganGene
 import BrandStrategyGenerator from '../engines/brand-studio/panels/BrandStrategyGenerator';
 import BrandColourPaletteGenerator from '../engines/brand-studio/panels/BrandColourPaletteGenerator';
 import BrandTypographyTool from '../engines/brand-studio/panels/BrandTypographyTool';
+import BrandFontLoadCheck from '../engines/brand-studio/panels/BrandFontLoadCheck';
 import { departments, publishedTools } from '../data/tools';
 
 export function getStaticPaths() {
@@ -145,6 +146,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'BrandStrategyGenerator' && <BrandStrategyGenerator client:load kind={tool.strategyKind ?? 'mission-vision'} />}
 			{tool.component === 'BrandColourPaletteGenerator' && <BrandColourPaletteGenerator client:load />}
 			{tool.component === 'BrandTypographyTool' && <BrandTypographyTool client:load />}
+			{tool.component === 'BrandFontLoadCheck' && <BrandFontLoadCheck client:load />}
 		</div>
 		<section class="tool-guide" aria-labelledby="how-to-use">
 			{tool.limitations && <p class="inline-note">{tool.limitations}</p>}

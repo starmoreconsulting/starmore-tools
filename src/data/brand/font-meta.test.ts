@@ -20,10 +20,12 @@ describe('Brand Studio font metadata and pairings', () => {
 
 	it('provides at least twelve curated pairs of distinct bundled families across categories', () => {
 		expect(curatedFontPairings.length).toBeGreaterThanOrEqual(12);
+		const metadata = new Set(bundledBrandFonts.map((font) => font.family));
 		for (const pair of curatedFontPairings) {
 			const families = [pair.heading, pair.subheading, pair.body];
 			expect(new Set(families).size).toBe(3);
 			expect(families.every((family) => bundled.has(family))).toBe(true);
+			expect(families.every((family) => metadata.has(family))).toBe(true);
 			const categories = families.map((family) => logoFonts.find((font) => font.family === family)?.category);
 			expect(new Set(categories).size).toBe(3);
 		}

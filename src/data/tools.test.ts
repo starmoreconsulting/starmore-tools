@@ -73,4 +73,21 @@ describe('published department filtering', () => {
 			}
 		});
 	});
+
+	it('keeps the bundled font diagnostic hidden with distinct preview-only copy', () => {
+		const tool = tools.find(({ slug }) => slug === 'brand-font-load-check')!;
+		expect(tool.live).toBe(false);
+		expect(tool.component).toBe('BrandFontLoadCheck');
+		expect(tool.seoDescription.length).toBeLessThan(160);
+		const visibleCopy = [
+			tool.name,
+			tool.description,
+			tool.guideCopy,
+			...tool.howTo,
+			...tool.faqs.flatMap((faq) => [faq.question, faq.answer]),
+			tool.limitations,
+			tool.privacyNote,
+		].filter(Boolean).join(' ');
+		expect(visibleCopy.trim().split(/\s+/).length).toBeGreaterThanOrEqual(150);
+	});
 });

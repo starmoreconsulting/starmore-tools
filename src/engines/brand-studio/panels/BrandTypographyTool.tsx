@@ -23,6 +23,7 @@ export default function BrandTypographyTool() {
 	const [lineHeight, setLineHeight] = useState(1.5);
 	const [status, setStatus] = useState('');
 	const [error, setError] = useState('');
+	const [fontFailures, setFontFailures] = useState<string[]>([]);
 
 	const fontByName = useMemo(() => new Map(bundledBrandFonts.map((font) => [font.family, font])), []);
 	const headingMeta = fontByName.get(pair.heading);
@@ -35,14 +36,25 @@ export default function BrandTypographyTool() {
 
 	useEffect(() => {
 		let active = true;
-		void Promise.all([
-			loadBrowserFont(pair.heading, resolvedHeadingWeight),
-			loadBrowserFont(pair.subheading, 400),
-			loadBrowserFont(pair.body, resolvedBodyWeight),
-		]).then(() => {
-			if (active) setError('');
-		}).catch((cause: unknown) => {
-			if (active) setError(cause instanceof Error ? `Could not load a bundled font preview: ${cause.message}` : 'Could not load a bundled font preview.');
+		const selected = [
+			{ family: pair.heading, weight: resolvedHeadingWeight },
+			{ family: pair.subheading, weight: 400 },
+			{ family: pair.body, weight: resolvedBodyWeight },
+		];
+		void Promise.all(selected.map(async ({ family, weight }) => {
+			try {
+				await loadBrowserFont(family, weight);
+				const faces = await document.fonts.load(`${weight} 16px "${family}"`);
+				if (faces.length === 0 || !document.fonts.check(`${weight} 16px "${family}"`)) {
+					throw new Error('The browser did not confirm the requested font face.');
+				}
+				return null;
+			} catch (cause) {
+				const detail = cause instanceof Error ? cause.message : 'Unknown font loading error.';
+				return `${family} (${weight}): ${detail}`;
+			}
+		})).then((results) => {
+			if (active) setFontFailures(results.filter((failure): failure is string => failure !== null));
 		});
 		return () => { active = false; };
 	}, [pair.heading, pair.subheading, pair.body, resolvedHeadingWeight, resolvedBodyWeight]);
@@ -97,6 +109,9 @@ export default function BrandTypographyTool() {
 				<SaveToBrandKitButton updates={{ fonts: { heading: pair.heading, subheading: pair.subheading, body: pair.body } }} />
 			</div>
 			{error && <p role="alert">{error}</p>}
+			{fontFailures.length > 0 && <p className="brand-tool-notice" role="alert">
+				These selected bundled fonts did not load, so the preview may be using a fallback: {fontFailures.join('; ')}
+			</p>}
 			{status && <p role="status">{status}</p>}
 			<section className="brand-strategy-result">
 				<h2>Bundled font licences</h2>
