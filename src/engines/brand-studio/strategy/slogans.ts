@@ -1,8 +1,8 @@
 import { knownSlogans } from '../../../data/brand/blocklist-slogans';
-import { sloganPatterns } from '../../../data/brand/slogan-patterns';
+import { sloganPatterns, type SloganPattern, type SloganSlot, type SloganSlotForm } from '../../../data/brand/slogan-patterns';
 import { toneWords } from '../../../data/brand/tone-words';
 import { createSeededRandom, seededShuffle } from './random';
-import { sanitizeGeneratedText } from './sanitize';
+import { isCleanGeneratedText, sanitizeGeneratedText } from './sanitize';
 
 export type BrandTone = keyof typeof toneWords;
 
@@ -15,6 +15,14 @@ export interface BrandSloganOptions {
 	seed: number;
 	count?: number;
 }
+
+type SloganSlots = Record<SloganSlot, string>;
+
+const COMMON_VERBS = new Set([
+	'add', 'build', 'create', 'deliver', 'design', 'find', 'get', 'give', 'grow', 'help', 'improve',
+	'learn', 'make', 'move', 'save', 'sell', 'share', 'support', 'take', 'use', 'write',
+]);
+const IRREGULAR_PLURALS = new Set(['people', 'children', 'women', 'men', 'families', 'teams', 'staff']);
 
 function normalized(value: string): string {
 	return value.normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
@@ -49,28 +57,86 @@ export function isKnownSloganMatch(value: string): boolean {
 	});
 }
 
+function fitsForm(value: string, form: SloganSlotForm, tone: BrandTone): boolean {
+	const text = value.trim();
+	const firstWord = text.split(/\s+/)[0]?.replace(/[^\p{L}'-]/gu, '') ?? '';
+	if (!text) return false;
+	switch (form) {
+		case 'nonempty':
+			return true;
+		case 'adjective':
+			return (toneWords[tone] as readonly string[]).includes(text);
+		case 'nounPhrase':
+			return text.split(/\s+/).length <= 5 && !COMMON_VERBS.has(firstWord.toLocaleLowerCase());
+		case 'pluralGroup': {
+			const lastWord = text.split(/\s+/).at(-1)?.toLocaleLowerCase() ?? '';
+			return (lastWord.endsWith('s') && !lastWord.endsWith('ss')) || IRREGULAR_PLURALS.has(lastWord);
+		}
+		case 'thirdPersonVerb':
+			return /^[\p{L}][\p{L}'-]*s(?:\s|$)/iu.test(text) && !/ss(?:\s|$)/iu.test(text);
+		case 'infinitiveVerb':
+			return /^[\p{L}][\p{L}'-]*(?:\s|$)/u.test(text)
+				&& !/s$/iu.test(firstWord)
+				&& COMMON_VERBS.has(firstWord.toLocaleLowerCase());
+	}
+}
+
+function patternFits(pattern: SloganPattern, slots: SloganSlots, tone: BrandTone): boolean {
+	return Object.entries(pattern.accepts).every(([slot, form]) =>
+		fitsForm(slots[slot as SloganSlot], form!, tone));
+}
+
+function slotCapitalizationFits(pattern: SloganPattern, slots: SloganSlots): boolean {
+	for (const [slot, value] of Object.entries(slots) as [SloganSlot, string][]) {
+		if (!value || !new RegExp(`\\{${slot}\\}`).test(pattern.template)) continue;
+		const index = pattern.template.indexOf(`{${slot}}`);
+		if (index > 0 && /^\p{Lu}/u.test(value)) return false;
+	}
+	return true;
+}
+
+export function getSloganQualityFailures(
+	value: string,
+	userInput: readonly string[] = [],
+	pattern?: SloganPattern,
+	slots?: SloganSlots,
+): string[] {
+	const failures: string[] = [];
+	const words = value.match(/[\p{L}\p{N}'-]+/gu) ?? [];
+	const normalizedWords = words.map((word) => normalized(word));
+	if (words.length < 3 || words.length > 9) failures.push('word-count');
+	if (new Set(normalizedWords).size !== normalizedWords.length) failures.push('repeated-word');
+	if ((value.match(/,/g) ?? []).length > 1) failures.push('comma-count');
+	if (/\{[^}]+\}/.test(value)) failures.push('unfilled-slot');
+	if (!isCleanGeneratedText(value, userInput)) failures.push('unclean-output');
+	if (pattern && slots && !slotCapitalizationFits(pattern, slots)) failures.push('capitalized-slot-in-middle');
+	return failures;
+}
+
 export function generateBrandSlogans(options: BrandSloganOptions): string[] {
-	const business = options.businessName.trim().slice(0, 100);
-	const action = options.whatYouDo.trim().replace(/[.!?]+$/g, '').slice(0, 100) || 'make useful things';
-	const audience = options.whoYouServe.trim().slice(0, 100) || 'your everyday';
-	const benefit = options.benefit.trim().replace(/[.!?]+$/g, '').slice(0, 100) || 'more ease';
-	const words = toneWords[options.tone];
+	const slots: SloganSlots = {
+		business: options.businessName.trim().slice(0, 100),
+		action: sanitizeGeneratedText(options.whatYouDo.trim().replace(/[.!?]+$/g, '').slice(0, 100)),
+		audience: sanitizeGeneratedText(options.whoYouServe.trim().slice(0, 100)),
+		benefit: sanitizeGeneratedText(options.benefit.trim().replace(/[.!?]+$/g, '').slice(0, 100)),
+		toneWord: '',
+	};
 	const patterns = seededShuffle(sloganPatterns, options.seed);
 	const random = createSeededRandom(options.seed ^ 0xa5a5a5a5);
 	const results: string[] = [];
 	const seen = new Set<string>();
-	const count = Math.min(20, Math.max(1, options.count ?? 20));
-	for (let attempt = 0; attempt < 1600 && results.length < count; attempt += 1) {
+	const count = Math.min(60, Math.max(1, options.count ?? 20));
+	const maxAttempts = Math.max(600, count * patterns.length * 20);
+
+	for (let attempt = 0; attempt < maxAttempts && results.length < count; attempt += 1) {
 		const pattern = patterns[attempt % patterns.length];
-		const toneWord = words[Math.floor(random() * words.length)];
-		const candidate = sanitizeGeneratedText(pattern.replace(/\{(business|action|audience|benefit|toneWord)\}/g, (_match, slot: string) => ({
-			business: business || 'Good work',
-			action,
-			audience,
-			benefit,
-			toneWord,
-		})[slot as 'business' | 'action' | 'audience' | 'benefit' | 'toneWord']));
-		if (/\{[^}]+\}/.test(candidate) || candidate.length > 120 || isKnownSloganMatch(candidate)) continue;
+		const toneWordList = toneWords[options.tone];
+		slots.toneWord = toneWordList[Math.floor(random() * toneWordList.length)];
+		if (!patternFits(pattern, slots, options.tone)) continue;
+		if (!slotCapitalizationFits(pattern, slots)) continue;
+		const candidate = sanitizeGeneratedText(pattern.template.replace(/\{(business|action|audience|benefit|toneWord)\}/g, (_match, slot: SloganSlot) => slots[slot]));
+		const input = [slots.business, slots.action, slots.audience, slots.benefit].filter(Boolean);
+		if (getSloganQualityFailures(candidate, input, pattern, slots).length > 0 || isKnownSloganMatch(candidate)) continue;
 		const key = normalized(candidate);
 		if (!key || seen.has(key)) continue;
 		seen.add(key);
