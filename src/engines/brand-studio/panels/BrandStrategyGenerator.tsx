@@ -32,8 +32,11 @@ export default function BrandStrategyGenerator({ kind }: Props) {
 			: current.length < 5 ? [...current, trait] : current);
 	}
 
-	const textField = (label: string, value: string, update: (value: string) => void) => (
-		<label key={label}>{label}<input maxLength={300} value={value} onChange={(event) => update(event.currentTarget.value)} /></label>
+	const textField = (label: string, value: string, update: (value: string) => void, hint?: string, example?: string) => (
+		<label key={label}>{label}<input maxLength={300} value={value} onChange={(event) => update(event.currentTarget.value)} />
+			{hint && <small>{hint}</small>}
+			{example && <small>Example: {example}</small>}
+		</label>
 	);
 
 	return (
@@ -64,12 +67,16 @@ export default function BrandStrategyGenerator({ kind }: Props) {
 			</>}
 			{kind === 'positioning' && <>
 				<div className="brand-tool-fields">
-					{textField('Who is it for?', target, setTarget)}
-					{textField('Brand name', brand, setBrand)}
-					{textField('Category', category, setCategory)}
-					{textField('Customer benefit', benefit, setBenefit)}
-					{textField('Why believe it?', reason, setReason)}
+					{textField('Who is it for?', target, setTarget, 'Enter a group of people.', 'independent makers')}
+					{textField('Brand name (optional)', brand, setBrand, 'Leave blank to use “we”.', 'Harbor Studio')}
+					{textField('Category', category, setCategory, 'Say what the business is.', 'design studio')}
+					{textField('Customer benefit', benefit, setBenefit, 'Start with a verb in its infinitive form.', 'make useful spaces')}
+					{textField('Why believe it? (optional)', reason, setReason, 'Add a short supporting clause.', 'we work locally')}
 				</div>
+				{positioning.missing.length > 0 && <aside className="brand-tool-notice">
+					<strong>Still needed:</strong>
+					<ul>{positioning.missing.map(({ field, hint }) => <li key={field}><strong>{field}:</strong> {hint}</li>)}</ul>
+				</aside>}
 				<div className="brand-name-results">
 					{positioning.options.map((option) => (
 						<article key={option.label} className="brand-name-result">
