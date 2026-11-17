@@ -35,7 +35,7 @@ export default function BrandStrategyGenerator({ kind }: Props) {
 	const textField = (label: string, value: string, update: (value: string) => void, hint?: string, example?: string) => (
 		<label key={label}>{label}<input maxLength={300} value={value} onChange={(event) => update(event.currentTarget.value)} />
 			{hint && <small>{hint}</small>}
-			{example && <small>Example: {example}</small>}
+			{example && <small>Example: {value.trim() || example}</small>}
 		</label>
 	);
 

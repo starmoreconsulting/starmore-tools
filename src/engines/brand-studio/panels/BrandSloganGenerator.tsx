@@ -22,7 +22,7 @@ export default function BrandSloganGenerator() {
 		<section className="brand-tool-panel">
 			<p className="brand-tool-notice"><strong>Starting points only:</strong> check trademarks before using a slogan. Generated wording may resemble existing phrases.</p>
 			<div className="brand-tool-fields">
-				<label>Business name (optional)<input maxLength={100} value={businessName} onChange={(event) => setBusinessName(event.currentTarget.value)} /></label>
+				<label>Business name (optional)<input maxLength={100} value={businessName} onChange={(event) => setBusinessName(event.currentTarget.value)} /><small>Optional name, for example “Harbor Studio”.</small></label>
 				<label>What you do<input maxLength={100} value={whatYouDo} onChange={(event) => setWhatYouDo(event.currentTarget.value)} /><small>Use a short noun phrase, for example “same-day deliveries”.</small></label>
 				<label>Who you serve<input maxLength={100} value={whoYouServe} onChange={(event) => setWhoYouServe(event.currentTarget.value)} /><small>Use a plural group, for example “small businesses”.</small></label>
 				<label>One benefit<input maxLength={100} value={benefit} onChange={(event) => setBenefit(event.currentTarget.value)} /><small>Start with a verb: “save time” or “saves you time”.</small></label>
