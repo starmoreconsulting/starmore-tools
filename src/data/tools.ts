@@ -1368,7 +1368,7 @@ export const tools: ToolDefinition[] = [
 		description: 'Create a DL envelope layout with your brand mark and selected contact information.',
 		seoTitle: 'DL Envelope Designer for Brand Stationery',
 		seoDescription: 'Design a DL envelope at 220 × 110 mm using your brand profile, logo and colours, with editable layouts and local print exports.',
-		guideCopy: 'DL envelopes are designed for business correspondence, so prioritize a readable return address and a clear logo rather than filling every available corner. Choose a layout that leaves room for postage and the recipient address on your final physical envelope; the editor’s design is for your branded return side. Check that long business names or multi-line addresses remain inside the safe area, then inspect the exported PDF at its trim size before printing.',
+		guideCopy: 'DL envelopes are designed for business correspondence, so prioritize a readable return address and a clear logo rather than filling every available corner. Postal placement and clearance rules vary, so check your postal service’s requirements for postage and the recipient address. The editor focuses on branded return-side artwork. Check that long business names or multi-line addresses remain inside the safe area, then inspect the exported PDF at its trim size before printing.',
 		howTo: ['Activate a brand kit and fill in the contact fields you want to show.', 'Choose an envelope layout to place your logo and address details.', 'Review the print guides, adjust elements and export the envelope artwork.'],
 		faqs: [
 			{ question: 'What size is the envelope artboard?', answer: 'The design artboard uses 220 × 110 mm dimensions for a DL envelope.' },
