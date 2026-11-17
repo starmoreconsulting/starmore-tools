@@ -57,6 +57,7 @@ import WordCounter from '../components/tools/WordCounter';
 import TextLogoGenerator from '../components/tools/TextLogoGenerator';
 import MonogramLogoGenerator from '../components/tools/MonogramLogoGenerator';
 import LogoStudioApp from '../engines/logo-studio/panels/LogoStudioApp';
+import BrandNameGenerator from '../engines/brand-studio/panels/BrandNameGenerator';
 import { departments, publishedTools } from '../data/tools';
 
 export function getStaticPaths() {
@@ -135,6 +136,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'TextLogoGenerator' && <TextLogoGenerator client:load />}
 			{tool.component === 'MonogramLogoGenerator' && <MonogramLogoGenerator client:load />}
 			{tool.component === 'LogoStudioApp' && <LogoStudioApp client:only="react" preset={tool.preset} designPreset={tool.designPreset} />}
+			{tool.component === 'BrandNameGenerator' && <BrandNameGenerator client:load />}
 		</div>
 		<section class="tool-guide" aria-labelledby="how-to-use">
 			{tool.limitations && <p class="inline-note">{tool.limitations}</p>}

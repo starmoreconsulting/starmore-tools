@@ -70,6 +70,7 @@ export type ToolComponentName =
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
+	| 'BrandNameGenerator'
 	| 'LogoStudioApp';
 
 export interface RecommendedDefinition {

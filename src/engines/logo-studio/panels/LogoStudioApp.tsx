@@ -336,6 +336,16 @@ export default function LogoStudioApp({ preset, designPreset }: { preset?: LogoS
 	}, []);
 
 	useEffect(() => {
+		const url = new URL(window.location.href);
+		const businessName = url.searchParams.get('name')?.trim();
+		if (!businessName) return;
+		setGalleryBrief({ ...presetBrief('business-name'), businessName });
+		setShowSetup(true);
+		url.searchParams.delete('name');
+		window.history.replaceState(null, '', url);
+	}, []);
+
+	useEffect(() => {
 		let active = true;
 		void getActiveBrandKit().then(async (kit) => {
 			if (kit) await restoreBrandKitFonts(kit);
