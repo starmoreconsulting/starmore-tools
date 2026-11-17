@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateBrandNames, isOffensiveName } from './names';
+import { generateBrandNames, getNameFilterFailures, isOffensiveName } from './names';
 
 const base = {
 	keywords: ['harbor', 'studio'],
@@ -41,6 +41,44 @@ describe('brand name generation', () => {
 		const names = generateBrandNames({ ...base, keywords, length: 'long', seed: 725 });
 		expect(Array.isArray(names)).toBe(true);
 		for (const name of names) expect(isOffensiveName(name)).toBe(false);
+	});
+
+	it.each(['naïve', 'café', 'zoë', 'naïïve'])('never emits invalid vowel or accent runs from %s', (keyword) => {
+		for (let seed = 0; seed < 80; seed += 1) {
+			const names = generateBrandNames({ ...base, keywords: [keyword], seed });
+			for (const name of names) {
+				expect(getNameFilterFailures(name, base.length)).toEqual([]);
+				const plain = name.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/\s/g, '');
+				expect(plain).not.toMatch(/([aeiou])\1/u);
+			}
+		}
+	});
+
+	it('preserves accents only in an unchanged whole keyword and strips them from compounds', () => {
+		const names = Array.from({ length: 60 }, (_, seed) =>
+			generateBrandNames({ ...base, keywords: ['Café'], seed, count: 24 }),
+		).flat();
+		expect(names.some((name) => name.startsWith('Café '))).toBe(true);
+		expect(names.some((name) => name.toLocaleLowerCase().startsWith('cafe') && !name.startsWith('Café '))).toBe(true);
+	});
+
+	it('keeps all generated results within every filter across 500 seeds and five keyword sets', () => {
+		const keywordSets = [
+			['swift', 'delivery', 'lagos'],
+			['naïve', 'café', 'zoë'],
+			['東京'],
+			['Q'],
+			[],
+		];
+		for (let seed = 0; seed < 500; seed += 1) {
+			for (const keywords of keywordSets) {
+				const names = generateBrandNames({ ...base, keywords, seed });
+				expect(names.length).toBeGreaterThan(0);
+				for (const name of names) {
+					expect(getNameFilterFailures(name, base.length), `${name} at seed ${seed}`).toEqual([]);
+				}
+			}
+		}
 	});
 
 	it('honours an optional starting letter and length preference', () => {
