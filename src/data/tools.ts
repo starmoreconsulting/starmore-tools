@@ -15,6 +15,7 @@ export const departments = [
 
 export type DepartmentSlug = (typeof departments)[number]['slug'];
 export type ToolComponentName =
+	| 'FractionCalculator'
 	| 'BasicCalculator'
 	| 'UnitPriceCalculator'
 	| 'TipCalculator'
@@ -113,6 +114,24 @@ export interface ToolDefinition {
 }
 
 export const tools: ToolDefinition[] = [
+	{
+		slug: 'fraction-calculator',
+		name: 'Fraction Calculator',
+		department: 'calculators',
+		description: 'Add, subtract, multiply, and divide fractions with exact reduced answers.',
+		seoTitle: 'Free Fraction Calculator — Add, Subtract, Multiply and Divide',
+		seoDescription: 'Calculate with fractions and get a reduced exact answer plus a decimal approximation. Fraction arithmetic runs locally in your browser.',
+		howTo: ['Enter the numerator and denominator for each fraction.', 'Choose addition, subtraction, multiplication, or division.', 'Read the reduced fraction and its decimal approximation.'],
+		faqs: [
+			{ question: 'Are fraction answers rounded?', answer: 'The reduced fraction is exact. The decimal display is rounded to eight decimal places.' },
+			{ question: 'Can I enter a negative fraction?', answer: 'Yes. Enter a negative numerator or denominator; the result is normalized with a positive denominator.' },
+		],
+		limitations: 'Enter whole numbers up to 100 digits. A denominator cannot be zero.',
+		privacyNote: 'Your values stay on this device and are not uploaded.',
+		component: 'FractionCalculator',
+		icon: '½',
+		live: true,
+	},
 	{
 		slug: 'statistics-calculator',
 		name: 'Statistics Calculator',

@@ -7,6 +7,7 @@ import BasicCalculator from '../components/tools/BasicCalculator';
 import TipCalculator from '../components/tools/TipCalculator';
 import UnitPriceCalculator from '../components/tools/UnitPriceCalculator';
 import StatisticsCalculator from '../components/tools/StatisticsCalculator';
+import FractionCalculator from '../components/tools/FractionCalculator';
 import CaseConverter from '../components/tools/CaseConverter';
 import CharacterCounter from '../components/tools/CharacterCounter';
 import CompoundInterestCalculator from '../components/tools/CompoundInterestCalculator';
@@ -89,6 +90,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			<p>{tool.description}</p>
 		</header>
 		<div class="tool-workspace">
+			{tool.component === 'FractionCalculator' && <FractionCalculator client:load />}
 			{tool.component === 'BasicCalculator' && <BasicCalculator client:load />}
 			{tool.component === 'TipCalculator' && <TipCalculator client:load />}
 			{tool.component === 'UnitPriceCalculator' && <UnitPriceCalculator client:load />}
