@@ -6,6 +6,7 @@ import { exportSvgToPdf } from '../export/pdf';
 import { exportPrintPdf, type PrintPdfPage, type PrintPreset, type PrintUnit } from '../export/print';
 import { exportProjectToSvg } from '../export/svg';
 import { printDimensionsToMm, rasterizeSvgForPrintFallback } from '../export/raster-fallback';
+import { findUnbundledCharacters } from '../export/outline';
 import type { LogoProject } from '../model/types';
 import type { ReferenceLayer } from '../store/references';
 import { createAutomaticVariant, variantLabel } from '../variants/automatic';
@@ -43,6 +44,11 @@ function fallbackWarning(characters: string[], dpi: number, format: string): str
 function liveTextWarning(characters: string[]): string {
 	const quoted = characters.map((character) => `“${character}”`).join(', ');
 	return `Characters ${quoted} remain live text in this SVG and may use a substitute font on other devices. Remove unsupported characters for a fully vector file.`;
+}
+
+function browserRasterWarning(characters: string[], format: string): string {
+	const quoted = characters.map((character) => `“${character}”`).join(', ');
+	return `Characters ${quoted} were rendered through your browser's font fallback in this ${format}. Remove unsupported characters for consistent output across devices.`;
 }
 
 function rasterDimensionsFor(size: TrimSize) {
@@ -229,7 +235,12 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 			scale: pngScale,
 		});
 		downloadBlob(raster.blob, `${safeFileName(project.name)}.png`);
-		return result;
+		return {
+			warnings: [
+				...result.warnings,
+				...(result.unsupportedChars.length ? [browserRasterWarning(result.unsupportedChars, 'PNG')] : []),
+			],
+		};
 	});
 	const exportJpg = () => runExport('JPG', async () => {
 		const result = await createSvg('transparent');
@@ -242,7 +253,12 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 			quality: jpgQuality,
 		});
 		downloadBlob(raster.blob, `${safeFileName(project.name)}.jpg`);
-		return result;
+		return {
+			warnings: [
+				...result.warnings,
+				...(result.unsupportedChars.length ? [browserRasterWarning(result.unsupportedChars, 'JPG')] : []),
+			],
+		};
 	});
 	const exportPdf = () => runExport('PDF', async () => {
 		const result = await exportProjectToSvg(activeProject, {
@@ -300,10 +316,13 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 		return { warnings: result.warnings };
 	});
 	const exportPsd = () => runExport('PSD', async () => {
+		const unsupportedChars = await findUnbundledCharacters(activeProject);
 		const { exportProjectToPsd } = await import('../export/psd');
 		const bytes = await exportProjectToPsd(activeProject, { includeArtboardBackground: includePsdBackground });
 		downloadBlob(new Blob([bytes], { type: 'image/vnd.adobe.photoshop' }), `${safeFileName(project.name)}.psd`);
-		return {};
+		return {
+			warnings: unsupportedChars.length ? [browserRasterWarning(unsupportedChars, 'PSD raster layers')] : [],
+		};
 	});
 	const exportCanva = () => runExport('Canva-ready', async () => {
 		const { exportCanvaReadyZip } = await import('../export/canva');
@@ -380,6 +399,11 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 					format: 'png',
 					scale: 1,
 				});
+				if (pngVector.unsupportedChars.length) {
+					const note = browserRasterWarning(pngVector.unsupportedChars, `PNG in ${fileBase}`);
+					fallbackNotes.push(note);
+					warnings.add(note);
+				}
 				return new Uint8Array(await png.blob.arrayBuffer());
 			});
 			const jpgPath = `JPG/${fileBase}.jpg`;
@@ -394,6 +418,11 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 					background: jpgBackground,
 					quality: jpgQuality,
 				});
+				if (jpgVector.unsupportedChars.length) {
+					const note = browserRasterWarning(jpgVector.unsupportedChars, `JPG in ${fileBase}`);
+					fallbackNotes.push(note);
+					warnings.add(note);
+				}
 				return new Uint8Array(await jpg.blob.arrayBuffer());
 			});
 			const pdfPath = `PDF/${fileBase}.pdf`;

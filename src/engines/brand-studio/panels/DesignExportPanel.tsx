@@ -22,6 +22,9 @@ function exportNoticeText(notice: DesignExportNotice): string {
 			: `The text ${notice.text.map((text) => `“${text}”`).join(', ')} could not be outlined.`;
 		return `${reason} This PDF contains the design as an image at ${Math.round(notice.effectiveDpi ?? 0)} DPI instead of vector text. Remove unsupported characters to export vector text.`;
 	}
+	if (notice.type === 'browser-raster-text') {
+		return `Characters ${characters} were rendered through your browser's font fallback in this raster export. Remove unsupported characters for consistent output across devices.`;
+	}
 	const liveText = characters || notice.text.map((text) => `“${text}”`).join(', ');
 	return `${characters ? `Characters ${characters}` : `Text ${liveText}`} remain live text in this SVG and may look different on other devices. Remove unsupported characters or convert the text to outlines for a consistent vector file.`;
 }

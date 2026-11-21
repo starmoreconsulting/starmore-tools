@@ -99,6 +99,36 @@ describe('exportBrandPack', () => {
 			.rejects.toThrow('Only Brand Studio designs can be exported here.');
 	});
 
+	it('continues the Brand pack when an individual logo variant file fails', async () => {
+		const kit = createEmptyBrandKit('Pack test');
+		const logo = createDefaultProject('Pack logo');
+		logo.variants.primary = [createDefaultElement('text', { text: 'Harbor 🌿 Studio' })];
+		kit.logo = logo;
+		vi.spyOn(svg, 'exportProjectToSvg').mockResolvedValue({
+			svg: '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><text>Harbor 🌿 Studio</text></svg>',
+			warnings: [],
+			unsupportedChars: ['🌿'],
+			elementsAffected: ['text-1'],
+		});
+		vi.spyOn(raster, 'renderSvgToRaster').mockImplementation(async (_svg, options) => {
+			if (options.format === 'jpg') throw new Error('test JPG failure');
+			return { blob: transparentPixel(), width: 1, height: 1 };
+		});
+
+		const blob = await exportBrandPack(kit, []);
+		const archive = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+		const paths = Object.keys(archive);
+		const readme = strFromU8(archive['README.txt']);
+
+		expect(paths).toContain('Logo variants/PNG/Pack logo-primary.png');
+		expect(paths).toContain('Logo variants/PDF/Pack logo-primary.pdf');
+		expect(paths).not.toContain('Logo variants/JPG/Pack logo-primary.jpg');
+		expect(readme).toContain('Files that could not be created:');
+		expect(readme).toContain('Logo variants/JPG/Pack logo-primary.jpg');
+		expect(readme).toContain('test JPG failure');
+		expect(readme).toContain('rasterized at');
+	});
+
 	it('uses a bounded raster fallback and preserves business-card print size when outlining fails', async () => {
 		const render = vi.spyOn(raster, 'renderSvgToRaster').mockResolvedValue({
 			blob: transparentPixel(),

@@ -10,7 +10,7 @@ import type { LogoProject } from '../../logo-studio/model/types';
 export type DesignExportFormat = 'svg' | 'png' | 'jpg' | 'pdf';
 
 export interface DesignExportNotice {
-	type: 'live-svg-text' | 'raster-pdf';
+	type: 'live-svg-text' | 'raster-pdf' | 'browser-raster-text';
 	text: string[];
 	unbundledCharacters: string[];
 	effectiveDpi?: number;
@@ -67,7 +67,16 @@ export async function exportDesignAssetWithReport(
 			scale,
 			background: format === 'jpg' ? (project.artboard.background === 'transparent' ? '#ffffff' : project.artboard.background) : undefined,
 		});
-		return { blob: raster.blob };
+		return {
+			blob: raster.blob,
+			...(vector.unsupportedChars.length ? {
+				notice: {
+					type: 'browser-raster-text' as const,
+					text: project.variants.primary.filter((element) => element.type === 'text').map((element) => element.text ?? '').filter(Boolean),
+					unbundledCharacters: vector.unsupportedChars,
+				},
+			} : {}),
+		};
 	}
 	if (isPrintDesign(project)) {
 		let rasterDataUrl: string | undefined;
@@ -277,9 +286,12 @@ export async function exportBrandPackWithReport(
 			for (const scale of [1, 2] as const) {
 				const path = `Social PNGs/${name}-${scale}x.png`;
 				try {
-					const png = await exportDesignAsset(design, 'png', scale);
-					files[path] = new Uint8Array(await png.arrayBuffer());
+					const result = await exportDesignAssetWithReport(design, 'png', scale);
+					files[path] = new Uint8Array(await result.blob.arrayBuffer());
 					included.push(path);
+					if (result.notice?.type === 'browser-raster-text') {
+						fallbackNotes.push(`${path}: Characters ${result.notice.unbundledCharacters.map((character) => `“${character}”`).join(', ')} were rendered through the browser's font fallback. Remove unsupported characters for consistent output across devices.`);
+					}
 				} catch (cause) {
 					console.error('Brand pack file export failed.', path, cause);
 					failedFiles.push(`${path} — ${errorText(cause)}`);
