@@ -1690,6 +1690,23 @@ export const tools: ToolDefinition[] = [
 		preset: 'preview-mockup',
 	},
 	{
+		slug: 'logo-typography-selector',
+		name: 'Logo Typography Selector',
+		department: 'logo',
+		description: 'Compare bundled typefaces and choose heading, subheading and body styles for logo text.',
+		seoTitle: 'Free Logo Typography Selector',
+		seoDescription: 'Preview locally bundled fonts and choose heading, subheading and body typography for a logo or brand kit.',
+		howTo: ['Enter logo and tagline sample copy.', 'Compare bundled font families and adjust weights and sizes.', 'Save the selected typography to a local brand kit.'],
+		faqs: [
+			{ question: 'Are fonts downloaded from the internet?', answer: 'No. The selector uses fonts bundled with this site.' },
+			{ question: 'Can I save the selection?', answer: 'Yes. Save heading, subheading and body choices to a local brand kit.' },
+		],
+		privacyNote: 'Preview text and typography selections stay on this device.',
+		component: 'BrandTypographyTool',
+		icon: 'Aa',
+		live: true,
+	},
+	{
 		slug: 'logo-export-centre',
 		name: 'Logo Export Centre',
 		department: 'logo',
