@@ -1890,6 +1890,23 @@ export const tools: ToolDefinition[] = [
 		live: true,
 	},
 	{
+		slug: 'youtube-thumbnail-designer',
+		name: 'YouTube Thumbnail Designer',
+		department: 'brand-studio',
+		description: 'Resize or compose a 1280 × 720 YouTube thumbnail locally for a brand or channel.',
+		seoTitle: 'Free YouTube Thumbnail Designer',
+		seoDescription: 'Prepare a 1280 × 720 YouTube thumbnail with local cover, contain or blurred fit modes and export a PNG, JPG or WebP.',
+		howTo: ['Choose an image and select the YouTube Thumbnail preset.', 'Choose cover, contain or blurred background fit.', 'Download the 1280 × 720 result locally.'],
+		faqs: [
+			{ question: 'What size is the thumbnail preset?', answer: 'The preset uses 1280 × 720 pixels.' },
+			{ question: 'Is the uploaded image sent online?', answer: 'No. Processing happens locally in the browser.' },
+		],
+		privacyNote: 'Images and thumbnail exports remain on this device.',
+		component: 'SocialMediaImageResizer',
+		icon: '▶',
+		live: true,
+	},
+	{
 		slug: 'instagram-post-template-creator',
 		name: 'Instagram Post Template Creator',
 		department: 'brand-studio',
