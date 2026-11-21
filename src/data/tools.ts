@@ -84,6 +84,7 @@ export type ToolComponentName =
 	| 'MemeGenerator'
 	| 'ScreenshotBeautifier'
 	| 'OldPhotoRestoration'
+	| 'WatermarkRemover'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -496,6 +497,24 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your photos never leave this device. Processing uses local browser Canvas pixels and downloads a separate result.',
 		component: 'OldPhotoRestoration',
 		icon: '◷',
+		live: true,
+	},
+	{
+		slug: 'watermark-remover-for-user-owned-images',
+		name: 'Watermark Remover for User-owned Images',
+		department: 'image',
+		description: 'Manually patch unwanted areas in an image you own or are authorised to edit.',
+		seoTitle: 'Private Watermark Remover for User-owned Images',
+		seoDescription: 'Manually mask and locally patch areas in images you own or are authorised to edit. No AI service or server upload is used.',
+		howTo: ['Choose an image you own or have permission to edit.', 'Paint over the selected area with the adjustable brush.', 'Apply the local patch, review it, and download a PNG copy.'],
+		faqs: [
+			{ question: 'Does this automatically remove third-party watermarks?', answer: 'No. It is a manual patch tool for user-owned or authorised images, not a bypass or third-party watermark-removal service.' },
+			{ question: 'Does it use AI reconstruction?', answer: 'No. It fills masked pixels from neighbouring colours in your browser.' },
+		],
+		limitations: 'Results are simple neighbour-based patches and may not match complex textures or large damaged areas. Use only with images you own or have permission to edit.',
+		privacyNote: 'Your image never leaves this device. The mask and patch rendering happen locally in your browser.',
+		component: 'WatermarkRemover',
+		icon: '⌁',
 		live: true,
 	},
 	{

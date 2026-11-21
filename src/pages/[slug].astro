@@ -53,6 +53,7 @@ import PhotoCollageMaker from '../components/tools/PhotoCollageMaker';
 import MemeGenerator from '../components/tools/MemeGenerator';
 import ScreenshotBeautifier from '../components/tools/ScreenshotBeautifier';
 import OldPhotoRestoration from '../components/tools/OldPhotoRestoration';
+import WatermarkRemover from '../components/tools/WatermarkRemover';
 import MarkdownEditor from '../components/tools/MarkdownEditor';
 import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
 import ProfitLossCalculator from '../components/tools/ProfitLossCalculator';
@@ -171,6 +172,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'MemeGenerator' && <MemeGenerator client:load />}
 			{tool.component === 'ScreenshotBeautifier' && <ScreenshotBeautifier client:load />}
 			{tool.component === 'OldPhotoRestoration' && <OldPhotoRestoration client:load />}
+			{tool.component === 'WatermarkRemover' && <WatermarkRemover client:load />}
 			{tool.component === 'MarkdownEditor' && <MarkdownEditor client:load />}
 			{tool.component === 'TextLogoGenerator' && <TextLogoGenerator client:load />}
 			{tool.component === 'MonogramLogoGenerator' && <MonogramLogoGenerator client:load />}
