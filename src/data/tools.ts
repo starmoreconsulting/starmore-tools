@@ -45,6 +45,7 @@ export type ToolComponentName =
 	| 'ReverseTextGenerator'
 	| 'TextFormatter'
 	| 'Notepad'
+	| 'EmailSignatureDesigner'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1832,6 +1833,23 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your contact details, logo and design stay on this device unless you export or share a file.',
 		component: 'LogoStudioApp',
 		designPreset: 'envelope',
+		icon: '✉',
+		live: true,
+	},
+	{
+		slug: 'email-signature-designer',
+		name: 'Email Signature Designer',
+		department: 'brand-studio',
+		description: 'Create a clean, copy-ready HTML email signature from local contact details.',
+		seoTitle: 'Free Email Signature Designer',
+		seoDescription: 'Build an HTML email signature from name, role, company, phone, website and accent colour, then copy or download it locally.',
+		howTo: ['Enter your name and contact details.', 'Choose an accent colour and review the live preview.', 'Copy or download the HTML for your email client.'],
+		faqs: [
+			{ question: 'Will every email client accept the HTML?', answer: 'The signature uses basic tables and inline styles for broad compatibility, but each email client has limits.' },
+			{ question: 'Are contact details uploaded?', answer: 'No. The signature is generated locally in your browser.' },
+		],
+		privacyNote: 'Contact details remain on this device and are not sent to a server.',
+		component: 'EmailSignatureDesigner',
 		icon: '✉',
 		live: true,
 	},
