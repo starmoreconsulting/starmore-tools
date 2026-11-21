@@ -67,6 +67,7 @@ export type ToolComponentName =
 	| 'PdfMerger'
 	| 'PdfSplitter'
 	| 'PdfPageRotator'
+	| 'PdfCompressor'
 	| 'ImageFormatConverter'
 	| 'ImageCropper'
 	| 'ImageUpscaler'
@@ -1271,6 +1272,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfMerger',
 		icon: '⊕',
+		live: true,
+	},
+	{
+		slug: 'pdf-compressor',
+		name: 'PDF Compressor',
+		department: 'pdf',
+		description: 'Reduce PDF structural overhead locally and rebuild the document with compact object streams.',
+		seoTitle: 'Free Local PDF Compressor',
+		seoDescription: 'Rebuild a PDF with compact object streams locally. It cannot guarantee a smaller file when image streams are already compressed.',
+		howTo: ['Choose a PDF file from your device.', 'Set an informational quality preference.', 'Rebuild and download the local PDF copy.'],
+		faqs: [
+			{ question: 'Why might a PDF become the same size or larger?', answer: 'This browser release rebuilds PDF structure but does not rasterize or recompress embedded image streams. Already optimized PDFs may not shrink.' },
+			{ question: 'Are PDFs uploaded?', answer: 'No. PDF reading and rebuilding happen locally in your browser.' },
+		],
+		component: 'PdfCompressor',
+		icon: 'ZIP',
 		live: true,
 	},
 	{
