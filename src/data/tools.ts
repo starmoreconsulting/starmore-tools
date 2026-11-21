@@ -15,6 +15,7 @@ export const departments = [
 
 export type DepartmentSlug = (typeof departments)[number]['slug'];
 export type ToolComponentName =
+	| 'BasicCalculator'
 	| 'CaseConverter'
 	| 'WordCounter'
 	| 'JsonFormatter'
@@ -109,6 +110,25 @@ export interface ToolDefinition {
 }
 
 export const tools: ToolDefinition[] = [
+	{
+		slug: 'basic-calculator',
+		name: 'Basic Calculator',
+		department: 'calculators',
+		description: 'Calculate everyday arithmetic with parentheses and clear live results.',
+		seoTitle: 'Free Basic Calculator — Arithmetic, Percent and Parentheses',
+		seoDescription: 'Use a free browser-based calculator for addition, subtraction, multiplication, division, remainders and grouped expressions.',
+		howTo: ['Type an arithmetic expression or enter it with the on-screen keys.', 'Use parentheses to group operations and check the live result.', 'Clear or edit the expression to calculate something else.'],
+		faqs: [
+			{ question: 'Which operations are supported?', answer: 'Addition, subtraction, multiplication, division, remainder and parentheses are supported.' },
+			{ question: 'Are calculations sent to a service?', answer: 'No. The expression is evaluated locally in your browser and is not uploaded.' },
+			{ question: 'Does multiplication happen before addition?', answer: 'Yes. Standard arithmetic precedence applies; parentheses can change the order.' },
+		],
+		limitations: 'This is an everyday arithmetic calculator, not a financial, scientific or safety-critical instrument.',
+		privacyNote: 'Your expression is calculated on this device and is not sent to a server.',
+		component: 'BasicCalculator',
+		icon: '+−',
+		live: true,
+	},
 	{
 		slug: 'image-upscaler',
 		name: 'Image Upscaler',

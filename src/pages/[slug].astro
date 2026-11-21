@@ -3,6 +3,7 @@ import ToolLayout from '../components/ToolLayout.astro';
 import SpecialCharactersNote from '../components/brand-studio/SpecialCharactersNote.astro';
 import Recommended from '../components/Recommended.astro';
 import AgeCalculator from '../components/tools/AgeCalculator';
+import BasicCalculator from '../components/tools/BasicCalculator';
 import CaseConverter from '../components/tools/CaseConverter';
 import CharacterCounter from '../components/tools/CharacterCounter';
 import CompoundInterestCalculator from '../components/tools/CompoundInterestCalculator';
@@ -85,6 +86,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			<p>{tool.description}</p>
 		</header>
 		<div class="tool-workspace">
+			{tool.component === 'BasicCalculator' && <BasicCalculator client:load />}
 			{tool.component === 'CaseConverter' && <CaseConverter client:load />}
 			{tool.component === 'WordCounter' && <WordCounter client:load />}
 			{tool.component === 'JsonFormatter' && <JsonFormatter client:load />}
