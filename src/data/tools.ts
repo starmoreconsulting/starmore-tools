@@ -46,6 +46,7 @@ export type ToolComponentName =
 	| 'TextFormatter'
 	| 'Notepad'
 	| 'EmailSignatureDesigner'
+	| 'InvoiceBrandingDesigner'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1834,6 +1835,23 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'envelope',
 		icon: '✉',
+		live: true,
+	},
+	{
+		slug: 'invoice-branding-designer',
+		name: 'Invoice Branding Designer',
+		department: 'brand-studio',
+		description: 'Create a branded A4-style invoice with editable items, tax and totals.',
+		seoTitle: 'Free Invoice Branding Designer',
+		seoDescription: 'Build a branded local invoice, calculate item totals and tax, and print or download a standalone HTML invoice.',
+		howTo: ['Enter company, client, invoice number and accent colour.', 'Add invoice items with quantity and rate.', 'Review totals, print or save a PDF, or download standalone HTML.'],
+		faqs: [
+			{ question: 'Can I print the invoice?', answer: 'Yes. Use Print / Save PDF to open the browser print dialog and choose your printer or Save as PDF.' },
+			{ question: 'Are invoice details uploaded?', answer: 'No. Invoice content and calculations stay on this device.' },
+		],
+		privacyNote: 'Invoice details remain on this device and are not sent to a server.',
+		component: 'InvoiceBrandingDesigner',
+		icon: 'INV',
 		live: true,
 	},
 	{
