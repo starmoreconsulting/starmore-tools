@@ -227,6 +227,10 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 	.calc-result small { color: #858d82; font-size: 9px; line-height: 1.4; }
 	.unit-result-label { font-size: 13px !important; }
 	.duplicate-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+	.image-compare-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+	.image-compare-grid figure { margin: 0; border: 1px solid #dde4db; border-radius: 12px; overflow: hidden; background: #f7f8f4; }
+	.image-compare-grid img { display: block; width: 100%; max-height: 420px; object-fit: contain; }
+	.image-compare-grid figcaption { padding: 8px 10px; color: #687269; font-size: 12px; }
 	.duplicate-columns textarea { min-height: 170px; }
 	.text-comparison-output { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px; border: 1px solid #dde4db; border-radius: 12px; overflow: hidden; }
 	.text-comparison-output > div { min-height: 30px; padding: 7px 10px; border-right: 1px solid #dde4db; border-bottom: 1px solid #eef2ec; white-space: pre-wrap; font-family: var(--mono); font-size: 12px; }
@@ -325,6 +329,7 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 		.tool-page-header h1 { font-size: 32px; }
 		.json-columns { grid-template-columns: 1fr; }
 		.duplicate-columns { grid-template-columns: 1fr; }
+		.image-compare-grid { grid-template-columns: 1fr; }
 		.text-comparison-output { grid-template-columns: 1fr; }
 		.text-comparison-output > div { border-right: 0; }
 		.timezone-output { grid-template-columns: 1fr; }

@@ -83,6 +83,7 @@ export type ToolComponentName =
 	| 'PhotoCollageMaker'
 	| 'MemeGenerator'
 	| 'ScreenshotBeautifier'
+	| 'OldPhotoRestoration'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -477,6 +478,24 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your image never leaves your device. Any optional model is downloaded from this site and saved locally.',
 		component: 'ProfilePictureMaker',
 		icon: '◉',
+		live: true,
+	},
+	{
+		slug: 'old-photo-restoration',
+		name: 'Old Photo Restoration',
+		department: 'image',
+		description: 'Restore faded or damaged-looking photos with local contrast, warmth, denoise and grain controls.',
+		seoTitle: 'Free Old Photo Restoration Tool',
+		seoDescription: 'Improve faded photos with browser-based contrast, warmth, denoise and fine-grain controls. No AI service or upload is required.',
+		howTo: ['Choose a JPG, PNG, WebP, GIF or BMP photo.', 'Adjust fade reduction, contrast, warmth, denoise and fine grain.', 'Restore and download a JPG, PNG or WebP copy locally.'],
+		faqs: [
+			{ question: 'Does this use AI reconstruction?', answer: 'No. It applies a local adjustment preset and does not invent missing faces or details.' },
+			{ question: 'Can it remove physical scratches automatically?', answer: 'Not automatically. This release improves tonal balance and noise and cannot reliably erase arbitrary scratches or damage.' },
+		],
+		limitations: 'This is an enhancement preset, not AI reconstruction or a certified photo-restoration service. It cannot recreate missing details or reliably remove physical damage.',
+		privacyNote: 'Your photos never leave this device. Processing uses local browser Canvas pixels and downloads a separate result.',
+		component: 'OldPhotoRestoration',
+		icon: '◷',
 		live: true,
 	},
 	{
