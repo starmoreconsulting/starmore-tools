@@ -67,6 +67,7 @@ export type ToolComponentName =
 	| 'PdfMerger'
 	| 'PdfSplitter'
 	| 'PdfPageExtractor'
+	| 'PdfPageRearranger'
 	| 'PdfPageRotator'
 	| 'PdfCompressor'
 	| 'ImageFormatConverter'
@@ -1321,6 +1322,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfSplitter',
 		icon: '⇱',
+		live: true,
+	},
+	{
+		slug: 'pdf-page-rearranger',
+		name: 'PDF Page Rearranger',
+		department: 'pdf',
+		description: 'Choose a new PDF page order and download a rebuilt document locally.',
+		seoTitle: 'Private PDF Page Rearranger',
+		seoDescription: 'Reorder selected PDF pages with a comma-separated page list and download the rebuilt PDF privately in your browser.',
+		howTo: ['Choose a PDF file.', 'Enter the desired page order, such as 3, 1, 2, 4.', 'Rearrange and download the rebuilt PDF.'],
+		faqs: [
+			{ question: 'Can duplicate pages be included?', answer: 'Duplicate page numbers are currently removed so each selected page number appears once.' },
+			{ question: 'Are protected PDFs supported?', answer: 'No. Use an unlocked PDF you are authorised to process.' },
+		],
+		component: 'PdfPageRearranger',
+		icon: '⇅',
 		live: true,
 	},
 	{
