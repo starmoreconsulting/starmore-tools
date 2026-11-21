@@ -157,8 +157,8 @@ export default function BrandColourPaletteGenerator() {
 			<section className="brand-strategy-result">
 				<h2>Text contrast — WCAG AA</h2>
 				<div className="brand-contrast-table">
-					{contrastPairs.map((pair) => (
-						<div key={`${pair.background}-${pair.text}`}>
+					{contrastPairs.map((pair, index) => (
+						<div key={`${pair.background}-${pair.text}-${index}`}>
 							<span style={{ color: pair.text, backgroundColor: pair.background }}>Aa · {pair.text} on {pair.background}</span>
 							<strong>{pair.ratio.toFixed(2)}:1</strong>
 							<span>{pair.passes ? 'Pass' : 'Fail'} ({pair.threshold}:1{pair.largeText ? ', large text' : ''})</span>

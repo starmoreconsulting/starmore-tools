@@ -1500,7 +1500,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'instagram-post-square',
 		icon: '▣',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'instagram-story-template-creator',
@@ -1518,7 +1518,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'instagram-story',
 		icon: '▯',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'facebook-cover-designer',
@@ -1536,7 +1536,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'facebook-cover',
 		icon: '▱',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'youtube-banner-designer',
@@ -1554,7 +1554,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'youtube-banner',
 		icon: '▰',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'linkedin-banner-designer',
@@ -1572,7 +1572,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'linkedin-banner',
 		icon: '▰',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'social-media-branding-kit',
@@ -1590,7 +1590,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'instagram-post-square',
 		icon: '▦',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-stationery-generator',
@@ -1608,7 +1608,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'letterhead',
 		icon: '▧',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-asset-download-centre',
@@ -1626,7 +1626,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'business-card-front',
 		icon: '⇩',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-name-generator',
@@ -1647,7 +1647,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Nothing leaves your device; keywords, favourites and suggestions are processed locally.',
 		component: 'BrandNameGenerator',
 		icon: '✳',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-slogan-generator',
@@ -1668,7 +1668,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Nothing leaves your device; the inputs and generated lines are handled locally.',
 		component: 'BrandSloganGenerator',
 		icon: '“',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-mission-vision-generator',
@@ -1690,7 +1690,7 @@ export const tools: ToolDefinition[] = [
 		component: 'BrandStrategyGenerator',
 		strategyKind: 'mission-vision',
 		icon: '◎',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-positioning-assistant',
@@ -1712,7 +1712,7 @@ export const tools: ToolDefinition[] = [
 		component: 'BrandStrategyGenerator',
 		strategyKind: 'positioning',
 		icon: '⌖',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-personality-builder',
@@ -1734,7 +1734,7 @@ export const tools: ToolDefinition[] = [
 		component: 'BrandStrategyGenerator',
 		strategyKind: 'personality',
 		icon: '◈',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-colour-palette-generator',
@@ -1755,7 +1755,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Nothing leaves your device; palette calculations and downloads are made locally.',
 		component: 'BrandColourPaletteGenerator',
 		icon: '◒',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-typography-selector',
@@ -1776,7 +1776,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Nothing leaves your device; preview text and font selections are handled locally.',
 		component: 'BrandTypographyTool',
 		icon: 'Aa',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-font-pairing-tool',
@@ -1797,7 +1797,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Nothing leaves your device; preview copy and exported CSS are handled locally.',
 		component: 'BrandTypographyTool',
 		icon: 'Aa',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brand-font-load-check',
@@ -1840,7 +1840,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LogoStudioApp',
 		designPreset: 'moodboard',
 		icon: '▦',
-		live: false,
+		live: true,
 	},
 ];
 

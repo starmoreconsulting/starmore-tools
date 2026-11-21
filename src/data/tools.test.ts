@@ -33,9 +33,9 @@ describe('published department filtering', () => {
 		];
 		const entries = slugs.map((slug) => tools.find((tool) => tool.slug === slug)!);
 
-		it('keeps every Phase 9a tool hidden and gives each a unique, short meta description', () => {
+		it('publishes every Phase 9a tool and gives each a unique, short meta description', () => {
 			expect(entries).toHaveLength(9);
-			expect(entries.every((tool) => tool.live === false)).toBe(true);
+			expect(entries.every((tool) => tool.live === true)).toBe(true);
 			expect(new Set(entries.map((tool) => tool.seoTitle)).size).toBe(entries.length);
 			expect(new Set(entries.map((tool) => tool.seoDescription)).size).toBe(entries.length);
 			expect(entries.every((tool) => tool.seoDescription.length < 160)).toBe(true);
