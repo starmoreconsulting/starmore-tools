@@ -44,6 +44,7 @@ export type ToolComponentName =
 	| 'TextComparisonTool'
 	| 'ReverseTextGenerator'
 	| 'TextFormatter'
+	| 'Notepad'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1273,6 +1274,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ImageCropper',
 		icon: '▣',
+		live: true,
+	},
+	{
+		slug: 'notepad-with-downloadable-text-files',
+		name: 'Notepad with Downloadable Text Files',
+		department: 'text',
+		description: 'Write and autosave a local note, then download it as a plain-text file.',
+		seoTitle: 'Free Notepad with Downloadable Text Files',
+		seoDescription: 'Write a private browser note with local autosave and download the result as a UTF-8 .txt file.',
+		howTo: ['Enter a title and write or paste text into the notepad.', 'Your note autosaves in this browser.', 'Download the current note as a .txt file when you are ready.'],
+		faqs: [
+			{ question: 'Where is the note saved?', answer: 'The notepad uses local browser storage on this device. It is not uploaded or synced.' },
+			{ question: 'Can I download Unicode or emoji text?', answer: 'Yes. Downloads are UTF-8 text files and can preserve Unicode characters.' },
+		],
+		component: 'Notepad',
+		icon: 'TXT',
 		live: true,
 	},
 	{
