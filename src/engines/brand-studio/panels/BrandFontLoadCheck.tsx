@@ -39,7 +39,7 @@ export default function BrandFontLoadCheck() {
 
 	return (
 		<section className="brand-tool-panel">
-			<p className="brand-tool-notice">Development check: each sample below is requested from the locally bundled font files. The status uses document.fonts.load and document.fonts.check; a failed entry means the browser could not confirm that exact family and weight. This page is hidden from normal production builds and is only built when the preview flag is enabled.</p>
+			<p className="brand-tool-notice">Font check: each sample below is requested from the locally bundled font files. The status uses document.fonts.load and document.fonts.check; a failed entry means the browser could not confirm that exact family and weight.</p>
 			<div className="brand-name-results">
 				{results.map(({ family, weight, status, error }) => (
 					<article key={`${family}-${weight}`} className="brand-name-result">

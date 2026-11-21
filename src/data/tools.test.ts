@@ -74,9 +74,9 @@ describe('published department filtering', () => {
 		});
 	});
 
-	it('keeps the bundled font diagnostic hidden with distinct preview-only copy', () => {
+	it('publishes the bundled font diagnostic with complete public copy', () => {
 		const tool = tools.find(({ slug }) => slug === 'brand-font-load-check')!;
-		expect(tool.live).toBe(false);
+		expect(tool.live).toBe(true);
 		expect(tool.component).toBe('BrandFontLoadCheck');
 		expect(tool.seoDescription.length).toBeLessThan(160);
 		const visibleCopy = [
