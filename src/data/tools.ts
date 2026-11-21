@@ -43,6 +43,7 @@ export type ToolComponentName =
 	| 'LoremIpsumGenerator'
 	| 'TextComparisonTool'
 	| 'ReverseTextGenerator'
+	| 'TextFormatter'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1144,6 +1145,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ReverseTextGenerator',
 		icon: '↶',
+		live: true,
+	},
+	{
+		slug: 'text-formatter',
+		name: 'Text Formatter',
+		department: 'text',
+		description: 'Clean paragraph spacing, wrap lines or flatten text into one line.',
+		seoTitle: 'Free Text Formatter',
+		seoDescription: 'Format text into clean paragraphs, wrapped lines or a single line with local browser processing.',
+		howTo: ['Paste or type text into the input box.', 'Choose clean paragraphs, wrapped paragraphs or single-line mode.', 'Copy or select the formatted text.'],
+		faqs: [
+			{ question: 'Does paragraph wrapping change word order?', answer: 'No. It only inserts line breaks at the selected character length.' },
+			{ question: 'Is my text uploaded?', answer: 'No. Formatting runs locally in your browser.' },
+		],
+		component: 'TextFormatter',
+		icon: '¶',
 		live: true,
 	},
 	{

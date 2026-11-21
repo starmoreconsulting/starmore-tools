@@ -65,6 +65,7 @@ import RemoveExtraSpaces from '../components/tools/RemoveExtraSpaces';
 import LoremIpsumGenerator from '../components/tools/LoremIpsumGenerator';
 import TextComparisonTool from '../components/tools/TextComparisonTool';
 import ReverseTextGenerator from '../components/tools/ReverseTextGenerator';
+import TextFormatter from '../components/tools/TextFormatter';
 import UnitConverter from '../components/tools/UnitConverter';
 import VatCalculator from '../components/tools/VatCalculator';
 import WordCounter from '../components/tools/WordCounter';
@@ -127,6 +128,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'LoremIpsumGenerator' && <LoremIpsumGenerator client:load />}
 			{tool.component === 'TextComparisonTool' && <TextComparisonTool client:load />}
 			{tool.component === 'ReverseTextGenerator' && <ReverseTextGenerator client:load />}
+			{tool.component === 'TextFormatter' && <TextFormatter client:load />}
 			{tool.component === 'QrCodeGenerator' && <QrCodeGenerator client:load />}
 			{tool.component === 'PasswordGenerator' && <PasswordGenerator client:load />}
 			{tool.component === 'ImageCompressor' && <ImageCompressor client:load />}
