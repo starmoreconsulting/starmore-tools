@@ -40,6 +40,7 @@ export type ToolComponentName =
 	| 'UnitConverter'
 	| 'RemoveDuplicateLines'
 	| 'RemoveExtraSpaces'
+	| 'LoremIpsumGenerator'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1093,6 +1094,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'FindReplaceText',
 		icon: '↔',
+		live: true,
+	},
+	{
+		slug: 'lorem-ipsum-generator',
+		name: 'Lorem Ipsum Generator',
+		department: 'text',
+		description: 'Generate Lorem Ipsum words, sentences or paragraphs with adjustable counts.',
+		seoTitle: 'Free Lorem Ipsum Generator',
+		seoDescription: 'Generate Lorem Ipsum placeholder text locally as words, sentences or paragraphs. Choose a count and variation seed.',
+		howTo: ['Choose words, sentences or paragraphs.', 'Set a count from 1 to 100 and an optional variation seed.', 'Copy or select the generated placeholder text.'],
+		faqs: [
+			{ question: 'Can I generate the same text again?', answer: 'Yes. Keep the same variation seed to reproduce the same generated output.' },
+			{ question: 'Is generated text sent anywhere?', answer: 'No. Text generation runs entirely in your browser.' },
+		],
+		component: 'LoremIpsumGenerator',
+		icon: 'LI',
 		live: true,
 	},
 	{

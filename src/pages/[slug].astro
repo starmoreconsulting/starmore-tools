@@ -62,6 +62,7 @@ import FuelConsumptionCalculator from '../components/tools/FuelConsumptionCalcul
 import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
 import RemoveDuplicateLines from '../components/tools/RemoveDuplicateLines';
 import RemoveExtraSpaces from '../components/tools/RemoveExtraSpaces';
+import LoremIpsumGenerator from '../components/tools/LoremIpsumGenerator';
 import UnitConverter from '../components/tools/UnitConverter';
 import VatCalculator from '../components/tools/VatCalculator';
 import WordCounter from '../components/tools/WordCounter';
@@ -121,6 +122,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'UnitConverter' && <UnitConverter client:load />}
 			{tool.component === 'RemoveDuplicateLines' && <RemoveDuplicateLines client:load />}
 			{tool.component === 'RemoveExtraSpaces' && <RemoveExtraSpaces client:load />}
+			{tool.component === 'LoremIpsumGenerator' && <LoremIpsumGenerator client:load />}
 			{tool.component === 'QrCodeGenerator' && <QrCodeGenerator client:load />}
 			{tool.component === 'PasswordGenerator' && <PasswordGenerator client:load />}
 			{tool.component === 'ImageCompressor' && <ImageCompressor client:load />}
