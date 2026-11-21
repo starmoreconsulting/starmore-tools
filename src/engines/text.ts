@@ -28,6 +28,12 @@ export function toSentenceCase(text: string) {
 	return text.toLowerCase().replace(/(^\s*[a-z]|[.!?]\s+[a-z])/g, (match) => match.toUpperCase());
 }
 
+export function reverseText(text: string, mode: 'characters' | 'words' | 'lines') {
+	if (mode === 'characters') return Array.from(text).reverse().join('');
+	if (mode === 'words') return text.trim().split(/\s+/).filter(Boolean).reverse().join(' ');
+	return text.split(/\r\n|[\n\r\u2028\u2029]/).reverse().join('\n');
+}
+
 export function cleanWhitespace(
 	text: string,
 	collapseInline: boolean,

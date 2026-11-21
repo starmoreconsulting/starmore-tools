@@ -42,6 +42,7 @@ export type ToolComponentName =
 	| 'RemoveExtraSpaces'
 	| 'LoremIpsumGenerator'
 	| 'TextComparisonTool'
+	| 'ReverseTextGenerator'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1127,6 +1128,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LoremIpsumGenerator',
 		icon: 'LI',
+		live: true,
+	},
+	{
+		slug: 'reverse-text-generator',
+		name: 'Reverse Text Generator',
+		department: 'text',
+		description: 'Reverse text by characters, words or lines with Unicode-safe character handling.',
+		seoTitle: 'Free Reverse Text Generator',
+		seoDescription: 'Reverse text by characters, words or lines locally in your browser, with Unicode-safe character reversal.',
+		howTo: ['Paste or type text into the input box.', 'Choose character, word or line reversal.', 'Copy or select the reversed result.'],
+		faqs: [
+			{ question: 'Does character reversal preserve emoji?', answer: 'Yes. Character reversal uses Unicode code points so emoji are not split into broken surrogate values.' },
+			{ question: 'Is my text uploaded?', answer: 'No. Reversal happens locally in your browser.' },
+		],
+		component: 'ReverseTextGenerator',
+		icon: '↶',
 		live: true,
 	},
 	{

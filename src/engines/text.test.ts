@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanWhitespace, countCharacters, countWords, replaceText } from './text';
+import { cleanWhitespace, countCharacters, countWords, replaceText, reverseText } from './text';
 
 describe('text utilities', () => {
 	it('counts Unicode code points consistently, including emoji', () => {
@@ -38,6 +38,12 @@ describe('text utilities', () => {
 			count: 2,
 			error: '',
 		});
+	});
+
+	it('reverses characters, words and lines with Unicode-safe character reversal', () => {
+		expect(reverseText('A🌿B', 'characters')).toBe('B🌿A');
+		expect(reverseText('  Hello   world  ', 'words')).toBe('world Hello');
+		expect(reverseText('one\ntwo\nthree', 'lines')).toBe('three\ntwo\none');
 	});
 
 	it('cleans inline spaces, line edges and blank lines', () => {
