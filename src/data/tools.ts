@@ -31,6 +31,7 @@ export type ToolComponentName =
 	| 'BreakEvenCalculator'
 	| 'CurrencyConverter'
 	| 'ElectricityConsumptionCalculator'
+	| 'FuelConsumptionCalculator'
 	| 'LoanRepaymentCalculator'
 	| 'AgeCalculator'
 	| 'CharacterCounter'
@@ -931,6 +932,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ElectricityConsumptionCalculator',
 		icon: 'kWh',
+		live: true,
+	},
+	{
+		slug: 'fuel-consumption-calculator',
+		name: 'Fuel Consumption Calculator',
+		department: 'calculators',
+		description: 'Estimate fuel use per 100 km, kilometres per litre, MPG and trip fuel cost.',
+		seoTitle: 'Free Fuel Consumption Calculator',
+		seoDescription: 'Calculate litres per 100 km, kilometres per litre, US MPG and estimated trip fuel cost from distance and fuel used.',
+		howTo: ['Enter the distance travelled and fuel used.', 'Add a fuel price per litre for an optional trip-cost estimate.', 'Compare litres per 100 km, kilometres per litre and US MPG.'],
+		faqs: [
+			{ question: 'How is litres per 100 km calculated?', answer: 'Fuel used in litres is divided by distance in kilometres, then multiplied by 100.' },
+			{ question: 'Does MPG use US gallons?', answer: 'Yes. The MPG result in this tool is converted to US MPG.' },
+		],
+		component: 'FuelConsumptionCalculator',
+		icon: 'km/L',
 		live: true,
 	},
 	{
