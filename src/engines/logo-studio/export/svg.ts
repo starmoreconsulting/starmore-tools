@@ -12,6 +12,8 @@ export interface SvgExportOptions {
 export interface SvgExportResult {
 	svg: string;
 	warnings: string[];
+	unsupportedChars: string[];
+	elementsAffected: string[];
 }
 
 function escapeXml(value: string): string {
@@ -45,7 +47,7 @@ function renderShape(element: Element): string {
 
 function renderText(element: Element, outline?: TextOutline): string {
 	const fill = element.gradient ? `url(#${getElementGradientId(element)})` : escapeXml(element.fill ?? '#203b32');
-	if (outline) return `<g fill="${fill}">${outline.markup}</g>`;
+	if (outline && !outline.unsupportedChars.length) return `<g fill="${fill}">${outline.markup}</g>`;
 	const x = element.align === 'left' ? 0 : element.align === 'right' ? element.width : element.width / 2;
 	const lines = (element.text ?? '').split('\n').map((line, index) => (
 		`<tspan x="${x}"${index ? ` dy="${element.lineHeight ?? 1.16}em"` : ''}>${escapeXml(line)}</tspan>`
@@ -110,7 +112,7 @@ export async function exportProjectToSvg(
 	options: SvgExportOptions = {},
 ): Promise<SvgExportResult> {
 	const warnings: string[] = [];
-	const outlines = new Map<string, string>();
+	const outlines = new Map<string, TextOutline>();
 	let icons: Record<string, import('../library/icons').LucideNode[]> = {};
 	const iconElements = (elements: Element[]): boolean => elements.some((element) => element.type === 'icon' || Boolean(element.children && iconElements(element.children)));
 	const projectElements = Object.values(project.variants).flat();
@@ -118,11 +120,9 @@ export async function exportProjectToSvg(
 		const library = await loadLucideLibrary();
 		icons = library.icons;
 	}
-	if (options.outlineText !== false || projectElements.some((element) => containsCurvedText(element))) {
-		const result = await outlineProjectText(project, options.outlineText === false);
-		for (const [id, outline] of result.outlines) outlines.set(id, outline);
-		warnings.push(...result.warnings);
-	}
+	const outlineResult = await outlineProjectText(project, options.outlineText === false);
+	for (const [id, outline] of outlineResult.outlines) outlines.set(id, outline);
+	warnings.push(...outlineResult.warnings);
 
 	const background = options.background ?? project.artboard.background;
 	const backgroundMarkup = background === 'transparent'
@@ -133,7 +133,12 @@ export async function exportProjectToSvg(
 		.join('');
 	const gradientMarkup = `<defs>${collectEffectMarkup(projectElements)}</defs>`;
 	const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${project.artboard.width}" height="${project.artboard.height}" viewBox="0 0 ${project.artboard.width} ${project.artboard.height}"><title>${escapeXml(project.name)}</title>${gradientMarkup}${backgroundMarkup}${artwork}</svg>`;
-	return { svg, warnings };
+	return {
+		svg,
+		warnings,
+		unsupportedChars: outlineResult.unsupportedChars,
+		elementsAffected: outlineResult.elementsAffected,
+	};
 }
 
 function containsCurvedText(element: Element): boolean {
