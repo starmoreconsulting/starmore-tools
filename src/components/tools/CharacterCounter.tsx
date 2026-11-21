@@ -1,13 +1,5 @@
 import { useState } from 'react';
-
-function countCharacters(text: string) {
-	const characters = Array.from(text).length;
-	const charactersWithoutSpaces = Array.from(text.replace(/\s/g, '')).length;
-	const words = text.trim().match(/\S+/g)?.length ?? 0;
-	const lines = text.length === 0 ? 0 : text.split(/\r\n|[\n\r\u2028\u2029]/).length;
-
-	return { characters, charactersWithoutSpaces, words, lines };
-}
+import { countCharacters } from '../../engines/text';
 
 export default function CharacterCounter() {
 	const [text, setText] = useState('');

@@ -1,27 +1,27 @@
 import { useState } from 'react';
-
-type Calculation = 'percent-of' | 'what-percent' | 'change';
-
-function calculate(mode: Calculation, first: number, second: number) {
-	if (mode === 'percent-of') return (first / 100) * second;
-	if (mode === 'what-percent') return second === 0 ? null : (first / second) * 100;
-	return first === 0 ? null : ((second - first) / Math.abs(first)) * 100;
-}
+import { calculatePercentage, type PercentageCalculation } from '../../engines/calculators/percentage-calculator';
 
 function formatNumber(value: number) {
 	return new Intl.NumberFormat(undefined, { maximumFractionDigits: 8 }).format(value);
 }
 
 export default function PercentageCalculator() {
-	const [mode, setMode] = useState<Calculation>('percent-of');
+	const [mode, setMode] = useState<PercentageCalculation>('percent-of');
 	const [first, setFirst] = useState('');
 	const [second, setSecond] = useState('');
 
 	const firstValue = Number(first);
 	const secondValue = Number(second);
 	const hasValues = first.trim() !== '' && second.trim() !== '' && Number.isFinite(firstValue) && Number.isFinite(secondValue);
-	const result = hasValues ? calculate(mode, firstValue, secondValue) : null;
-	const invalid = hasValues && result === null;
+	let result: number | null = null;
+	let errorMessage = '';
+	if (hasValues) {
+		try {
+			result = calculatePercentage(mode, firstValue, secondValue);
+		} catch (error) {
+			errorMessage = error instanceof Error ? error.message : 'Check the values and try again.';
+		}
+	}
 
 	const question = mode === 'percent-of'
 		? <>What is <input aria-label="Percentage" inputMode="decimal" type="number" value={first} onChange={(event) => setFirst(event.target.value)} placeholder="15" />% of <input aria-label="Number" inputMode="decimal" type="number" value={second} onChange={(event) => setSecond(event.target.value)} placeholder="200" />?</>
@@ -40,9 +40,8 @@ export default function PercentageCalculator() {
 			<div className="percentage-result" aria-live="polite">
 				<span className="percentage-result-label">RESULT</span>
 				<strong>{result === null ? '—' : `${formatNumber(result)}${mode === 'percent-of' ? '' : '%'}`}</strong>
-				{invalid && <span className="percentage-error">This calculation needs a non-zero divisor.</span>}
+				{errorMessage && <span className="percentage-error">{errorMessage}</span>}
 			</div>
 		</div>
 	);
 }
-

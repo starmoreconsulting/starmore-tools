@@ -1,29 +1,5 @@
 import { useState } from 'react';
-
-function escapeRegExp(value: string) {
-	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function createPattern(find: string, matchCase: boolean, wholeWord: boolean, regexMode: boolean) {
-	const source = regexMode ? find : escapeRegExp(find);
-	const bounded = wholeWord ? `(?<![\\p{L}\\p{N}_])(?:${source})(?![\\p{L}\\p{N}_])` : source;
-	return new RegExp(bounded, matchCase ? 'gu' : 'giu');
-}
-
-function replaceText(text: string, find: string, replacement: string, matchCase: boolean, wholeWord: boolean, regexMode: boolean) {
-	if (find === '') return { result: text, count: 0, error: 'Enter text or a pattern to find.' };
-	try {
-		const pattern = createPattern(find, matchCase, wholeWord, regexMode);
-		let count = 0;
-		const result = text.replace(pattern, () => {
-			count += 1;
-			return replacement;
-		});
-		return { result, count, error: '' };
-	} catch {
-		return { result: text, count: 0, error: 'This regular expression is invalid. Check the pattern and try again.' };
-	}
-}
+import { replaceText } from '../../engines/text';
 
 export default function FindReplaceText() {
 	const [text, setText] = useState('');
