@@ -16,6 +16,7 @@ export const departments = [
 export type DepartmentSlug = (typeof departments)[number]['slug'];
 export type ToolComponentName =
 	| 'BasicCalculator'
+	| 'UnitPriceCalculator'
 	| 'TipCalculator'
 	| 'CaseConverter'
 	| 'WordCounter'
@@ -111,6 +112,24 @@ export interface ToolDefinition {
 }
 
 export const tools: ToolDefinition[] = [
+	{
+		slug: 'unit-price-calculator',
+		name: 'Unit Price Calculator',
+		department: 'calculators',
+		description: 'Compare two products to see which offers the lower price per unit.',
+		seoTitle: 'Free Unit Price Calculator — Compare Product Value',
+		seoDescription: 'Compare product prices by quantity to find the better unit value. Use the same currency and quantity unit for both products; calculations stay in your browser.',
+		howTo: ['Enter each product’s price and quantity.', 'Use the same currency for both prices and the same unit for both quantities.', 'Compare the price per unit and the difference.'],
+		faqs: [
+			{ question: 'Can I compare different package sizes?', answer: 'Yes. Enter the price and quantity for each package using the same quantity unit, such as grams or millilitres.' },
+			{ question: 'Does the calculator convert currencies or units?', answer: 'No. Enter both prices in the same currency and both quantities in the same unit before comparing.' },
+		],
+		limitations: 'This calculator compares the quantities as entered; it does not convert units or currencies.',
+		privacyNote: 'Your values stay on this device and are not uploaded.',
+		component: 'UnitPriceCalculator',
+		icon: '÷',
+		live: true,
+	},
 	{
 		slug: 'tip-calculator',
 		name: 'Tip Calculator',
