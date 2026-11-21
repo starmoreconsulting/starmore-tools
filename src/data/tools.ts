@@ -371,7 +371,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your image never leaves your device. This tool uses no AI model and sends no image data to a server.',
 		component: 'LogoBackgroundRemover',
 		icon: '◩',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'logo-transparency-editor',
@@ -390,7 +390,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your image never leaves your device. This tool uses no AI model and sends no image data to a server.',
 		component: 'LogoTransparencyEditor',
 		icon: '◐',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'background-remover',
@@ -409,7 +409,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your image never leaves your device. The model is downloaded from this site once and saved on this device.',
 		component: 'BackgroundRemover',
 		icon: '◌',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'background-changer',
@@ -428,7 +428,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your images never leave your device. Models are downloaded from this site once and saved on this device.',
 		component: 'BackgroundChanger',
 		icon: '▧',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'passport-photo-maker',
@@ -447,7 +447,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your photo never leaves your device. Optional background-removal models are downloaded from this site and processed locally.',
 		component: 'PassportPhotoMaker',
 		icon: '▣',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'profile-picture-maker',
@@ -466,7 +466,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your image never leaves your device. Any optional model is downloaded from this site and saved locally.',
 		component: 'ProfilePictureMaker',
 		icon: '◉',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'photo-collage-maker',
@@ -485,7 +485,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your photos never leave your device. Collage rendering runs in a local browser worker.',
 		component: 'PhotoCollageMaker',
 		icon: '▦',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'meme-generator',
@@ -504,7 +504,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your image and text never leave your device. The Oswald font is bundled locally; no external font or image request is made.',
 		component: 'MemeGenerator',
 		icon: 'Aa',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'screenshot-beautifier',
@@ -523,7 +523,7 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Your screenshot and optional background image never leave your device. Processing runs in a local browser worker.',
 		component: 'ScreenshotBeautifier',
 		icon: '▣',
-		live: false,
+		live: true,
 	},
 	{
 		slug: 'brightness-contrast-editor',
@@ -1185,7 +1185,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '▦',
-		live: false,
+		live: true,
 		preset: 'template',
 	},
 	{
@@ -1202,7 +1202,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: 'Aa',
-		live: false,
+		live: true,
 		preset: 'business-name',
 	},
 	{
@@ -1219,7 +1219,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: 'industry',
-		live: false,
+		live: true,
 		preset: 'industry',
 	},
 	{
@@ -1236,7 +1236,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: 'icon',
-		live: false,
+		live: true,
 		preset: 'icon',
 	},
 	{
@@ -1253,7 +1253,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: 'AB',
-		live: false,
+		live: true,
 		preset: 'initials',
 	},
 	{
@@ -1270,7 +1270,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '▦',
-		live: false,
+		live: true,
 		preset: 'variation',
 	},
 	{
@@ -1287,7 +1287,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '◐',
-		live: false,
+		live: true,
 		preset: 'black-and-white',
 	},
 	{
@@ -1304,7 +1304,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '◒',
-		live: false,
+		live: true,
 		preset: 'colour-variation',
 	},
 	{
@@ -1321,7 +1321,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '◎',
-		live: false,
+		live: true,
 		preset: 'reference',
 	},
 	{
@@ -1338,7 +1338,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '✳',
-		live: false,
+		live: true,
 		preset: 'redesign',
 	},
 	{
@@ -1355,7 +1355,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '▧',
-		live: false,
+		live: true,
 		preset: 'mockups',
 	},
 	{
@@ -1372,7 +1372,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '▱',
-		live: false,
+		live: true,
 		preset: 'business-card-mockup',
 	},
 	{
@@ -1389,7 +1389,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '♧',
-		live: false,
+		live: true,
 		preset: 'tshirt-mockup',
 	},
 	{
@@ -1406,7 +1406,7 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'LogoStudioApp',
 		icon: '◉',
-		live: false,
+		live: true,
 		preset: 'preview-mockup',
 	},
 	{
