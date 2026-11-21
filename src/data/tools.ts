@@ -28,6 +28,7 @@ export type ToolComponentName =
 	| 'VatCalculator'
 	| 'ProfitMarginCalculator'
 	| 'ProfitLossCalculator'
+	| 'BreakEvenCalculator'
 	| 'LoanRepaymentCalculator'
 	| 'AgeCalculator'
 	| 'CharacterCounter'
@@ -688,6 +689,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ProfitLossCalculator',
 		icon: 'P/L',
+		live: true,
+	},
+	{
+		slug: 'break-even-calculator',
+		name: 'Business Break-even Calculator',
+		department: 'calculators',
+		description: 'Find the units and revenue needed to cover fixed and variable costs.',
+		seoTitle: 'Free Business Break-even Calculator',
+		seoDescription: 'Calculate break-even units, break-even revenue and contribution per unit from fixed costs and unit prices.',
+		howTo: ['Enter total fixed costs for the period.', 'Enter the selling price and variable cost for one unit.', 'Review the break-even units and revenue.'],
+		faqs: [
+			{ question: 'How is break-even units calculated?', answer: 'Divide fixed costs by the contribution per unit, which is selling price minus variable cost.' },
+			{ question: 'Why must selling price exceed variable cost?', answer: 'Each unit must contribute a positive amount toward fixed costs; without that, a break-even point cannot be reached.' },
+		],
+		component: 'BreakEvenCalculator',
+		icon: 'BE',
 		live: true,
 	},
 	{
