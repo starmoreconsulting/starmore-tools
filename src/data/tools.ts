@@ -16,6 +16,7 @@ export const departments = [
 export type DepartmentSlug = (typeof departments)[number]['slug'];
 export type ToolComponentName =
 	| 'BasicCalculator'
+	| 'TipCalculator'
 	| 'CaseConverter'
 	| 'WordCounter'
 	| 'JsonFormatter'
@@ -110,6 +111,24 @@ export interface ToolDefinition {
 }
 
 export const tools: ToolDefinition[] = [
+	{
+		slug: 'tip-calculator',
+		name: 'Tip Calculator',
+		department: 'calculators',
+		description: 'Calculate a tip, total bill, and an even split for your group.',
+		seoTitle: 'Free Tip Calculator — Calculate and Split a Tip',
+		seoDescription: 'Calculate a tip and the full bill total, then split both evenly among your group. All calculations run locally in your browser.',
+		howTo: ['Enter the bill amount before tip.', 'Choose a tip percentage and the number of people sharing the bill.', 'Review the tip, total, and per-person amounts.'],
+		faqs: [
+			{ question: 'Can I split the bill between a group?', answer: 'Yes. Enter the number of people to see the tip and total amount per person.' },
+			{ question: 'Are calculations sent to a service?', answer: 'No. The calculation runs locally in your browser.' },
+		],
+		limitations: 'The total is split evenly and amounts are displayed to two decimal places; it does not assign individual rounding differences.',
+		privacyNote: 'Your values stay on this device and are not uploaded.',
+		component: 'TipCalculator',
+		icon: '%',
+		live: true,
+	},
 	{
 		slug: 'basic-calculator',
 		name: 'Basic Calculator',
