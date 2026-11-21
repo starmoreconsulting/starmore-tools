@@ -6,6 +6,7 @@ import AgeCalculator from '../components/tools/AgeCalculator';
 import BasicCalculator from '../components/tools/BasicCalculator';
 import TipCalculator from '../components/tools/TipCalculator';
 import UnitPriceCalculator from '../components/tools/UnitPriceCalculator';
+import StatisticsCalculator from '../components/tools/StatisticsCalculator';
 import CaseConverter from '../components/tools/CaseConverter';
 import CharacterCounter from '../components/tools/CharacterCounter';
 import CompoundInterestCalculator from '../components/tools/CompoundInterestCalculator';
@@ -91,6 +92,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'BasicCalculator' && <BasicCalculator client:load />}
 			{tool.component === 'TipCalculator' && <TipCalculator client:load />}
 			{tool.component === 'UnitPriceCalculator' && <UnitPriceCalculator client:load />}
+			{tool.component === 'StatisticsCalculator' && <StatisticsCalculator client:load />}
 			{tool.component === 'CaseConverter' && <CaseConverter client:load />}
 			{tool.component === 'WordCounter' && <WordCounter client:load />}
 			{tool.component === 'JsonFormatter' && <JsonFormatter client:load />}

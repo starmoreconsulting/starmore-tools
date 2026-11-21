@@ -18,6 +18,7 @@ export type ToolComponentName =
 	| 'BasicCalculator'
 	| 'UnitPriceCalculator'
 	| 'TipCalculator'
+	| 'StatisticsCalculator'
 	| 'CaseConverter'
 	| 'WordCounter'
 	| 'JsonFormatter'
@@ -112,6 +113,24 @@ export interface ToolDefinition {
 }
 
 export const tools: ToolDefinition[] = [
+	{
+		slug: 'statistics-calculator',
+		name: 'Statistics Calculator',
+		department: 'calculators',
+		description: 'Summarize a list of numbers with the mean, median, mode, range, and count.',
+		seoTitle: 'Free Statistics Calculator — Mean, Median, Mode and Range',
+		seoDescription: 'Summarize a list of numbers with the mean, median, mode, range, and count. Your values stay in your browser.',
+		howTo: ['Enter numbers separated by commas, spaces, or new lines.', 'Review the count, mean, median, mode, and range.', 'Correct any invalid entry to update the summary.'],
+		faqs: [
+			{ question: 'How do I separate the numbers?', answer: 'Use commas, spaces, or new lines. Every entry must be a finite number.' },
+			{ question: 'What if multiple values tie for the mode?', answer: 'Every value tied for the most frequent occurrence is shown. If no value repeats, the calculator reports no mode.' },
+		],
+		limitations: 'Enter up to 10,000 numbers. Values are treated exactly as entered; this tool does not calculate weighted statistics.',
+		privacyNote: 'Your values stay on this device and are not uploaded.',
+		component: 'StatisticsCalculator',
+		icon: 'Σ',
+		live: true,
+	},
 	{
 		slug: 'unit-price-calculator',
 		name: 'Unit Price Calculator',
