@@ -41,6 +41,7 @@ export type ToolComponentName =
 	| 'RemoveDuplicateLines'
 	| 'RemoveExtraSpaces'
 	| 'LoremIpsumGenerator'
+	| 'TextComparisonTool'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1094,6 +1095,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'FindReplaceText',
 		icon: '↔',
+		live: true,
+	},
+	{
+		slug: 'text-comparison-tool',
+		name: 'Text Comparison Tool',
+		department: 'text',
+		description: 'Compare two text documents and review added, removed and unchanged lines.',
+		seoTitle: 'Free Text Comparison and Diff Tool',
+		seoDescription: 'Compare two texts locally with a line-by-line diff that highlights unchanged, added and removed lines.',
+		howTo: ['Paste the original text in the left pane.', 'Paste the changed text in the right pane.', 'Review the line counts and highlighted comparison.'],
+		faqs: [
+			{ question: 'How does the comparison work?', answer: 'The tool compares complete lines using a longest-common-subsequence line diff.' },
+			{ question: 'Is text sent anywhere?', answer: 'No. Both texts are compared locally in your browser.' },
+		],
+		component: 'TextComparisonTool',
+		icon: '≠',
 		live: true,
 	},
 	{
