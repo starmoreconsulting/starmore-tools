@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countCharacters, countWords, replaceText } from './text';
+import { cleanWhitespace, countCharacters, countWords, replaceText } from './text';
 
 describe('text utilities', () => {
 	it('counts Unicode code points consistently, including emoji', () => {
@@ -38,6 +38,14 @@ describe('text utilities', () => {
 			count: 2,
 			error: '',
 		});
+	});
+
+	it('cleans inline spaces, line edges and blank lines', () => {
+		expect(cleanWhitespace('  Hello   world  \r\n\r\n  Second\tline  ', true, true, true)).toEqual({
+			result: 'Hello world\nSecond line',
+			removedBlankLines: 1,
+		});
+		expect(cleanWhitespace('', true, true, true)).toEqual({ result: '', removedBlankLines: 0 });
 	});
 
 	it('reports invalid regex and leaves source text unchanged', () => {

@@ -39,6 +39,7 @@ export type ToolComponentName =
 	| 'CompoundInterestCalculator'
 	| 'UnitConverter'
 	| 'RemoveDuplicateLines'
+	| 'RemoveExtraSpaces'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -820,6 +821,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'RemoveDuplicateLines',
 		icon: '≡',
+		live: true,
+	},
+	{
+		slug: 'remove-extra-spaces-and-blank-lines',
+		name: 'Remove Extra Spaces and Blank Lines',
+		department: 'text',
+		description: 'Clean repeated inline spaces, line edges and unnecessary blank lines.',
+		seoTitle: 'Free Remove Extra Spaces and Blank Lines',
+		seoDescription: 'Remove extra spaces and tabs, trim line edges, and optionally delete blank lines from text in your browser.',
+		howTo: ['Paste or type text into the input box.', 'Choose which whitespace cleanup options to apply.', 'Copy or select the cleaned result.'],
+		faqs: [
+			{ question: 'Does this change the text formatting?', answer: 'Only the selected whitespace options are changed. Blank lines can be preserved when remove blank lines is unchecked.' },
+			{ question: 'Is my text uploaded?', answer: 'No. Cleanup happens locally in your browser.' },
+		],
+		component: 'RemoveExtraSpaces',
+		icon: '⇥',
 		live: true,
 	},
 	{
