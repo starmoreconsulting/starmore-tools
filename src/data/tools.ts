@@ -66,6 +66,7 @@ export type ToolComponentName =
 	| 'ImageToPdfConverter'
 	| 'PdfMerger'
 	| 'PdfSplitter'
+	| 'PdfPageExtractor'
 	| 'PdfPageRotator'
 	| 'PdfCompressor'
 	| 'ImageFormatConverter'
@@ -1288,6 +1289,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfCompressor',
 		icon: 'ZIP',
+		live: true,
+	},
+	{
+		slug: 'pdf-page-extractor',
+		name: 'PDF Page Extractor',
+		department: 'pdf',
+		description: 'Extract selected page ranges from a PDF into one downloadable document.',
+		seoTitle: 'Private PDF Page Extractor',
+		seoDescription: 'Extract selected pages or ranges from a PDF and download them as one local PDF file. Your document stays on this device.',
+		howTo: ['Choose a PDF file.', 'Enter pages or ranges such as 1-3, 5, 8-10.', 'Extract and download one PDF containing the selected pages.'],
+		faqs: [
+			{ question: 'Does extraction preserve the original order?', answer: 'Yes. Selected ranges are deduplicated and ordered numerically in the output PDF.' },
+			{ question: 'Are password-protected PDFs supported?', answer: 'No. Use an unlocked PDF you are authorised to process.' },
+		],
+		component: 'PdfPageExtractor',
+		icon: '⇩',
 		live: true,
 	},
 	{

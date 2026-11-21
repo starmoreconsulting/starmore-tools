@@ -33,6 +33,7 @@ import ImageToPdfConverter from '../components/tools/ImageToPdfConverter';
 import PdfMerger from '../components/tools/PdfMerger';
 import PdfSplitter from '../components/tools/PdfSplitter';
 import PdfPageRotator from '../components/tools/PdfPageRotator';
+import PdfPageExtractor from '../components/tools/PdfPageExtractor';
 import PdfCompressor from '../components/tools/PdfCompressor';
 import ImageFormatConverter from '../components/tools/ImageFormatConverter';
 import ImageCropper from '../components/tools/ImageCropper';
@@ -161,6 +162,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'PdfMerger' && <PdfMerger client:load />}
 			{tool.component === 'PdfSplitter' && <PdfSplitter client:load />}
 			{tool.component === 'PdfPageRotator' && <PdfPageRotator client:load />}
+			{tool.component === 'PdfPageExtractor' && <PdfPageExtractor client:load />}
 			{tool.component === 'PdfCompressor' && <PdfCompressor client:load />}
 			{tool.component === 'ImageFormatConverter' && <ImageFormatConverter client:load />}
 			{tool.component === 'ImageCropper' && <ImageCropper client:load />}
