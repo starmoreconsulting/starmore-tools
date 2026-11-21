@@ -48,6 +48,7 @@ export type ToolComponentName =
 	| 'EmailSignatureDesigner'
 	| 'InvoiceBrandingDesigner'
 	| 'PresentationTemplateDesigner'
+	| 'WebsiteStarterCodeGenerator'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1888,6 +1889,23 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Contact details remain on this device and are not sent to a server.',
 		component: 'EmailSignatureDesigner',
 		icon: '✉',
+		live: true,
+	},
+	{
+		slug: 'website-starter-code-generator',
+		name: 'Website Starter Code Generator',
+		department: 'brand-studio',
+		description: 'Generate dependency-free HTML and CSS starter code from brand name, copy and colours.',
+		seoTitle: 'Free Website Starter Code Generator',
+		seoDescription: 'Generate a standalone HTML and CSS website starter from brand name, hero copy and colours without a paid API.',
+		howTo: ['Enter brand name, hero title and description.', 'Choose primary and background colours.', 'Preview the result and download one standalone index.html file.'],
+		faqs: [
+			{ question: 'Does the downloaded page need dependencies?', answer: 'No. It uses plain HTML and CSS with no framework or external assets.' },
+			{ question: 'Is the page automatically responsive?', answer: 'It uses responsive font sizing and a simple layout, but should be reviewed for the final content.' },
+		],
+		privacyNote: 'Brand copy and generated source remain on this device.',
+		component: 'WebsiteStarterCodeGenerator',
+		icon: '</>',
 		live: true,
 	},
 	{
