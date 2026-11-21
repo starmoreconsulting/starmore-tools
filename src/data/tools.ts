@@ -29,6 +29,7 @@ export type ToolComponentName =
 	| 'ProfitMarginCalculator'
 	| 'ProfitLossCalculator'
 	| 'BreakEvenCalculator'
+	| 'CurrencyConverter'
 	| 'LoanRepaymentCalculator'
 	| 'AgeCalculator'
 	| 'CharacterCounter'
@@ -897,6 +898,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'RoiCalculator',
 		icon: '↗',
+		live: true,
+	},
+	{
+		slug: 'currency-converter',
+		name: 'Currency Converter',
+		department: 'calculators',
+		description: 'Convert between major currencies using clearly dated bundled reference rates.',
+		seoTitle: 'Free Offline Currency Converter',
+		seoDescription: 'Convert supported currencies locally using bundled reference rates. No API, account or live quotation service is required.',
+		howTo: ['Enter the amount and select source and destination currencies.', 'Review the converted amount and reference rate.', 'Verify the rate with a bank or provider before a real transaction.'],
+		faqs: [
+			{ question: 'Are these live exchange rates?', answer: 'No. This tool uses bundled reference rates dated 2026-11-21 and is not connected to a live market feed.' },
+			{ question: 'Are my values sent to a server?', answer: 'No. Conversion happens entirely in your browser.' },
+		],
+		component: 'CurrencyConverter',
+		icon: 'FX',
 		live: true,
 	},
 	{
