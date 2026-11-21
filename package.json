@@ -58,6 +58,7 @@
     "@types/react-dom": "^19.3.0",
     "ag-psd": "^34.2.0",
     "astro": "^7.4.11",
+    "clawpdf": "^0.3.2",
     "dompurify": "^3.4.17",
     "fflate": "^0.8.3",
     "idb-keyval": "^6.3.0",

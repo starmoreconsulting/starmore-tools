@@ -68,6 +68,7 @@ export type ToolComponentName =
 	| 'PdfSplitter'
 	| 'PdfPageExtractor'
 	| 'PdfPageRearranger'
+	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
 	| 'PdfCompressor'
 	| 'ImageFormatConverter'
@@ -1322,6 +1323,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfSplitter',
 		icon: '⇱',
+		live: true,
+	},
+	{
+		slug: 'pdf-to-image-converter',
+		name: 'PDF to Image Converter',
+		department: 'pdf',
+		description: 'Render PDF pages to PNG or JPG images and download them in a ZIP.',
+		seoTitle: 'Private PDF to Image Converter',
+		seoDescription: 'Convert PDF pages to PNG or JPG locally in your browser and download all rendered pages in a ZIP.',
+		howTo: ['Choose a PDF file.', 'Select PNG or JPG and a render scale.', 'Convert and download a ZIP containing every page image.'],
+		faqs: [
+			{ question: 'Are PDFs uploaded?', answer: 'No. PDF rendering and image export run locally in the browser.' },
+			{ question: 'Are password-protected PDFs supported?', answer: 'No. Use an unlocked PDF you are authorised to process.' },
+		],
+		component: 'PdfToImageConverter',
+		icon: '▧',
 		live: true,
 	},
 	{
