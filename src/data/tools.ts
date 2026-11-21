@@ -47,6 +47,7 @@ export type ToolComponentName =
 	| 'Notepad'
 	| 'EmailSignatureDesigner'
 	| 'InvoiceBrandingDesigner'
+	| 'PresentationTemplateDesigner'
 	| 'QrCodeGenerator'
 	| 'PasswordGenerator'
 	| 'ImageCompressor'
@@ -1887,6 +1888,23 @@ export const tools: ToolDefinition[] = [
 		privacyNote: 'Contact details remain on this device and are not sent to a server.',
 		component: 'EmailSignatureDesigner',
 		icon: '✉',
+		live: true,
+	},
+	{
+		slug: 'presentation-template-designer',
+		name: 'Presentation Template Designer',
+		department: 'brand-studio',
+		description: 'Create a branded 16:9 presentation cover with editable title, subtitle and accent colour.',
+		seoTitle: 'Free Presentation Template Designer',
+		seoDescription: 'Design a branded 16:9 presentation cover locally and print or download an HTML template.',
+		howTo: ['Enter brand, title and subtitle copy.', 'Choose an accent colour and review the 16:9 preview.', 'Print or save as PDF, or download standalone HTML.'],
+		faqs: [
+			{ question: 'What aspect ratio does the preview use?', answer: 'The cover preview uses a 16:9 aspect ratio.' },
+			{ question: 'Can I create all slide pages?', answer: 'This first release creates one branded cover template; additional slides can reuse the same HTML styles.' },
+		],
+		privacyNote: 'Presentation text and generated HTML remain on this device.',
+		component: 'PresentationTemplateDesigner',
+		icon: '16:9',
 		live: true,
 	},
 	{

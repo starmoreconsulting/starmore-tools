@@ -245,6 +245,10 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 	.invoice-preview table { width: 100%; border-collapse: collapse; margin-top: 24px; }
 	.invoice-preview th, .invoice-preview td { padding: 9px 6px; border-bottom: 1px solid #e5e8e1; text-align: left; }
 	.invoice-totals { margin-left: auto; max-width: 220px; text-align: right; }
+	.presentation-preview { aspect-ratio: 16 / 9; display: flex; flex-direction: column; justify-content: center; padding: 8%; box-sizing: border-box; overflow: hidden; border: 1px solid #dde4db; border-radius: 12px; background: linear-gradient(135deg, #fff 62%, var(--presentation-accent) 62%); }
+	.presentation-preview h2 { max-width: 70%; margin: 12px 0 8px; font-size: clamp(28px, 5vw, 64px); }
+	.presentation-preview p { max-width: 65%; }
+	.presentation-brand { color: var(--presentation-accent); font-weight: 700; }
 	.duplicate-columns textarea { min-height: 170px; }
 	.text-comparison-output { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px; border: 1px solid #dde4db; border-radius: 12px; overflow: hidden; }
 	.text-comparison-output > div { min-height: 30px; padding: 7px 10px; border-right: 1px solid #dde4db; border-bottom: 1px solid #eef2ec; white-space: pre-wrap; font-family: var(--mono); font-size: 12px; }
