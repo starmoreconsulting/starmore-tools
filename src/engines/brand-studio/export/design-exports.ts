@@ -181,9 +181,10 @@ async function addLogoVariantFiles(
 			files[svgPath] = strToU8(svgResult.svg);
 			outputPaths.push(svgPath);
 			if (svgResult.unsupportedChars.length) {
-				fallbackNotes.push(`${svgPath}: ${svgResult.unsupportedChars.map((character) => `“${character}”`).join(', ')} remain live text.`);
+				fallbackNotes.push(`${svgPath}: Characters ${svgResult.unsupportedChars.map((character) => `“${character}”`).join(', ')} remain live text. Remove unsupported characters for a fully vector file.`);
 			}
 		} catch (cause) {
+			console.error('Brand pack file export failed.', svgPath, cause);
 			failedFiles.push(`${svgPath} — ${errorText(cause)}`);
 		}
 		for (const format of ['png', 'jpg'] as const) {
@@ -200,6 +201,7 @@ async function addLogoVariantFiles(
 				files[path] = new Uint8Array(await raster.blob.arrayBuffer());
 				outputPaths.push(path);
 			} catch (cause) {
+				console.error('Brand pack file export failed.', path, cause);
 				failedFiles.push(`${path} — ${errorText(cause)}`);
 			}
 		}
@@ -219,20 +221,30 @@ async function addLogoVariantFiles(
 					background: project.artboard.background,
 				}], { preset: 'screen' });
 				blob = pdf.blob;
-				fallbackNotes.push(`${pdfPath}: unsupported characters were rasterized at ${Math.round(fallback.effectiveDpi)} DPI.`);
+				fallbackNotes.push(`${pdfPath}: Characters ${pdfVector.unsupportedChars.map((character) => `“${character}”`).join(', ')} were rasterized at ${Math.round(fallback.effectiveDpi)} DPI. Remove unsupported characters for a fully vector file.`);
 			} else {
 				blob = await exportSvgToPdf(pdfVector.svg, logo.artboard.width, logo.artboard.height);
 			}
 			files[pdfPath] = new Uint8Array(await blob.arrayBuffer());
 			outputPaths.push(pdfPath);
 		} catch (cause) {
+			console.error('Brand pack file export failed.', pdfPath, cause);
 			failedFiles.push(`${pdfPath} — ${errorText(cause)}`);
 		}
 	}
 	return outputPaths;
 }
 
-export async function exportBrandPack(kit: BrandKit, designs: readonly LogoProject[]): Promise<Blob> {
+export interface BrandPackExportResult {
+	blob: Blob;
+	fallbackNotes: string[];
+	failedFileCount: number;
+}
+
+export async function exportBrandPackWithReport(
+	kit: BrandKit,
+	designs: readonly LogoProject[],
+): Promise<BrandPackExportResult> {
 	const files: Record<string, Uint8Array> = {};
 	const included: string[] = [];
 	const failedFiles: string[] = [];
@@ -242,6 +254,7 @@ export async function exportBrandPack(kit: BrandKit, designs: readonly LogoProje
 		files['Brand kit.json'] = new Uint8Array(await brandKit.blob.arrayBuffer());
 		included.push('Brand kit.json');
 	} catch (cause) {
+		console.error('Brand pack file export failed.', 'Brand kit.json', cause);
 		failedFiles.push(`Brand kit.json — ${errorText(cause)}`);
 	}
 	for (const design of designs) {
@@ -254,9 +267,10 @@ export async function exportBrandPack(kit: BrandKit, designs: readonly LogoProje
 				files[path] = new Uint8Array(await result.blob.arrayBuffer());
 				included.push(path);
 				if (result.notice?.type === 'raster-pdf') {
-					fallbackNotes.push(`${path}: unsupported characters were rasterized at ${Math.round(result.notice.effectiveDpi ?? 0)} DPI.`);
+					fallbackNotes.push(`${path}: Characters ${result.notice.unbundledCharacters.map((character) => `“${character}”`).join(', ')} were rasterized at ${Math.round(result.notice.effectiveDpi ?? 0)} DPI. Remove unsupported characters for a fully vector file.`);
 				}
 			} catch (cause) {
+				console.error('Brand pack file export failed.', path, cause);
 				failedFiles.push(`${path} — ${errorText(cause)}`);
 			}
 		} else if (isSocialDesign(design)) {
@@ -267,6 +281,7 @@ export async function exportBrandPack(kit: BrandKit, designs: readonly LogoProje
 					files[path] = new Uint8Array(await png.arrayBuffer());
 					included.push(path);
 				} catch (cause) {
+					console.error('Brand pack file export failed.', path, cause);
 					failedFiles.push(`${path} — ${errorText(cause)}`);
 				}
 			}
@@ -287,5 +302,13 @@ export async function exportBrandPack(kit: BrandKit, designs: readonly LogoProje
 	].join('\n');
 	files['README.txt'] = strToU8(readme);
 	const archive = zipSync(files, { level: 6 });
-	return new Blob([new Uint8Array(archive)], { type: 'application/zip' });
+	return {
+		blob: new Blob([new Uint8Array(archive)], { type: 'application/zip' }),
+		fallbackNotes,
+		failedFileCount: failedFiles.length,
+	};
+}
+
+export async function exportBrandPack(kit: BrandKit, designs: readonly LogoProject[]): Promise<Blob> {
+	return (await exportBrandPackWithReport(kit, designs)).blob;
 }

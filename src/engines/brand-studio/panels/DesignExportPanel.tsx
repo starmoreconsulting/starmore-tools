@@ -3,7 +3,7 @@ import type { BrandKit } from '../../logo-studio/brand/kit';
 import { downloadBlob } from '../../logo-studio/export/raster';
 import type { LogoProject } from '../../logo-studio/model/types';
 import { listLocalProjects } from '../../logo-studio/store/local-projects';
-import { exportBrandPack, exportDesignAssetWithReport, type DesignExportFormat, type DesignExportNotice } from '../export/design-exports';
+import { exportBrandPackWithReport, exportDesignAssetWithReport, type DesignExportFormat, type DesignExportNotice } from '../export/design-exports';
 
 interface Props {
 	project: LogoProject;
@@ -40,7 +40,8 @@ export default function DesignExportPanel({ project, kit }: Props) {
 		try {
 			await operation();
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : `${label} could not be exported.`);
+			console.error(`${label} export failed.`, cause);
+			setError('This export could not be created. Try another format, or remove special characters.');
 		} finally {
 			setBusy('');
 		}
@@ -65,9 +66,16 @@ export default function DesignExportPanel({ project, kit }: Props) {
 				&& savedProject.id !== project.id
 			)),
 		];
-		const blob = await exportBrandPack(kit, designs);
-		downloadBlob(blob, `${safeName(kit.name)}-brand-pack.zip`);
-		setNotice('Brand pack ZIP downloaded.');
+		const result = await exportBrandPackWithReport(kit, designs);
+		downloadBlob(result.blob, `${safeName(kit.name)}-brand-pack.zip`);
+		const messages = [
+			'Brand pack ZIP downloaded.',
+			...result.fallbackNotes,
+			...(result.failedFileCount
+				? [`${result.failedFileCount} file(s) could not be created; see README.txt in the ZIP for details.`]
+				: []),
+		];
+		setNotice(messages.join(' '));
 	});
 
 	return (

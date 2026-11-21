@@ -40,6 +40,11 @@ function fallbackWarning(characters: string[], dpi: number, format: string): str
 	return `Characters ${quoted} were rendered as an image at ${Math.round(dpi)} DPI in this ${format}. Remove unsupported characters for a fully vector file.`;
 }
 
+function liveTextWarning(characters: string[]): string {
+	const quoted = characters.map((character) => `“${character}”`).join(', ');
+	return `Characters ${quoted} remain live text in this SVG and may use a substitute font on other devices. Remove unsupported characters for a fully vector file.`;
+}
+
 function rasterDimensionsFor(size: TrimSize) {
 	return printDimensionsToMm(size.width, size.height, size.unit);
 }
@@ -205,7 +210,12 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 	const exportSvg = () => runExport('SVG', async () => {
 		const result = await createSvg();
 		downloadBlob(new Blob([result.svg], { type: 'image/svg+xml;charset=utf-8' }), `${safeFileName(project.name)}.svg`);
-		return result;
+		return {
+			warnings: [
+				...result.warnings,
+				...(result.unsupportedChars.length ? [liveTextWarning(result.unsupportedChars)] : []),
+			],
+		};
 	});
 	const exportPng = () => runExport('PNG', async () => {
 		const background = pngTransparent
@@ -443,6 +453,9 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 					const { exportCanvaReadyZip } = await import('../export/canva');
 					const result = await exportCanvaReadyZip(variantProject, simplifyForCanva);
 					result.warnings.forEach((warning) => warnings.add(warning));
+					if (result.warnings.some((warning) => warning.includes('remain live text'))) {
+						fallbackNotes.push(...result.warnings);
+					}
 					return new Uint8Array(await result.blob.arrayBuffer());
 				});
 				readme.push(`${variant}: ${[printPath, psdPath, canvaPath].filter((path) => files[path]).join(', ') || 'No optional files created.'}`);

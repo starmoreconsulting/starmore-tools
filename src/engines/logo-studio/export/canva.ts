@@ -65,7 +65,7 @@ export async function exportCanvaReadyZip(
 			unit: 'px',
 			background: project.artboard.background,
 		}], { preset: 'screen' })).blob;
-		warnings.push(`Unsupported characters ${result.unsupportedChars.map((character) => `“${character}”`).join(', ')} remain live text in logo.svg and were rasterized at ${Math.round(fallback.effectiveDpi)} DPI in logo.pdf.`);
+		warnings.push(`Characters ${result.unsupportedChars.map((character) => `“${character}”`).join(', ')} remain live text in logo.svg and were rasterized at ${Math.round(fallback.effectiveDpi)} DPI in logo.pdf. Remove unsupported characters for a fully vector PDF.`);
 	}
 	else {
 		pdf = await exportSvgToPdf(svg, width, height);
