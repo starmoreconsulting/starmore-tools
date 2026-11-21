@@ -54,6 +54,7 @@ import MemeGenerator from '../components/tools/MemeGenerator';
 import ScreenshotBeautifier from '../components/tools/ScreenshotBeautifier';
 import MarkdownEditor from '../components/tools/MarkdownEditor';
 import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
+import ProfitLossCalculator from '../components/tools/ProfitLossCalculator';
 import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
 import RemoveDuplicateLines from '../components/tools/RemoveDuplicateLines';
 import UnitConverter from '../components/tools/UnitConverter';
@@ -102,6 +103,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'DiscountCalculator' && <DiscountCalculator client:load />}
 			{tool.component === 'VatCalculator' && <VatCalculator client:load />}
 			{tool.component === 'ProfitMarginCalculator' && <ProfitMarginCalculator client:load />}
+			{tool.component === 'ProfitLossCalculator' && <ProfitLossCalculator client:load />}
 			{tool.component === 'LoanRepaymentCalculator' && <LoanRepaymentCalculator client:load />}
 			{tool.component === 'AgeCalculator' && <AgeCalculator client:load />}
 			{tool.component === 'CharacterCounter' && <CharacterCounter client:load />}

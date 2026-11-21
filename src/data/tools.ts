@@ -27,6 +27,7 @@ export type ToolComponentName =
 	| 'DiscountCalculator'
 	| 'VatCalculator'
 	| 'ProfitMarginCalculator'
+	| 'ProfitLossCalculator'
 	| 'LoanRepaymentCalculator'
 	| 'AgeCalculator'
 	| 'CharacterCounter'
@@ -671,6 +672,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'ProfitMarginCalculator',
 		icon: '↗',
+		live: true,
+	},
+	{
+		slug: 'profit-loss-calculator',
+		name: 'Profit and Loss Calculator',
+		department: 'calculators',
+		description: 'Compare revenue and expenses to find profit, loss, margin and expense ratio.',
+		seoTitle: 'Free Profit and Loss Calculator',
+		seoDescription: 'Calculate net profit or loss, profit margin and expense ratio from revenue and expense values with this free browser calculator.',
+		howTo: ['Enter total revenue and total expenses.', 'Review net profit or loss and the percentage rates.', 'Use the result for a quick comparison, not a formal financial statement.'],
+		faqs: [
+			{ question: 'How is net profit calculated?', answer: 'Net profit or loss is total revenue minus total expenses. A positive result is profit; a negative result is loss.' },
+			{ question: 'What if revenue is zero?', answer: 'The calculator can still show the numerical loss, but margin and expense ratio are unavailable because they require dividing by revenue.' },
+		],
+		component: 'ProfitLossCalculator',
+		icon: 'P/L',
 		live: true,
 	},
 	{
