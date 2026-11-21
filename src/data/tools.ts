@@ -85,6 +85,7 @@ export type ToolComponentName =
 	| 'ScreenshotBeautifier'
 	| 'OldPhotoRestoration'
 	| 'WatermarkRemover'
+	| 'ImageToTextOcr'
 	| 'MarkdownEditor'
 	| 'TextLogoGenerator'
 	| 'MonogramLogoGenerator'
@@ -331,6 +332,24 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'FaviconGenerator',
 		icon: '✦',
+		live: true,
+	},
+	{
+		slug: 'image-to-text-ocr-extractor',
+		name: 'Image-to-text (OCR) Extractor',
+		department: 'image',
+		description: 'Extract printed English text from an image using local browser OCR.',
+		seoTitle: 'Private Image to Text OCR Extractor',
+		seoDescription: 'Extract printed English text from JPG, PNG, WebP or BMP images with browser OCR. No paid API is required.',
+		howTo: ['Choose a clear, sharp image containing printed English text.', 'Extract text and wait for the free OCR language data to load on first use.', 'Review or edit the output and download it as a text file.'],
+		faqs: [
+			{ question: 'Does OCR send my image to a server?', answer: 'No. Recognition runs in a browser worker. The free English language data may be downloaded and cached by the OCR library on first use.' },
+			{ question: 'Does OCR work on handwriting?', answer: 'It is intended for clear printed text. Handwriting, stylized text and poor scans may be inaccurate.' },
+		],
+		limitations: 'OCR accuracy depends on scan quality and font style. Handwriting and complex layouts may not extract correctly; review every result before use.',
+		privacyNote: 'Your image is processed locally. The OCR library may download its free public language-data files once and cache them in your browser.',
+		component: 'ImageToTextOcr',
+		icon: 'OCR',
 		live: true,
 	},
 	{
