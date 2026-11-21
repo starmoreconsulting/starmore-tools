@@ -30,6 +30,7 @@ export type ToolComponentName =
 	| 'ProfitLossCalculator'
 	| 'BreakEvenCalculator'
 	| 'CurrencyConverter'
+	| 'ElectricityConsumptionCalculator'
 	| 'LoanRepaymentCalculator'
 	| 'AgeCalculator'
 	| 'CharacterCounter'
@@ -914,6 +915,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'CurrencyConverter',
 		icon: 'FX',
+		live: true,
+	},
+	{
+		slug: 'electricity-consumption-calculator',
+		name: 'Electricity Consumption Calculator',
+		department: 'calculators',
+		description: 'Estimate daily, monthly and annual kWh use and optional electricity costs.',
+		seoTitle: 'Free Electricity Consumption Calculator',
+		seoDescription: 'Calculate appliance electricity use in kWh per day, month and year, with optional tariff cost estimates.',
+		howTo: ['Enter appliance wattage and hours of use per day.', 'Set the number of days used per month and an optional tariff.', 'Review estimated kWh use and electricity cost.'],
+		faqs: [
+			{ question: 'How is kWh consumption calculated?', answer: 'Wattage is multiplied by hours used and divided by 1000 to convert watts to kilowatts.' },
+			{ question: 'Is the cost estimate exact?', answer: 'No. It assumes constant wattage and usage; taxes, fixed charges and changing tariffs are not included.' },
+		],
+		component: 'ElectricityConsumptionCalculator',
+		icon: 'kWh',
 		live: true,
 	},
 	{

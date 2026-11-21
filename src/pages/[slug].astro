@@ -57,6 +57,7 @@ import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
 import ProfitLossCalculator from '../components/tools/ProfitLossCalculator';
 import BreakEvenCalculator from '../components/tools/BreakEvenCalculator';
 import CurrencyConverter from '../components/tools/CurrencyConverter';
+import ElectricityConsumptionCalculator from '../components/tools/ElectricityConsumptionCalculator';
 import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
 import RemoveDuplicateLines from '../components/tools/RemoveDuplicateLines';
 import UnitConverter from '../components/tools/UnitConverter';
@@ -108,6 +109,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'ProfitLossCalculator' && <ProfitLossCalculator client:load />}
 			{tool.component === 'BreakEvenCalculator' && <BreakEvenCalculator client:load />}
 			{tool.component === 'CurrencyConverter' && <CurrencyConverter client:load />}
+			{tool.component === 'ElectricityConsumptionCalculator' && <ElectricityConsumptionCalculator client:load />}
 			{tool.component === 'LoanRepaymentCalculator' && <LoanRepaymentCalculator client:load />}
 			{tool.component === 'AgeCalculator' && <AgeCalculator client:load />}
 			{tool.component === 'CharacterCounter' && <CharacterCounter client:load />}
