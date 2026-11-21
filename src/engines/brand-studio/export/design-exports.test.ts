@@ -4,7 +4,6 @@ import { PDFDocument } from 'pdf-lib';
 import { deflateSync } from 'node:zlib';
 import { strFromU8, unzipSync } from 'fflate';
 import { createEmptyBrandKit } from '../../logo-studio/brand/kit';
-import * as outline from '../../logo-studio/export/outline';
 import * as pdf from '../../logo-studio/export/pdf';
 import * as print from '../../logo-studio/export/print';
 import * as raster from '../../logo-studio/export/raster';
@@ -109,8 +108,9 @@ describe('exportBrandPack', () => {
 		vi.spyOn(svg, 'exportProjectToSvg').mockResolvedValue({
 			svg: '<svg xmlns="http://www.w3.org/2000/svg" width="85" height="55"><text>🌿</text></svg>',
 			warnings: ['No bundled font contains every character in “Café Zoé 🌿 Studio”.'],
+			unsupportedChars: ['🌿'],
+			elementsAffected: ['text-1'],
 		});
-		vi.spyOn(outline, 'findUnbundledCharacters').mockResolvedValue(['🌿']);
 
 		const result = await exportDesignAssetWithReport(emojiBusinessCard(), 'pdf');
 
@@ -133,6 +133,8 @@ describe('exportBrandPack', () => {
 		vi.spyOn(svg, 'exportProjectToSvg').mockResolvedValue({
 			svg: '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080"></svg>',
 			warnings: [],
+			unsupportedChars: [],
+			elementsAffected: [],
 		});
 		const rasterExport = vi.spyOn(raster, 'renderSvgToRaster').mockResolvedValue({
 			blob: transparentPixel(),

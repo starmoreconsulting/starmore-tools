@@ -5,6 +5,7 @@ import { downloadBlob, renderSvgToRaster, type RasterScale } from '../export/ras
 import { exportSvgToPdf } from '../export/pdf';
 import { exportPrintPdf, type PrintPdfPage, type PrintPreset, type PrintUnit } from '../export/print';
 import { exportProjectToSvg } from '../export/svg';
+import { printDimensionsToMm, rasterizeSvgForPrintFallback } from '../export/raster-fallback';
 import type { LogoProject } from '../model/types';
 import type { ReferenceLayer } from '../store/references';
 import { createAutomaticVariant, variantLabel } from '../variants/automatic';
@@ -33,6 +34,15 @@ interface TrimSize {
 }
 
 const STANDARD_VARIANT_PAGES = ['primary', 'horizontal', 'vertical', 'icon-only', 'wordmark-only', 'black', 'white', 'monochrome'];
+
+function fallbackWarning(characters: string[], dpi: number, format: string): string {
+	const quoted = characters.map((character) => `“${character}”`).join(', ');
+	return `Characters ${quoted} were rendered as an image at ${Math.round(dpi)} DPI in this ${format}. Remove unsupported characters for a fully vector file.`;
+}
+
+function rasterDimensionsFor(size: TrimSize) {
+	return printDimensionsToMm(size.width, size.height, size.unit);
+}
 
 function trimSizeFor(
 	preset: TrimPreset,
@@ -109,8 +119,16 @@ async function buildVariantsSheet(project: LogoProject, includeLabels: boolean):
 		}
 		const vector = await exportProjectToSvg(pageProject, { outlineText: true, background: 'transparent' });
 		vector.warnings.forEach((warning) => warnings.add(warning));
+		let rasterDataUrl: string | undefined;
+		if (vector.unsupportedChars.length) {
+			const { widthMm, heightMm } = printDimensionsToMm(project.artboard.width, project.artboard.height, 'px');
+			const fallback = await rasterizeSvgForPrintFallback(vector.svg, widthMm, heightMm);
+			rasterDataUrl = fallback.rasterDataUrl;
+			warnings.add(fallbackWarning(vector.unsupportedChars, fallback.effectiveDpi, 'variants sheet PDF'));
+		}
 		pages.push({
 			svg: vector.svg,
+			rasterDataUrl,
 			width: project.artboard.width,
 			height: project.artboard.height,
 			unit: 'px',
@@ -166,7 +184,8 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 			const result = await action();
 			if (result.warnings?.length) setWarnings(result.warnings);
 		} catch (cause) {
-			setError(cause instanceof Error ? cause.message : `${label} export failed.`);
+			console.error(`${label} export failed.`, cause);
+			setError('This export could not be created. Try another format, or remove special characters.');
 		} finally {
 			setBusy('');
 		}
@@ -220,15 +239,40 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 			outlineText: true,
 			background: activeProject.artboard.background,
 		});
-		const blob = await exportSvgToPdf(result.svg, activeProject.artboard.width, activeProject.artboard.height);
+		let blob: Blob;
+		const warnings = [...result.warnings];
+		if (result.unsupportedChars.length) {
+			const { widthMm, heightMm } = printDimensionsToMm(activeProject.artboard.width, activeProject.artboard.height, 'px');
+			const fallback = await rasterizeSvgForPrintFallback(result.svg, widthMm, heightMm);
+			blob = (await exportPrintPdf([{
+				svg: result.svg,
+				rasterDataUrl: fallback.rasterDataUrl,
+				width: activeProject.artboard.width,
+				height: activeProject.artboard.height,
+				unit: 'px',
+				background: activeProject.artboard.background,
+			}], { preset: 'screen' })).blob;
+			warnings.push(fallbackWarning(result.unsupportedChars, fallback.effectiveDpi, 'PDF'));
+		} else {
+			blob = await exportSvgToPdf(result.svg, activeProject.artboard.width, activeProject.artboard.height);
+		}
 		downloadBlob(blob, `${safeFileName(project.name)}.pdf`);
-		return result;
+		return { warnings };
 	});
 	const exportPrintPdfFile = () => runExport('Print PDF', async () => {
 		const trim = trimSizeFor(trimPreset, project, customPrintWidth, customPrintHeight, customPrintUnit);
 		const result = await exportProjectToSvg(activeProject, { outlineText: true, background: 'transparent' });
+		let rasterDataUrl: string | undefined;
+		const warnings = [...result.warnings];
+		if (result.unsupportedChars.length) {
+			const { widthMm, heightMm } = rasterDimensionsFor(trim);
+			const fallback = await rasterizeSvgForPrintFallback(result.svg, widthMm, heightMm);
+			rasterDataUrl = fallback.rasterDataUrl;
+			warnings.push(fallbackWarning(result.unsupportedChars, fallback.effectiveDpi, 'Print PDF'));
+		}
 		const pdf = await exportPrintPdf([{
 			svg: result.svg,
+			rasterDataUrl,
 			...trim,
 			background: activeProject.artboard.background,
 		}], {
@@ -238,7 +282,7 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 			extendBackgroundColourIntoBleed: extendBackground,
 		});
 		downloadBlob(pdf.blob, `${safeFileName(project.name)}-print.pdf`);
-		return result;
+		return { warnings };
 	});
 	const exportVariantsSheet = () => runExport('Variants sheet', async () => {
 		const result = await buildVariantsSheet(project, includeVariantLabels);
@@ -272,7 +316,16 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 		}
 		const files: Record<string, Uint8Array> = {};
 		const warnings = new Set<string>();
+		const failedFiles: string[] = [];
+		const fallbackNotes: string[] = [];
 		const usedNames = new Set<string>();
+		const addFile = async (path: string, create: () => Promise<Uint8Array>): Promise<void> => {
+			try {
+				files[path] = await create();
+			} catch (cause) {
+				failedFiles.push(`${path} — ${cause instanceof Error ? cause.message : 'Unknown export error.'}`);
+			}
+		};
 		const readme = [
 			`${project.name} — all logo variants`,
 			'',
@@ -281,7 +334,6 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 			'JPG uses the selected Export Centre background colour.',
 			'Reference images are never included in exports.',
 			...(includeNewFormatsInZip ? ['Print PDF, variants sheet PDF, Layered PSD, and Canva-ready ZIP are also included.'] : []),
-			'',
 		];
 
 		for (const [variant, elements] of variants) {
@@ -294,69 +346,128 @@ export default function ExportCenter({ project, activeVariant, reference, brandC
 				artboard: { ...project.artboard, background },
 				variants: { primary: elements },
 			};
-			const vector = await exportProjectToSvg(variantProject, { outlineText, background });
-			vector.warnings.forEach((warning) => warnings.add(warning));
 			const fileBase = `${safeFileName(project.name)}-${slug}`;
-			files[`SVG/${fileBase}.svg`] = strToU8(vector.svg);
-			const pngBackground = pngTransparent ? 'transparent' : background === 'transparent' ? '#ffffff' : background;
-			const pngVector = await exportProjectToSvg(variantProject, { outlineText, background: pngBackground });
-			const png = await renderSvgToRaster(pngVector.svg, {
-				width: project.artboard.width,
-				height: project.artboard.height,
-				format: 'png',
-				scale: 1,
-			});
-			files[`PNG/${fileBase}.png`] = new Uint8Array(await png.blob.arrayBuffer());
-			const jpgVector = await exportProjectToSvg(variantProject, { outlineText, background: 'transparent' });
-			const jpg = await renderSvgToRaster(jpgVector.svg, {
-				width: project.artboard.width,
-				height: project.artboard.height,
-				format: 'jpg',
-				scale: 1,
-				background: jpgBackground,
-				quality: jpgQuality,
-			});
-			files[`JPG/${fileBase}.jpg`] = new Uint8Array(await jpg.blob.arrayBuffer());
-			const pdfVector = await exportProjectToSvg(variantProject, { outlineText: true, background });
-			const pdf = await exportSvgToPdf(pdfVector.svg, project.artboard.width, project.artboard.height);
-			files[`PDF/${fileBase}.pdf`] = new Uint8Array(await pdf.arrayBuffer());
-			readme.push(`${variant}: SVG/${fileBase}.svg, PNG/${fileBase}.png, JPG/${fileBase}.jpg, PDF/${fileBase}.pdf`);
-			if (includeNewFormatsInZip) {
-				const printVector = await exportProjectToSvg(variantProject, { outlineText: true, background: 'transparent' });
-				const printPdf = await exportPrintPdf([{
-					svg: printVector.svg,
-					...trimSizeFor(trimPreset, project, customPrintWidth, customPrintHeight, customPrintUnit),
-					background,
-				}], {
-					preset: printPreset,
-					bleedMm: customBleedMm,
-					cropMarks: printCropMarks,
-					extendBackgroundColourIntoBleed: extendBackground,
-				});
-				files[`Print PDF/${fileBase}-print.pdf`] = new Uint8Array(await printPdf.blob.arrayBuffer());
-				const { exportProjectToPsd } = await import('../export/psd');
-				const psd = await exportProjectToPsd(variantProject, { includeArtboardBackground: includePsdBackground });
-				files[`PSD/${fileBase}.psd`] = psd;
-				const { exportCanvaReadyZip } = await import('../export/canva');
-				const canva = await exportCanvaReadyZip(variantProject, simplifyForCanva);
-				files[`Canva-ready/${fileBase}-canva-ready.zip`] = new Uint8Array(await canva.blob.arrayBuffer());
-				printVector.warnings.forEach((warning) => warnings.add(warning));
-				canva.warnings.forEach((warning) => warnings.add(warning));
-				readme.push(`${variant}: Print PDF/${fileBase}-print.pdf, PSD/${fileBase}.psd, Canva-ready/${fileBase}-canva-ready.zip`);
+			const svgPath = `SVG/${fileBase}.svg`;
+			let vector: Awaited<ReturnType<typeof exportProjectToSvg>> | undefined;
+			try {
+				vector = await exportProjectToSvg(variantProject, { outlineText, background });
+				files[svgPath] = strToU8(vector.svg);
+				vector.warnings.forEach((warning) => warnings.add(warning));
+				if (vector.unsupportedChars.length) {
+					fallbackNotes.push(`${svgPath}: ${vector.unsupportedChars.map((character) => `“${character}”`).join(', ')} remain live text.`);
+				}
+			} catch (cause) {
+				failedFiles.push(`${svgPath} — ${cause instanceof Error ? cause.message : 'Unknown export error.'}`);
 			}
-			pngVector.warnings.forEach((warning) => warnings.add(warning));
-			jpgVector.warnings.forEach((warning) => warnings.add(warning));
-			pdfVector.warnings.forEach((warning) => warnings.add(warning));
+			const pngBackground = pngTransparent ? 'transparent' : background === 'transparent' ? '#ffffff' : background;
+			const pngPath = `PNG/${fileBase}.png`;
+			let pngVector: Awaited<ReturnType<typeof exportProjectToSvg>> | undefined;
+			await addFile(pngPath, async () => {
+				pngVector = await exportProjectToSvg(variantProject, { outlineText, background: pngBackground });
+				const png = await renderSvgToRaster(pngVector.svg, {
+					width: project.artboard.width,
+					height: project.artboard.height,
+					format: 'png',
+					scale: 1,
+				});
+				return new Uint8Array(await png.blob.arrayBuffer());
+			});
+			const jpgPath = `JPG/${fileBase}.jpg`;
+			let jpgVector: Awaited<ReturnType<typeof exportProjectToSvg>> | undefined;
+			await addFile(jpgPath, async () => {
+				jpgVector = await exportProjectToSvg(variantProject, { outlineText, background: 'transparent' });
+				const jpg = await renderSvgToRaster(jpgVector.svg, {
+					width: project.artboard.width,
+					height: project.artboard.height,
+					format: 'jpg',
+					scale: 1,
+					background: jpgBackground,
+					quality: jpgQuality,
+				});
+				return new Uint8Array(await jpg.blob.arrayBuffer());
+			});
+			const pdfPath = `PDF/${fileBase}.pdf`;
+			let pdfVector: Awaited<ReturnType<typeof exportProjectToSvg>> | undefined;
+			await addFile(pdfPath, async () => {
+				pdfVector = await exportProjectToSvg(variantProject, { outlineText: true, background });
+				if (pdfVector.unsupportedChars.length) {
+					const { widthMm, heightMm } = printDimensionsToMm(project.artboard.width, project.artboard.height, 'px');
+					const fallback = await rasterizeSvgForPrintFallback(pdfVector.svg, widthMm, heightMm);
+					fallbackNotes.push(`${pdfPath}: unsupported characters were rasterized at ${Math.round(fallback.effectiveDpi)} DPI.`);
+					const result = await exportPrintPdf([{
+						svg: pdfVector.svg,
+						rasterDataUrl: fallback.rasterDataUrl,
+						width: project.artboard.width,
+						height: project.artboard.height,
+						unit: 'px',
+						background,
+					}], { preset: 'screen' });
+					return new Uint8Array(await result.blob.arrayBuffer());
+				}
+				return new Uint8Array(await (await exportSvgToPdf(pdfVector.svg, project.artboard.width, project.artboard.height)).arrayBuffer());
+			});
+			readme.push(`${variant}: ${[svgPath, pngPath, jpgPath, pdfPath].filter((path) => files[path]).join(', ') || 'No files created.'}`);
+			if (includeNewFormatsInZip) {
+				const printPath = `Print PDF/${fileBase}-print.pdf`;
+				await addFile(printPath, async () => {
+					const printVector = await exportProjectToSvg(variantProject, { outlineText: true, background: 'transparent' });
+					const trim = trimSizeFor(trimPreset, project, customPrintWidth, customPrintHeight, customPrintUnit);
+					let rasterDataUrl: string | undefined;
+					if (printVector.unsupportedChars.length) {
+						const { widthMm, heightMm } = rasterDimensionsFor(trim);
+						const fallback = await rasterizeSvgForPrintFallback(printVector.svg, widthMm, heightMm);
+						rasterDataUrl = fallback.rasterDataUrl;
+						fallbackNotes.push(`${printPath}: unsupported characters were rasterized at ${Math.round(fallback.effectiveDpi)} DPI.`);
+					}
+					const result = await exportPrintPdf([{
+						svg: printVector.svg,
+						rasterDataUrl,
+						...trim,
+						background,
+					}], {
+						preset: printPreset,
+						bleedMm: customBleedMm,
+						cropMarks: printCropMarks,
+						extendBackgroundColourIntoBleed: extendBackground,
+					});
+					printVector.warnings.forEach((warning) => warnings.add(warning));
+					return new Uint8Array(await result.blob.arrayBuffer());
+				});
+				const psdPath = `PSD/${fileBase}.psd`;
+				await addFile(psdPath, async () => {
+					const { exportProjectToPsd } = await import('../export/psd');
+					return exportProjectToPsd(variantProject, { includeArtboardBackground: includePsdBackground });
+				});
+				const canvaPath = `Canva-ready/${fileBase}-canva-ready.zip`;
+				await addFile(canvaPath, async () => {
+					const { exportCanvaReadyZip } = await import('../export/canva');
+					const result = await exportCanvaReadyZip(variantProject, simplifyForCanva);
+					result.warnings.forEach((warning) => warnings.add(warning));
+					return new Uint8Array(await result.blob.arrayBuffer());
+				});
+				readme.push(`${variant}: ${[printPath, psdPath, canvaPath].filter((path) => files[path]).join(', ') || 'No optional files created.'}`);
+			}
+			pngVector?.warnings.forEach((warning) => warnings.add(warning));
+			jpgVector?.warnings.forEach((warning) => warnings.add(warning));
+			pdfVector?.warnings.forEach((warning) => warnings.add(warning));
+			vector?.warnings.forEach((warning) => warnings.add(warning));
 		}
 		if (includeNewFormatsInZip) {
-			const sheet = await buildVariantsSheet(project, includeVariantLabels);
-			files[`Variants sheet/${safeFileName(project.name)}-variants.pdf`] = new Uint8Array(await sheet.blob.arrayBuffer());
-			sheet.warnings.forEach((warning) => warnings.add(warning));
+			const path = `Variants sheet/${safeFileName(project.name)}-variants.pdf`;
+			try {
+				const sheet = await buildVariantsSheet(project, includeVariantLabels);
+				files[path] = new Uint8Array(await sheet.blob.arrayBuffer());
+				sheet.warnings.forEach((warning) => warnings.add(warning));
+			} catch (cause) {
+				failedFiles.push(`${path} — ${cause instanceof Error ? cause.message : 'Unknown export error.'}`);
+			}
 		}
+		if (fallbackNotes.length) readme.push('', 'Unsupported-character fallback:', ...fallbackNotes.map((note) => `- ${note}`));
+		if (failedFiles.length) readme.push('', 'Files that could not be created:', ...failedFiles.map((file) => `- ${file}`));
 		files['README.txt'] = strToU8(readme.join('\n'));
 		const archive = zipSync(files, { level: 6 });
 		downloadBlob(new Blob([new Uint8Array(archive)], { type: 'application/zip' }), `${safeFileName(project.name)}-all-variants.zip`);
-		return { warnings: Array.from(warnings) };
+		return { warnings: [...warnings, ...fallbackNotes] };
 	});
 	const trim = trimSizeFor(trimPreset, project, customPrintWidth, customPrintHeight, customPrintUnit);
 	const effectiveCropMarks = printPreset === 'standard' || (printPreset === 'custom' && printCropMarks);

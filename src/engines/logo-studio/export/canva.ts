@@ -3,6 +3,8 @@ import type { LogoProject } from '../model/types';
 import { renderSvgToRaster } from './raster';
 import { exportProjectToSvg } from './svg';
 import { exportSvgToPdf } from './pdf';
+import { printDimensionsToMm, rasterizeSvgForPrintFallback } from './raster-fallback';
+import { exportPrintPdf } from './print';
 
 const MAX_CANVA_PIXELS = 64_000_000;
 
@@ -51,7 +53,23 @@ export async function exportCanvaReadyZip(
 		warnings.push(...changed);
 	}
 
-	const pdf = await exportSvgToPdf(svg, width, height);
+	let pdf: Blob;
+	if (result.unsupportedChars.length) {
+		const { widthMm, heightMm } = printDimensionsToMm(width, height, 'px');
+		const fallback = await rasterizeSvgForPrintFallback(svg, widthMm, heightMm);
+		pdf = (await exportPrintPdf([{
+			svg,
+			rasterDataUrl: fallback.rasterDataUrl,
+			width,
+			height,
+			unit: 'px',
+			background: project.artboard.background,
+		}], { preset: 'screen' })).blob;
+		warnings.push(`Unsupported characters ${result.unsupportedChars.map((character) => `“${character}”`).join(', ')} remain live text in logo.svg and were rasterized at ${Math.round(fallback.effectiveDpi)} DPI in logo.pdf.`);
+	}
+	else {
+		pdf = await exportSvgToPdf(svg, width, height);
+	}
 	const archive = zipSync({
 		'logo.svg': strToU8(svg),
 		'logo.pdf': new Uint8Array(await pdf.arrayBuffer()),
@@ -63,6 +81,9 @@ export async function exportCanvaReadyZip(
 			'Upload logo.pdf when you need a print-sized vector file.',
 			'Upload logo.png for a transparent 4× raster version.',
 			'',
+			...(result.unsupportedChars.length
+				? [`Unsupported characters ${result.unsupportedChars.map((character) => `“${character}”`).join(', ')} remain live text in logo.svg. Canva may substitute a font for them. The PDF uses a raster fallback for these characters.`]
+				: []),
 			simplifyForCanva
 				? 'Simplify for Canva was enabled. The SVG contains a flattened transparent 4× PNG for broader import compatibility.'
 				: 'Simplify for Canva was not enabled. The SVG keeps editable vector paths and effects where supported.',
