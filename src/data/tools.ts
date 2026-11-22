@@ -73,6 +73,7 @@ export type ToolComponentName =
 	| 'ExcelToPdfConverter'
 	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
+	| 'PdfPageNumberingTool'
 	| 'PdfWatermarkGenerator'
 	| 'PdfCompressor'
 	| 'ImageFormatConverter'
@@ -1423,6 +1424,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfWatermarkGenerator',
 		icon: 'WM',
+		live: true,
+	},
+	{
+		slug: 'pdf-page-numbering-tool',
+		name: 'PDF Page Numbering Tool',
+		department: 'pdf',
+		description: 'Add page numbers to every PDF page or selected ranges with flexible formatting.',
+		seoTitle: 'Private PDF Page Numbering Tool',
+		seoDescription: 'Number PDF pages locally with position, format, start number and font-size controls, including selected-page ranges.',
+		howTo: ['Choose a PDF file.', 'Select all pages or enter a list or range of pages.', 'Choose position and format, set a start number, then download the numbered PDF.'],
+		faqs: [
+			{ question: 'Can numbering start at a number other than 1?', answer: 'Yes. Set a positive start number; selected pages continue in sequence from it.' },
+			{ question: 'Which formats are available?', answer: 'Choose a number only, Page N, or N / Total.' },
+		],
+		component: 'PdfPageNumberingTool',
+		icon: '1/5',
 		live: true,
 	},
 	{
