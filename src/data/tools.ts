@@ -73,6 +73,7 @@ export type ToolComponentName =
 	| 'ExcelToPdfConverter'
 	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
+	| 'PdfWatermarkGenerator'
 	| 'PdfCompressor'
 	| 'ImageFormatConverter'
 	| 'ImageCropper'
@@ -1406,6 +1407,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfPageRearranger',
 		icon: '⇅',
+		live: true,
+	},
+	{
+		slug: 'pdf-watermark-generator',
+		name: 'PDF Watermark Generator',
+		department: 'pdf',
+		description: 'Add a visible text watermark to PDF pages with size, opacity, rotation and position controls.',
+		seoTitle: 'Private PDF Watermark Generator',
+		seoDescription: 'Add a text watermark to every PDF page locally, with tiled placement, opacity, font size and rotation controls.',
+		howTo: ['Choose a PDF file.', 'Enter watermark text and adjust size, opacity and rotation.', 'Choose a position or tile the watermark, then download the updated PDF.'],
+		faqs: [
+			{ question: 'Can I watermark every page?', answer: 'Yes. The watermark is applied to every page in the selected PDF.' },
+			{ question: 'Can I tile the watermark?', answer: 'Yes. Enable Tile watermark to repeat it across each page.' },
+		],
+		component: 'PdfWatermarkGenerator',
+		icon: 'WM',
 		live: true,
 	},
 	{

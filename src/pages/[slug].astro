@@ -33,6 +33,7 @@ import ImageToPdfConverter from '../components/tools/ImageToPdfConverter';
 import PdfMerger from '../components/tools/PdfMerger';
 import PdfSplitter from '../components/tools/PdfSplitter';
 import PdfPageRotator from '../components/tools/PdfPageRotator';
+import PdfWatermarkGenerator from '../components/tools/PdfWatermarkGenerator';
 import PdfPageExtractor from '../components/tools/PdfPageExtractor';
 import PdfPageRearranger from '../components/tools/PdfPageRearranger';
 import PdfToWordConverter from '../components/tools/PdfToWordConverter';
@@ -167,6 +168,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'PdfMerger' && <PdfMerger client:load />}
 			{tool.component === 'PdfSplitter' && <PdfSplitter client:load />}
 			{tool.component === 'PdfPageRotator' && <PdfPageRotator client:load />}
+			{tool.component === 'PdfWatermarkGenerator' && <PdfWatermarkGenerator client:load />}
 			{tool.component === 'PdfPageExtractor' && <PdfPageExtractor client:load />}
 			{tool.component === 'PdfPageRearranger' && <PdfPageRearranger client:load />}
 			{tool.component === 'PdfToWordConverter' && <PdfToWordConverter client:load />}
