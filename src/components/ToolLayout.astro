@@ -249,6 +249,10 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 	.presentation-preview h2 { max-width: 70%; margin: 12px 0 8px; font-size: clamp(28px, 5vw, 64px); }
 	.presentation-preview p { max-width: 65%; }
 	.presentation-brand { color: var(--presentation-accent); font-weight: 700; }
+	.excel-preview { margin-top: 14px; }
+	.excel-preview-grid { overflow: auto; max-height: 280px; border: 1px solid #dde4db; border-radius: 12px; background: #fff; }
+	.excel-preview-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(110px, 1fr); border-bottom: 1px solid #eef2ec; }
+	.excel-preview-row span { min-height: 34px; padding: 8px; border-right: 1px solid #eef2ec; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); font-size: 11px; }
 	.duplicate-columns textarea { min-height: 170px; }
 	.text-comparison-output { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px; border: 1px solid #dde4db; border-radius: 12px; overflow: hidden; }
 	.text-comparison-output > div { min-height: 30px; padding: 7px 10px; border-right: 1px solid #dde4db; border-bottom: 1px solid #eef2ec; white-space: pre-wrap; font-family: var(--mono); font-size: 12px; }

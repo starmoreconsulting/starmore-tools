@@ -70,6 +70,7 @@ export type ToolComponentName =
 	| 'PdfPageRearranger'
 	| 'PdfToWordConverter'
 	| 'WordToPdfConverter'
+	| 'ExcelToPdfConverter'
 	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
 	| 'PdfCompressor'
@@ -1357,6 +1358,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'WordToPdfConverter',
 		icon: 'W→P',
+		live: true,
+	},
+	{
+		slug: 'excel-to-pdf-converter',
+		name: 'Excel to PDF Converter',
+		department: 'pdf',
+		description: 'Preview an XLSX worksheet and export a printable PDF locally in your browser.',
+		seoTitle: 'Private Excel to PDF Converter',
+		seoDescription: 'Convert XLSX worksheets to A4 or Letter PDF output locally, with worksheet selection and a 200-row preview limit.',
+		howTo: ['Choose an .xlsx workbook from your device.', 'Select a worksheet and page size or orientation.', 'Preview the first cells and export up to 200 rows as a PDF.'],
+		faqs: [
+			{ question: 'Does this support .xls legacy files?', answer: 'No. Upload an .xlsx export for reliable local parsing.' },
+			{ question: 'Why is only 200 rows exported?', answer: 'The first release uses a 200-row preview limit to keep browser PDF generation predictable and responsive.' },
+		],
+		component: 'ExcelToPdfConverter',
+		icon: 'X→P',
 		live: true,
 	},
 	{
