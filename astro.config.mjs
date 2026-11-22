@@ -6,5 +6,19 @@ import react from '@astrojs/react';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://starmore-tools.pages.dev',
-  integrations: [react()]
+  integrations: [react()],
+  vite: {
+    build: {
+      rolldownOptions: {
+        onwarn(warning, defaultHandler) {
+          const isClawPdfNodeFallback =
+            warning.message.includes('has been externalized for browser compatibility') &&
+            warning.message.includes('node:') &&
+            warning.message.includes('node_modules/clawpdf/');
+          if (isClawPdfNodeFallback) return;
+          defaultHandler(warning);
+        }
+      }
+    }
+  }
 });

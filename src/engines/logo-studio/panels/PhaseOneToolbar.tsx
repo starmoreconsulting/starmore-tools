@@ -1,4 +1,5 @@
 interface Props {
+	studioName: string;
 	canUndo: boolean;
 	canRedo: boolean;
 	zoom: number;
@@ -16,10 +17,10 @@ interface Props {
 	onDesignStudio: () => void;
 }
 
-export default function PhaseOneToolbar({ canUndo, canRedo, zoom, onUndo, onRedo, onZoomChange, onOpenProject, onReference, onNewLogo, onProjects, onExport, onMockups, onBrandKits, onBrandSetup, onDesignStudio }: Props) {
+export default function PhaseOneToolbar({ studioName, canUndo, canRedo, zoom, onUndo, onRedo, onZoomChange, onOpenProject, onReference, onNewLogo, onProjects, onExport, onMockups, onBrandKits, onBrandSetup, onDesignStudio }: Props) {
 	return (
 		<header className="logo-phase-toolbar">
-			<a href="/" className="logo-phase-brand">Starmore <span>Logo Studio</span></a>
+			<a href="/" className="logo-phase-brand">Starmore <span>{studioName}</span></a>
 			<div className="logo-phase-toolbar-actions" role="toolbar" aria-label="Logo editing controls">
 				<button type="button" onClick={onUndo} disabled={!canUndo} aria-label="Undo" title="Undo">Undo</button>
 				<button type="button" onClick={onRedo} disabled={!canRedo} aria-label="Redo" title="Redo">Redo</button>

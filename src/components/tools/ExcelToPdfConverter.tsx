@@ -1,24 +1,19 @@
 import { useState } from 'react';
 import { jsPDF } from 'jspdf';
+import type { Sheet } from 'read-excel-file/browser';
 import { triggerDownload } from '../../engines/pdf';
 import { cellValueText, compactSheetName, type ExcelPreviewSheet } from '../../engines/excel-to-pdf';
 
-interface ExcelRowApi {
-	getCell(column: number): { value: unknown };
-}
+type ExcelWorkbook = Sheet[];
 
-interface ExcelWorksheetApi {
-	name: string;
-	rowCount: number;
-	columnCount: number;
-	getSheetValues(preserveEmptyRows: boolean): unknown[];
-	eachRow(options: { includeEmpty: boolean }, callback: (row: ExcelRowApi) => void): void;
-}
-
-interface ExcelWorkbookApi {
-	worksheets: ExcelWorksheetApi[];
-	getWorksheet(name: string): ExcelWorksheetApi | undefined;
-	xlsx: { load(data: ArrayBuffer): Promise<unknown> };
+function createSheetPreview(sheet: Sheet): ExcelPreviewSheet {
+	const columnCount = sheet.data.reduce((max, row) => Math.max(max, row.length), 0);
+	return {
+		name: sheet.sheet,
+		rowCount: sheet.data.length,
+		columnCount,
+		rows: sheet.data.slice(0, 8).map((row) => ({ cells: row.slice(0, 8).map(cellValueText) })),
+	};
 }
 
 export default function ExcelToPdfConverter() {
@@ -29,7 +24,7 @@ export default function ExcelToPdfConverter() {
 	const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
 	const [pageSize, setPageSize] = useState<'a4' | 'letter'>('a4');
 	const [busy, setBusy] = useState(false);
-	const [workbook, setWorkbook] = useState<ExcelWorkbookApi | null>(null);
+	const [workbook, setWorkbook] = useState<ExcelWorkbook | null>(null);
 	const [resultBlob, setResultBlob] = useState<Blob | null>(null);
 	const [downloadName, setDownloadName] = useState('');
 	const [message, setMessage] = useState('Choose an XLSX workbook to preview and convert locally.');
@@ -44,26 +39,18 @@ export default function ExcelToPdfConverter() {
 		setBusy(true);
 		setMessage('Reading workbook sheets…');
 		try {
-			const ExcelJSModule = await import('exceljs');
-			const namespace = ExcelJSModule as unknown as { default?: { Workbook: new () => ExcelWorkbookApi }; Workbook?: new () => ExcelWorkbookApi };
-			const Workbook = namespace.default?.Workbook ?? namespace.Workbook;
-			if (!Workbook) throw new Error('The Excel workbook parser could not be loaded.');
-			const nextWorkbook = new Workbook();
-			await nextWorkbook.xlsx.load(await selected.arrayBuffer());
+			const { default: readXlsxFile } = await import('read-excel-file/browser');
+			const nextWorkbook = await readXlsxFile(selected, { trim: false });
 			setWorkbook(nextWorkbook);
-			const names = nextWorkbook.worksheets.map((worksheet) => worksheet.name);
+			const names = nextWorkbook.map((worksheet) => worksheet.sheet);
 			if (!names.length) throw new Error('This workbook has no worksheets.');
 			setSheetNames(names);
 			setSheetName(names[0]);
-			const worksheet = nextWorkbook.getWorksheet(names[0]);
+			const worksheet = nextWorkbook.find((sheet) => sheet.sheet === names[0]);
 			if (!worksheet) throw new Error('Could not read the first worksheet.');
-			const rows = worksheet.getSheetValues(true) as unknown[];
-			const previewRows = rows.slice(1, 9).map((row) => {
-				const values = Array.isArray(row) ? row.slice(1, 9) : [];
-				return { cells: values.map(cellValueText) };
-			});
-			setPreview({ name: names[0], rowCount: worksheet.rowCount, columnCount: worksheet.columnCount, rows: previewRows });
-			setMessage(`Workbook ready: ${names.length} worksheet${names.length === 1 ? '' : 's'}, ${worksheet.rowCount} rows, ${worksheet.columnCount} columns.`);
+			const sheetPreview = createSheetPreview(worksheet);
+			setPreview(sheetPreview);
+			setMessage(`Workbook ready: ${names.length} worksheet${names.length === 1 ? '' : 's'}, ${sheetPreview.rowCount} rows, ${sheetPreview.columnCount} columns.`);
 		} catch (error) {
 			setMessage(error instanceof Error ? `Could not read this workbook. ${error.message}` : 'Could not read this workbook.');
 		} finally {
@@ -74,14 +61,9 @@ export default function ExcelToPdfConverter() {
 	const selectWorksheet = (name: string) => {
 		setSheetName(name);
 		if (!workbook) return;
-		const worksheet = workbook.getWorksheet(name);
+		const worksheet = workbook.find((sheet) => sheet.sheet === name);
 		if (!worksheet) return;
-		const rows = worksheet.getSheetValues(true) as unknown[];
-		const previewRows = rows.slice(1, 9).map((row) => {
-			const values = Array.isArray(row) ? row.slice(1, 9) : [];
-			return { cells: values.map(cellValueText) };
-		});
-		setPreview({ name, rowCount: worksheet.rowCount, columnCount: worksheet.columnCount, rows: previewRows });
+		setPreview(createSheetPreview(worksheet));
 	};
 
 	const convert = async () => {
@@ -90,7 +72,7 @@ export default function ExcelToPdfConverter() {
 		setMessage('Creating the PDF…');
 		try {
 			if (!workbook) throw new Error('Load a workbook first.');
-			const worksheet = workbook.getWorksheet(sheetName);
+			const worksheet = workbook.find((sheet) => sheet.sheet === sheetName);
 			if (!worksheet) throw new Error('Select a valid worksheet.');
 			const pdf = new jsPDF({ orientation, unit: 'pt', format: pageSize });
 			const margin = 36;
@@ -100,24 +82,24 @@ export default function ExcelToPdfConverter() {
 			let y = margin;
 			pdf.setFont('helvetica', 'bold');
 			pdf.setFontSize(14);
-			pdf.text(compactSheetName(worksheet.name), margin, y);
+			pdf.text(compactSheetName(worksheet.sheet), margin, y);
 			y += 28;
 			pdf.setFont('helvetica', 'normal');
 			pdf.setFontSize(8);
 
-			const columnCount = Math.max(1, worksheet.columnCount);
+			const columnCount = Math.max(1, worksheet.data.reduce((max, row) => Math.max(max, row.length), 0));
 			const cellWidth = contentWidth / Math.min(columnCount, 12);
-			const maxRows = worksheet.rowCount;
+			const rows = worksheet.data.filter((row) => row.some((value) => value !== null && value !== undefined && value !== ''));
+			const maxRows = rows.length;
 			let renderedRows = 0;
-			worksheet.eachRow({ includeEmpty: false }, (row) => {
-				if (renderedRows >= 200) return;
+			for (const row of rows.slice(0, 200)) {
 				if (y + 22 > pageHeight - margin) {
 					pdf.addPage();
 					y = margin;
 				}
 				const values: string[] = [];
 				for (let column = 1; column <= Math.min(columnCount, 12); column += 1) {
-					values.push(cellValueText(row.getCell(column).value));
+					values.push(cellValueText(row[column - 1]));
 				}
 				values.forEach((value, index) => {
 					const lines = pdf.splitTextToSize(value, Math.max(20, cellWidth - 6)) as string[];
@@ -126,7 +108,7 @@ export default function ExcelToPdfConverter() {
 				});
 				y += 22;
 				renderedRows += 1;
-			});
+			}
 			if (maxRows > renderedRows) {
 				if (y + 22 > pageHeight - margin) {
 					pdf.addPage();
@@ -136,10 +118,10 @@ export default function ExcelToPdfConverter() {
 				pdf.text(`Preview limit: ${renderedRows} of ${maxRows} rows exported.`, margin, y);
 			}
 			const blob = pdf.output('blob');
-			const name = `${compactSheetName(file.name.replace(/\.xlsx$/i, ''))}-${compactSheetName(worksheet.name)}.pdf`;
+			const name = `${compactSheetName(file.name.replace(/\.xlsx$/i, ''))}-${compactSheetName(worksheet.sheet)}.pdf`;
 			setResultBlob(blob);
 			setDownloadName(name);
-			setMessage(`Created a PDF from ${worksheet.name}. ${renderedRows} row${renderedRows === 1 ? '' : 's'} rendered, with a preview limit of 200 rows.`);
+			setMessage(`Created a PDF from ${worksheet.sheet}. ${renderedRows} row${renderedRows === 1 ? '' : 's'} rendered, with a preview limit of 200 rows.`);
 		} catch (error) {
 			setMessage(error instanceof Error ? `Could not convert this workbook. ${error.message}` : 'Could not convert this workbook.');
 		} finally {
@@ -168,4 +150,3 @@ export default function ExcelToPdfConverter() {
 		</div>
 	);
 }
-

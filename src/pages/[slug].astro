@@ -36,6 +36,8 @@ import PdfPageRotator from '../components/tools/PdfPageRotator';
 import PdfPageNumberingTool from '../components/tools/PdfPageNumberingTool';
 import PdfPasswordProtection from '../components/tools/PdfPasswordProtection';
 import PdfPasswordRemoval from '../components/tools/PdfPasswordRemoval';
+import PdfPasswordRecovery from '../components/tools/PdfPasswordRecovery';
+import PdfSigningTool from '../components/tools/PdfSigningTool';
 import PdfWatermarkGenerator from '../components/tools/PdfWatermarkGenerator';
 import PdfPageExtractor from '../components/tools/PdfPageExtractor';
 import PdfPageRearranger from '../components/tools/PdfPageRearranger';
@@ -108,16 +110,17 @@ export function getStaticPaths() {
 
 const { tool } = Astro.props;
 const departmentName = departments.find((department) => department.slug === tool.department)?.name;
+const isVisualEditor = tool.component === 'LogoStudioApp';
 ---
 
-<ToolLayout title={tool.seoTitle} description={tool.seoDescription}>
-	<section class="tool-page">
-		<a class="back-link" href="/#tool-library">← All tools</a>
-		<header class="tool-page-header">
+<ToolLayout title={tool.seoTitle} description={tool.seoDescription} editorMode={isVisualEditor}>
+	<section class:list={['tool-page', { 'brand-editor-page': isVisualEditor }]}>
+		{!isVisualEditor && <a class="back-link" href="/#tool-library">← All tools</a>}
+		{!isVisualEditor && <header class="tool-page-header">
 			<p class="eyebrow">{departmentName?.toUpperCase()} TOOL</p>
 			<h1>{tool.name}</h1>
 			<p>{tool.description}</p>
-		</header>
+		</header>}
 		<div class="tool-workspace">
 			{tool.component === 'FractionCalculator' && <FractionCalculator client:load />}
 			{tool.component === 'BasicCalculator' && <BasicCalculator client:load />}
@@ -174,6 +177,8 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'PdfPageNumberingTool' && <PdfPageNumberingTool client:load />}
 			{tool.component === 'PdfPasswordProtection' && <PdfPasswordProtection client:load />}
 			{tool.component === 'PdfPasswordRemoval' && <PdfPasswordRemoval client:load />}
+			{tool.component === 'PdfPasswordRecovery' && <PdfPasswordRecovery client:load />}
+			{tool.component === 'PdfSigningTool' && <PdfSigningTool client:load />}
 			{tool.component === 'PdfWatermarkGenerator' && <PdfWatermarkGenerator client:load />}
 			{tool.component === 'PdfPageExtractor' && <PdfPageExtractor client:load />}
 			{tool.component === 'PdfPageRearranger' && <PdfPageRearranger client:load />}
@@ -216,7 +221,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'BrandTypographyTool' && <BrandTypographyTool client:load />}
 			{tool.component === 'BrandFontLoadCheck' && <BrandFontLoadCheck client:load />}
 		</div>
-		<section class="tool-guide" aria-labelledby="how-to-use">
+		{!isVisualEditor && <section class="tool-guide" aria-labelledby="how-to-use">
 			{tool.limitations && <p class="inline-note">{tool.limitations}</p>}
 			{tool.privacyNote && <p class="privacy-note">{tool.privacyNote}</p>}
 			{['business-card-designer', 'letterhead-designer', 'envelope-designer'].includes(tool.slug) && <SpecialCharactersNote />}
@@ -233,7 +238,7 @@ const departmentName = departments.find((department) => department.slug === tool
 					</article>
 				))}
 			</div>
-		</section>
+		</section>}
 		{tool.recommended && <Recommended {...tool.recommended} />}
 	</section>
 </ToolLayout>

@@ -74,6 +74,8 @@ export type ToolComponentName =
 	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
 	| 'PdfPasswordRemoval'
+	| 'PdfPasswordRecovery'
+	| 'PdfSigningTool'
 	| 'PdfPasswordProtection'
 	| 'PdfPageNumberingTool'
 	| 'PdfWatermarkGenerator'
@@ -1474,6 +1476,44 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfPasswordRemoval',
 		icon: 'UNLOCK',
+		live: true,
+	},
+	{
+		slug: 'pdf-password-recovery',
+		name: 'PDF Password Recovery & Unlocker',
+		department: 'pdf',
+		description: 'Check passwords you remember or bounded candidates against a PDF you are authorized to recover.',
+		seoTitle: 'Authorized PDF Password Recovery & Unlocker',
+		seoDescription: 'Check remembered passwords or a bounded set of candidates locally against an authorized PDF. Supported encryption formats are identified before recovery.',
+		howTo: ['Choose a PDF you own or are authorized to recover.', 'Enter passwords you remember, add clues, or select a bounded candidate mode.', 'Run local checks and download the unlocked copy if a candidate matches.'],
+		faqs: [
+			{ question: 'Which PDF encryption formats are supported?', answer: 'AES-256 (V=5, R=6), RC4 (V=1–3, R=2–4), and AES-128 AESV2 (V=4, R=4) with AESV2 crypt filters for both strings and streams. Other formats are identified as unsupported.' },
+			{ question: 'Can it try every possible password?', answer: 'No. It checks only the bounded candidates entered or generated. Strong or unknown passwords may not be recoverable.' },
+			{ question: 'Does recovery happen locally?', answer: 'Yes. The PDF and candidate passwords stay in your browser and are not uploaded.' },
+		],
+		limitations: 'Recovery checks a bounded set of candidates and cannot guarantee that a forgotten password can be recovered. Unsupported encryption formats are reported before any candidate is tested.',
+		privacyNote: 'Candidate testing happens locally in this browser. Use only for PDFs you own or are authorized to recover.',
+		component: 'PdfPasswordRecovery',
+		icon: 'RECOVER',
+		live: true,
+	},
+	{
+		slug: 'pdf-signing-tool',
+		name: 'PDF Signing Tool',
+		department: 'pdf',
+		description: 'Add a drawn, typed, or uploaded visible signature to selected PDF pages.',
+		seoTitle: 'Private PDF Signing Tool — Add a Visible Signature',
+		seoDescription: 'Draw, type, or upload a signature image and place it on selected PDF pages locally in your browser.',
+		howTo: ['Choose a PDF and draw your signature, type a name, or upload a PNG/JPEG signature image.', 'Select the pages, position, and size for the visible signature.', 'Add the signature and download the updated PDF.'],
+		faqs: [
+			{ question: 'Is this a certificate-based digital signature?', answer: 'No. It places a visible signature image on the page but does not cryptographically sign the PDF or verify signer identity.' },
+			{ question: 'Can I sign selected pages?', answer: 'Yes. Enter page numbers or ranges, or choose to add the visible signature to every page.' },
+			{ question: 'Are my PDF and signature uploaded?', answer: 'No. Processing happens locally in your browser.' },
+		],
+		limitations: 'This tool adds a visual signature only. It does not create a legally verifiable certificate-based digital signature, validate identity, or support password-protected PDFs.',
+		privacyNote: 'Your PDF and signature image stay on your device and are not uploaded.',
+		component: 'PdfSigningTool',
+		icon: 'SIGN',
 		live: true,
 	},
 	{

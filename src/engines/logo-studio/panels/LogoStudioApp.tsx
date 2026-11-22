@@ -522,8 +522,9 @@ export default function LogoStudioApp({ preset, designPreset }: { preset?: LogoS
 	/>;
 
 	return (
-		<section className="logo-phase-app" aria-label="Logo Studio editor">
+		<section className="logo-phase-app" aria-label={designPreset ? 'Brand Studio editor' : 'Logo Studio editor'}>
 			<PhaseOneToolbar
+				studioName={designPreset ? 'Brand Studio' : 'Logo Studio'}
 				canUndo={pastCount > 0}
 				canRedo={futureCount > 0}
 				zoom={zoom}

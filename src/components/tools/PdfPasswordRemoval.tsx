@@ -15,12 +15,18 @@ export default function PdfPasswordRemoval() {
 		setBusy(true);
 		setMessage('Checking PDF encryption…');
 		try {
-			const { decryptPDF, isEncrypted } = await import('@pdfsmaller/pdf-decrypt');
 			const bytes = new Uint8Array(await file.arrayBuffer());
-			const info = await isEncrypted(bytes);
+			const { detectPdfEncryption, decryptPdfAes128 } = await import('../../engines/pdf-aes128');
+			const info = await detectPdfEncryption(bytes);
 			if (!info.encrypted) throw new Error('This PDF is not encrypted.');
 			setMessage(`Decrypting ${info.algorithm ?? 'the PDF'} locally…`);
-			const decrypted = await decryptPDF(bytes, validated);
+			let decrypted: Uint8Array;
+			if (info.aes128) {
+				decrypted = await decryptPdfAes128(bytes, validated);
+			} else {
+				const { decryptPDF } = await import('@pdfsmaller/pdf-decrypt');
+				decrypted = await decryptPDF(bytes, validated);
+			}
 			triggerDownload(new Blob([decrypted], { type: 'application/pdf' }), file.name.replace(/\.pdf$/i, '') + '-decrypted.pdf');
 			setMessage(`Removed password protection. Downloaded a decrypted copy of ${file.name}.`);
 		} catch (error) {
