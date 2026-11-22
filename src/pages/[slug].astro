@@ -35,6 +35,7 @@ import PdfSplitter from '../components/tools/PdfSplitter';
 import PdfPageRotator from '../components/tools/PdfPageRotator';
 import PdfPageNumberingTool from '../components/tools/PdfPageNumberingTool';
 import PdfPasswordProtection from '../components/tools/PdfPasswordProtection';
+import PdfPasswordRemoval from '../components/tools/PdfPasswordRemoval';
 import PdfWatermarkGenerator from '../components/tools/PdfWatermarkGenerator';
 import PdfPageExtractor from '../components/tools/PdfPageExtractor';
 import PdfPageRearranger from '../components/tools/PdfPageRearranger';
@@ -172,6 +173,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'PdfPageRotator' && <PdfPageRotator client:load />}
 			{tool.component === 'PdfPageNumberingTool' && <PdfPageNumberingTool client:load />}
 			{tool.component === 'PdfPasswordProtection' && <PdfPasswordProtection client:load />}
+			{tool.component === 'PdfPasswordRemoval' && <PdfPasswordRemoval client:load />}
 			{tool.component === 'PdfWatermarkGenerator' && <PdfWatermarkGenerator client:load />}
 			{tool.component === 'PdfPageExtractor' && <PdfPageExtractor client:load />}
 			{tool.component === 'PdfPageRearranger' && <PdfPageRearranger client:load />}

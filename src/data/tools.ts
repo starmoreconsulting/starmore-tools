@@ -73,6 +73,7 @@ export type ToolComponentName =
 	| 'ExcelToPdfConverter'
 	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
+	| 'PdfPasswordRemoval'
 	| 'PdfPasswordProtection'
 	| 'PdfPageNumberingTool'
 	| 'PdfWatermarkGenerator'
@@ -1457,6 +1458,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfPasswordProtection',
 		icon: 'LOCK',
+		live: true,
+	},
+	{
+		slug: 'pdf-password-removal',
+		name: 'PDF Password Removal',
+		department: 'pdf',
+		description: 'Remove password protection from a PDF you are authorised to unlock.',
+		seoTitle: 'Authorized PDF Password Removal',
+		seoDescription: 'Decrypt an authorized AES-256 or RC4 protected PDF locally and download an unlocked copy.',
+		howTo: ['Choose an encrypted PDF you own or are authorized to unlock.', 'Enter the user or owner password.', 'Decrypt locally and download an unlocked PDF copy.'],
+		faqs: [
+			{ question: 'Can this remove a password I do not know?', answer: 'No. It requires the correct user or owner password and is not a password recovery service.' },
+			{ question: 'Does decryption happen locally?', answer: 'Yes. The PDF and password stay in your browser and are not uploaded.' },
+		],
+		component: 'PdfPasswordRemoval',
+		icon: 'UNLOCK',
 		live: true,
 	},
 	{
