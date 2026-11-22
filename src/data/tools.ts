@@ -68,6 +68,7 @@ export type ToolComponentName =
 	| 'PdfSplitter'
 	| 'PdfPageExtractor'
 	| 'PdfPageRearranger'
+	| 'WordToPdfConverter'
 	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
 	| 'PdfCompressor'
@@ -1339,6 +1340,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfToImageConverter',
 		icon: '▧',
+		live: true,
+	},
+	{
+		slug: 'word-to-pdf-converter',
+		name: 'Word to PDF Converter',
+		department: 'pdf',
+		description: 'Convert DOCX Word documents to PDF locally with common text, table and image structures.',
+		seoTitle: 'Private Word to PDF Converter',
+		seoDescription: 'Convert DOCX documents to PDF locally in your browser. Preserve common headings, paragraphs, lists, tables and embedded images.',
+		howTo: ['Choose a DOCX Word document.', 'Convert it locally; complex Word layouts may be simplified.', 'Download or save the generated PDF and review formatting.'],
+		faqs: [
+			{ question: 'Does conversion require a server or API?', answer: 'No. DOCX parsing and PDF generation happen locally in this browser.' },
+			{ question: 'Are all Word layouts preserved?', answer: 'No. Common text structures are converted, while complex Word features may simplify or be omitted.' },
+		],
+		component: 'WordToPdfConverter',
+		icon: 'W→P',
 		live: true,
 	},
 	{

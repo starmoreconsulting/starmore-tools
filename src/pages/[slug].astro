@@ -35,6 +35,7 @@ import PdfSplitter from '../components/tools/PdfSplitter';
 import PdfPageRotator from '../components/tools/PdfPageRotator';
 import PdfPageExtractor from '../components/tools/PdfPageExtractor';
 import PdfPageRearranger from '../components/tools/PdfPageRearranger';
+import WordToPdfConverter from '../components/tools/WordToPdfConverter';
 import PdfToImageConverter from '../components/tools/PdfToImageConverter';
 import PdfCompressor from '../components/tools/PdfCompressor';
 import ImageFormatConverter from '../components/tools/ImageFormatConverter';
@@ -166,6 +167,7 @@ const departmentName = departments.find((department) => department.slug === tool
 			{tool.component === 'PdfPageRotator' && <PdfPageRotator client:load />}
 			{tool.component === 'PdfPageExtractor' && <PdfPageExtractor client:load />}
 			{tool.component === 'PdfPageRearranger' && <PdfPageRearranger client:load />}
+			{tool.component === 'WordToPdfConverter' && <WordToPdfConverter client:load />}
 			{tool.component === 'PdfToImageConverter' && <PdfToImageConverter client:load />}
 			{tool.component === 'PdfCompressor' && <PdfCompressor client:load />}
 			{tool.component === 'ImageFormatConverter' && <ImageFormatConverter client:load />}

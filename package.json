@@ -64,6 +64,7 @@
     "idb-keyval": "^6.3.0",
     "jspdf": "^4.2.1",
     "lucide-static": "^1.72.0",
+    "mammoth": "^1.13.0",
     "marked": "^18.2.0",
     "onnxruntime-web": "^1.31.1",
     "opentype.js": "^2.0.0",
