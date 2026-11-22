@@ -73,6 +73,7 @@ export type ToolComponentName =
 	| 'ExcelToPdfConverter'
 	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
+	| 'PdfPasswordProtection'
 	| 'PdfPageNumberingTool'
 	| 'PdfWatermarkGenerator'
 	| 'PdfCompressor'
@@ -1440,6 +1441,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'PdfPageNumberingTool',
 		icon: '1/5',
+		live: true,
+	},
+	{
+		slug: 'pdf-password-protection',
+		name: 'PDF Password Protection',
+		department: 'pdf',
+		description: 'Encrypt a PDF with a password and configurable reader permissions locally.',
+		seoTitle: 'Private PDF Password Protection',
+		seoDescription: 'Encrypt a PDF with AES-256 or RC4 locally, set a user and owner password and configure printing, copying and editing permissions.',
+		howTo: ['Choose a PDF file and enter a strong password.', 'Confirm the password and optionally set an owner password.', 'Choose AES-256 or RC4, adjust permissions, and download the protected PDF.'],
+		faqs: [
+			{ question: 'Where does encryption happen?', answer: 'It happens locally in the browser with a PDF encryption package; the PDF is not uploaded.' },
+			{ question: 'Can an owner password override permissions?', answer: 'Yes. The owner password is for managing permissions, but a user password controls opening the document.' },
+		],
+		component: 'PdfPasswordProtection',
+		icon: 'LOCK',
 		live: true,
 	},
 	{
