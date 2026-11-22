@@ -14,9 +14,38 @@ import CompoundInterestCalculator from '../components/tools/CompoundInterestCalc
 import DateDifferenceCalculator from '../components/tools/DateDifferenceCalculator';
 import DiscountCalculator from '../components/tools/DiscountCalculator';
 import JsonFormatter from '../components/tools/JsonFormatter';
+import HtmlFormatter from '../components/tools/HtmlFormatter';
+import CssFormatter from '../components/tools/CssFormatter';
+import JavaScriptFormatter from '../components/tools/JavaScriptFormatter';
+import HtmlMinifier from '../components/tools/HtmlMinifier';
+import CssMinifier from '../components/tools/CssMinifier';
+import JavaScriptMinifier from '../components/tools/JavaScriptMinifier';
+import UrlEncoder from '../components/tools/UrlEncoder';
+import HtmlEntities from '../components/tools/HtmlEntities';
+import UuidGenerator from '../components/tools/UuidGenerator';
+import HashGenerator from '../components/tools/HashGenerator';
+import RegexTester from '../components/tools/RegexTester';
+import XmlFormatter from '../components/tools/XmlFormatter';
+import SqlFormatter from '../components/tools/SqlFormatter';
+import CssGradientGenerator from '../components/tools/CssGradientGenerator';
+import BoxShadowGenerator from '../components/tools/BoxShadowGenerator';
+import Base64Encoder from '../components/tools/Base64Encoder';
 import PercentageCalculator from '../components/tools/PercentageCalculator';
 import QrCodeGenerator from '../components/tools/QrCodeGenerator';
 import PasswordGenerator from '../components/tools/PasswordGenerator';
+import PasswordStrengthChecker from '../components/tools/PasswordStrengthChecker';
+import BarcodeGenerator from '../components/tools/BarcodeGenerator';
+import FileSizeConverter from '../components/tools/FileSizeConverter';
+import FileExtensionChecker from '../components/tools/FileExtensionChecker';
+import CsvToJsonConverter from '../components/tools/CsvToJsonConverter';
+import JsonToCsvConverter from '../components/tools/JsonToCsvConverter';
+import CsvViewer from '../components/tools/CsvViewer';
+import ExcelViewer from '../components/tools/ExcelViewer';
+import ZipCreator from '../components/tools/ZipCreator';
+import ZipExtractor from '../components/tools/ZipExtractor';
+import DuplicateFileChecker from '../components/tools/DuplicateFileChecker';
+import MetadataViewer from '../components/tools/MetadataViewer';
+import ExifViewerRemover from '../components/tools/ExifViewerRemover';
 import ImageCompressor from '../components/tools/ImageCompressor';
 import ImageResizer from '../components/tools/ImageResizer';
 import RoiCalculator from '../components/tools/RoiCalculator';
@@ -30,6 +59,7 @@ import SortTextAlphabetically from '../components/tools/SortTextAlphabetically';
 import FindReplaceText from '../components/tools/FindReplaceText';
 import TextToSlugConverter from '../components/tools/TextToSlugConverter';
 import ImageToPdfConverter from '../components/tools/ImageToPdfConverter';
+import DocumentScanner from '../components/tools/DocumentScanner';
 import PdfMerger from '../components/tools/PdfMerger';
 import PdfSplitter from '../components/tools/PdfSplitter';
 import PdfPageRotator from '../components/tools/PdfPageRotator';
@@ -38,10 +68,13 @@ import PdfPasswordProtection from '../components/tools/PdfPasswordProtection';
 import PdfPasswordRemoval from '../components/tools/PdfPasswordRemoval';
 import PdfPasswordRecovery from '../components/tools/PdfPasswordRecovery';
 import PdfSigningTool from '../components/tools/PdfSigningTool';
+import PdfAnnotationTool from '../components/tools/PdfAnnotationTool';
 import PdfWatermarkGenerator from '../components/tools/PdfWatermarkGenerator';
 import PdfPageExtractor from '../components/tools/PdfPageExtractor';
 import PdfPageRearranger from '../components/tools/PdfPageRearranger';
 import PdfToWordConverter from '../components/tools/PdfToWordConverter';
+import PdfTextExtractor from '../components/tools/PdfTextExtractor';
+import PdfComparisonTool from '../components/tools/PdfComparisonTool';
 import ExcelToPdfConverter from '../components/tools/ExcelToPdfConverter';
 import WordToPdfConverter from '../components/tools/WordToPdfConverter';
 import PdfToImageConverter from '../components/tools/PdfToImageConverter';
@@ -69,6 +102,7 @@ import OldPhotoRestoration from '../components/tools/OldPhotoRestoration';
 import WatermarkRemover from '../components/tools/WatermarkRemover';
 import ImageToTextOcr from '../components/tools/ImageToTextOcr';
 import MarkdownEditor from '../components/tools/MarkdownEditor';
+import TextFileConverter from '../components/tools/TextFileConverter';
 import ProfitMarginCalculator from '../components/tools/ProfitMarginCalculator';
 import ProfitLossCalculator from '../components/tools/ProfitLossCalculator';
 import BreakEvenCalculator from '../components/tools/BreakEvenCalculator';
@@ -76,6 +110,12 @@ import CurrencyConverter from '../components/tools/CurrencyConverter';
 import ElectricityConsumptionCalculator from '../components/tools/ElectricityConsumptionCalculator';
 import FuelConsumptionCalculator from '../components/tools/FuelConsumptionCalculator';
 import LoanRepaymentCalculator from '../components/tools/LoanRepaymentCalculator';
+import SalaryCalculator from '../components/tools/SalaryCalculator';
+import CommissionCalculator from '../components/tools/CommissionCalculator';
+import EmployeeAttendanceTracker from '../components/tools/EmployeeAttendanceTracker';
+import TimesheetGenerator from '../components/tools/TimesheetGenerator';
+import ResumeBuilder from '../components/tools/ResumeBuilder';
+import CoverLetterBuilder from '../components/tools/CoverLetterBuilder';
 import RemoveDuplicateLines from '../components/tools/RemoveDuplicateLines';
 import RemoveExtraSpaces from '../components/tools/RemoveExtraSpaces';
 import LoremIpsumGenerator from '../components/tools/LoremIpsumGenerator';
@@ -84,6 +124,20 @@ import ReverseTextGenerator from '../components/tools/ReverseTextGenerator';
 import TextFormatter from '../components/tools/TextFormatter';
 import Notepad from '../components/tools/Notepad';
 import EmailSignatureDesigner from '../components/tools/EmailSignatureDesigner';
+import InvoiceGenerator from '../components/tools/InvoiceGenerator';
+import ReceiptGenerator from '../components/tools/ReceiptGenerator';
+import PurchaseOrderGenerator from '../components/tools/PurchaseOrderGenerator';
+import DeliveryNoteGenerator from '../components/tools/DeliveryNoteGenerator';
+import PaymentVoucherGenerator from '../components/tools/PaymentVoucherGenerator';
+import ExpenseTracker from '../components/tools/ExpenseTracker';
+import IncomeTracker from '../components/tools/IncomeTracker';
+import ProfitLossStatementGenerator from '../components/tools/ProfitLossStatementGenerator';
+import BusinessProposalGenerator from '../components/tools/BusinessProposalGenerator';
+import CompanyProfileGenerator from '../components/tools/CompanyProfileGenerator';
+import BusinessLetterGenerator from '../components/tools/BusinessLetterGenerator';
+import MeetingMinutesGenerator from '../components/tools/MeetingMinutesGenerator';
+import ProjectBudgetCalculator from '../components/tools/ProjectBudgetCalculator';
+import QuotationGenerator from '../components/tools/QuotationGenerator';
 import InvoiceBrandingDesigner from '../components/tools/InvoiceBrandingDesigner';
 import PresentationTemplateDesigner from '../components/tools/PresentationTemplateDesigner';
 import WebsiteStarterCodeGenerator from '../components/tools/WebsiteStarterCodeGenerator';
@@ -130,6 +184,22 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'CaseConverter' && <CaseConverter client:load />}
 			{tool.component === 'WordCounter' && <WordCounter client:load />}
 			{tool.component === 'JsonFormatter' && <JsonFormatter client:load />}
+			{tool.component === 'HtmlFormatter' && <HtmlFormatter client:load />}
+			{tool.component === 'CssFormatter' && <CssFormatter client:load />}
+			{tool.component === 'JavaScriptFormatter' && <JavaScriptFormatter client:load />}
+			{tool.component === 'HtmlMinifier' && <HtmlMinifier client:load />}
+			{tool.component === 'CssMinifier' && <CssMinifier client:load />}
+			{tool.component === 'JavaScriptMinifier' && <JavaScriptMinifier client:load />}
+			{tool.component === 'UrlEncoder' && <UrlEncoder client:load />}
+			{tool.component === 'Base64Encoder' && <Base64Encoder client:load />}
+			{tool.component === 'HtmlEntities' && <HtmlEntities client:load />}
+			{tool.component === 'UuidGenerator' && <UuidGenerator client:load />}
+			{tool.component === 'HashGenerator' && <HashGenerator client:load />}
+			{tool.component === 'RegexTester' && <RegexTester client:load />}
+			{tool.component === 'XmlFormatter' && <XmlFormatter client:load />}
+			{tool.component === 'SqlFormatter' && <SqlFormatter client:load />}
+			{tool.component === 'CssGradientGenerator' && <CssGradientGenerator client:load />}
+			{tool.component === 'BoxShadowGenerator' && <BoxShadowGenerator client:load />}
 			{tool.component === 'PercentageCalculator' && <PercentageCalculator client:load />}
 			{tool.component === 'DiscountCalculator' && <DiscountCalculator client:load />}
 			{tool.component === 'VatCalculator' && <VatCalculator client:load />}
@@ -140,6 +210,8 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'ElectricityConsumptionCalculator' && <ElectricityConsumptionCalculator client:load />}
 			{tool.component === 'FuelConsumptionCalculator' && <FuelConsumptionCalculator client:load />}
 			{tool.component === 'LoanRepaymentCalculator' && <LoanRepaymentCalculator client:load />}
+			{tool.component === 'SalaryCalculator' && <SalaryCalculator client:load />}
+			{tool.component === 'CommissionCalculator' && <CommissionCalculator client:load />}
 			{tool.component === 'AgeCalculator' && <AgeCalculator client:load />}
 			{tool.component === 'CharacterCounter' && <CharacterCounter client:load />}
 			{tool.component === 'DateDifferenceCalculator' && <DateDifferenceCalculator client:load />}
@@ -153,11 +225,42 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'TextFormatter' && <TextFormatter client:load />}
 			{tool.component === 'Notepad' && <Notepad client:load />}
 			{tool.component === 'EmailSignatureDesigner' && <EmailSignatureDesigner client:load />}
+			{tool.component === 'InvoiceGenerator' && <InvoiceGenerator client:load />}
+			{tool.component === 'ReceiptGenerator' && <ReceiptGenerator client:load />}
+			{tool.component === 'PurchaseOrderGenerator' && <PurchaseOrderGenerator client:load />}
+			{tool.component === 'DeliveryNoteGenerator' && <DeliveryNoteGenerator client:load />}
+			{tool.component === 'PaymentVoucherGenerator' && <PaymentVoucherGenerator client:load />}
+			{tool.component === 'ExpenseTracker' && <ExpenseTracker client:load />}
+			{tool.component === 'IncomeTracker' && <IncomeTracker client:load />}
+			{tool.component === 'ProfitLossStatementGenerator' && <ProfitLossStatementGenerator client:load />}
+			{tool.component === 'BusinessProposalGenerator' && <BusinessProposalGenerator client:load />}
+			{tool.component === 'CompanyProfileGenerator' && <CompanyProfileGenerator client:load />}
+			{tool.component === 'BusinessLetterGenerator' && <BusinessLetterGenerator client:load />}
+			{tool.component === 'MeetingMinutesGenerator' && <MeetingMinutesGenerator client:load />}
+			{tool.component === 'EmployeeAttendanceTracker' && <EmployeeAttendanceTracker client:load />}
+			{tool.component === 'TimesheetGenerator' && <TimesheetGenerator client:load />}
+			{tool.component === 'ResumeBuilder' && <ResumeBuilder client:load />}
+			{tool.component === 'CoverLetterBuilder' && <CoverLetterBuilder client:load />}
+			{tool.component === 'ProjectBudgetCalculator' && <ProjectBudgetCalculator client:load />}
+			{tool.component === 'QuotationGenerator' && <QuotationGenerator client:load />}
 			{tool.component === 'InvoiceBrandingDesigner' && <InvoiceBrandingDesigner client:load />}
 			{tool.component === 'PresentationTemplateDesigner' && <PresentationTemplateDesigner client:load />}
 			{tool.component === 'WebsiteStarterCodeGenerator' && <WebsiteStarterCodeGenerator client:load />}
 			{tool.component === 'QrCodeGenerator' && <QrCodeGenerator client:load />}
 			{tool.component === 'PasswordGenerator' && <PasswordGenerator client:load />}
+			{tool.component === 'PasswordStrengthChecker' && <PasswordStrengthChecker client:load />}
+			{tool.component === 'BarcodeGenerator' && <BarcodeGenerator client:load />}
+			{tool.component === 'FileSizeConverter' && <FileSizeConverter client:load />}
+			{tool.component === 'FileExtensionChecker' && <FileExtensionChecker client:load />}
+			{tool.component === 'CsvToJsonConverter' && <CsvToJsonConverter client:load />}
+			{tool.component === 'JsonToCsvConverter' && <JsonToCsvConverter client:load />}
+			{tool.component === 'CsvViewer' && <CsvViewer client:load />}
+			{tool.component === 'ExcelViewer' && <ExcelViewer client:load />}
+			{tool.component === 'ZipCreator' && <ZipCreator client:load />}
+			{tool.component === 'ZipExtractor' && <ZipExtractor client:load />}
+			{tool.component === 'DuplicateFileChecker' && <DuplicateFileChecker client:load />}
+			{tool.component === 'MetadataViewer' && <MetadataViewer client:load />}
+			{tool.component === 'ExifViewerRemover' && <ExifViewerRemover client:load />}
 			{tool.component === 'ImageCompressor' && <ImageCompressor client:load />}
 			{tool.component === 'ImageResizer' && <ImageResizer client:load />}
 			{tool.component === 'RoiCalculator' && <RoiCalculator client:load />}
@@ -171,6 +274,7 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'FindReplaceText' && <FindReplaceText client:load />}
 			{tool.component === 'TextToSlugConverter' && <TextToSlugConverter client:load />}
 			{tool.component === 'ImageToPdfConverter' && <ImageToPdfConverter client:load />}
+			{tool.component === 'DocumentScanner' && <DocumentScanner client:load />}
 			{tool.component === 'PdfMerger' && <PdfMerger client:load />}
 			{tool.component === 'PdfSplitter' && <PdfSplitter client:load />}
 			{tool.component === 'PdfPageRotator' && <PdfPageRotator client:load />}
@@ -179,10 +283,13 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'PdfPasswordRemoval' && <PdfPasswordRemoval client:load />}
 			{tool.component === 'PdfPasswordRecovery' && <PdfPasswordRecovery client:load />}
 			{tool.component === 'PdfSigningTool' && <PdfSigningTool client:load />}
+			{tool.component === 'PdfAnnotationTool' && <PdfAnnotationTool client:load />}
 			{tool.component === 'PdfWatermarkGenerator' && <PdfWatermarkGenerator client:load />}
 			{tool.component === 'PdfPageExtractor' && <PdfPageExtractor client:load />}
 			{tool.component === 'PdfPageRearranger' && <PdfPageRearranger client:load />}
 			{tool.component === 'PdfToWordConverter' && <PdfToWordConverter client:load />}
+			{tool.component === 'PdfTextExtractor' && <PdfTextExtractor client:load />}
+			{tool.component === 'PdfComparisonTool' && <PdfComparisonTool client:load />}
 			{tool.component === 'ExcelToPdfConverter' && <ExcelToPdfConverter client:load />}
 			{tool.component === 'WordToPdfConverter' && <WordToPdfConverter client:load />}
 			{tool.component === 'PdfToImageConverter' && <PdfToImageConverter client:load />}
@@ -211,6 +318,7 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'WatermarkRemover' && <WatermarkRemover client:load />}
 			{tool.component === 'ImageToTextOcr' && <ImageToTextOcr client:load />}
 			{tool.component === 'MarkdownEditor' && <MarkdownEditor client:load />}
+			{tool.component === 'TextFileConverter' && <TextFileConverter client:load />}
 			{tool.component === 'TextLogoGenerator' && <TextLogoGenerator client:load />}
 			{tool.component === 'MonogramLogoGenerator' && <MonogramLogoGenerator client:load />}
 			{tool.component === 'LogoStudioApp' && <LogoStudioApp client:only="react" preset={tool.preset} designPreset={tool.designPreset} />}
