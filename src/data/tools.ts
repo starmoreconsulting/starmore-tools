@@ -68,6 +68,7 @@ export type ToolComponentName =
 	| 'PdfSplitter'
 	| 'PdfPageExtractor'
 	| 'PdfPageRearranger'
+	| 'PdfToWordConverter'
 	| 'WordToPdfConverter'
 	| 'PdfToImageConverter'
 	| 'PdfPageRotator'
@@ -1356,6 +1357,22 @@ export const tools: ToolDefinition[] = [
 		],
 		component: 'WordToPdfConverter',
 		icon: 'W→P',
+		live: true,
+	},
+	{
+		slug: 'pdf-to-word-converter',
+		name: 'PDF to Word Converter',
+		department: 'pdf',
+		description: 'Extract selectable PDF text locally and save it as an editable DOCX document.',
+		seoTitle: 'Private PDF to Word Converter',
+		seoDescription: 'Extract selectable PDF text locally and create a DOCX Word document. Image-only pages need OCR and are reported clearly.',
+		howTo: ['Choose a PDF with selectable text.', 'Extract text page by page locally.', 'Download the editable DOCX and review formatting.'],
+		faqs: [
+			{ question: 'Does this preserve the exact PDF layout?', answer: 'No. It converts extracted text into a clean editable DOCX structure. Complex columns, charts and layout may not be retained.' },
+			{ question: 'Can scanned PDFs be converted?', answer: 'Not without OCR. Image-only pages are identified and reported, but this converter does not invent or recognize their text.' },
+		],
+		component: 'PdfToWordConverter',
+		icon: 'P→W',
 		live: true,
 	},
 	{
