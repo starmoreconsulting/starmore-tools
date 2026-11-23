@@ -155,6 +155,16 @@ if (!previewBuild) {
 		failures.push(`robots.txt must reference ${new URL('/sitemap.xml', site).href}.`);
 	}
 
+	const adsTxtPath = path.join(distRoot, 'ads.txt');
+	if (!(await exists(adsTxtPath))) {
+		failures.push('ads.txt is missing from the production build.');
+	} else {
+		const adsTxt = await readFile(adsTxtPath, 'utf8');
+		if (!/^\s*google\.com,\s*pub-\d+,\s*DIRECT,\s*f08c47fec0942fa0\s*$/m.test(adsTxt)) {
+			failures.push('ads.txt does not contain a valid Google AdSense seller record.');
+		}
+	}
+
 	for (const page of pages) {
 		const html = await readFile(page.file, 'utf8');
 		const anchors = [...html.matchAll(/<a\b[^>]*>/gi)].map((match) => match[0]);

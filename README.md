@@ -45,7 +45,7 @@ AdSense requests are disabled unless all of these Cloudflare Pages environment v
 | `PUBLIC_ADSENSE_SLOT_ID` | The responsive display ad unit ID created in AdSense. |
 | `PUBLIC_ADSENSE_CMP_CONFIGURED` | Set to `true` only after the AdSense Privacy & messaging CMP has been configured and published for the site. |
 
-The current integration uses one manually placed responsive display ad on the homepage, department pages, and tool pages. It also exposes a footer control to reopen Google’s privacy choices. Keep `PUBLIC_ADSENSE_READY=false` until the account, consent messages, and ad unit are ready. Obtain and publish the exact seller record supplied by AdSense as `/ads.txt`; do not invent or copy a sample publisher record.
+The current integration uses one manually placed responsive display ad on the homepage, department pages, and tool pages. It also exposes a footer control to reopen Google’s privacy choices. Keep `PUBLIC_ADSENSE_READY=false` until the account is approved, consent messages are configured, and the ad unit is ready. `public/ads.txt` contains the seller record issued by the configured AdSense account.
 
 Google Search Console and Bing Webmaster Tools require access to their respective accounts. Verify the domain there and submit `https://starmoretools.com/sitemap.xml` after deployment.
 
