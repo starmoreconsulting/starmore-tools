@@ -1993,8 +1993,9 @@ export const tools: ToolDefinition[] = [
 		name: 'PDF Page Extractor',
 		department: 'pdf',
 		description: 'Extract selected page ranges from a PDF into one downloadable document.',
-		seoTitle: 'Private PDF Page Extractor',
-		seoDescription: 'Extract selected pages or ranges from a PDF and download them as one local PDF file. Your document stays on this device.',
+		seoTitle: 'Free PDF Page Extractor — Extract Pages from PDF',
+		seoDescription: 'Extract selected pages or page ranges from a PDF online for free and download them as one PDF. Processing runs locally in your browser.',
+		guideCopy: 'Use page numbers and ranges to make a new PDF containing only the pages you need. For example, enter 1-3, 5 to include pages 1, 2, 3, and 5 in one output file. Selected pages are arranged numerically, and duplicate selections are removed. Choose an unlocked PDF that you are authorised to process; your document stays on your device.',
 		howTo: ['Choose a PDF file.', 'Enter pages or ranges such as 1-3, 5, 8-10.', 'Extract and download one PDF containing the selected pages.'],
 		faqs: [
 			{ question: 'Does extraction preserve the original order?', answer: 'Yes. Selected ranges are deduplicated and ordered numerically in the output PDF.' },
@@ -2009,8 +2010,9 @@ export const tools: ToolDefinition[] = [
 		name: 'PDF Splitter',
 		department: 'pdf',
 		description: 'Extract page ranges or split a PDF into individual pages.',
-		seoTitle: 'Private PDF Splitter',
-		seoDescription: 'Split a PDF into selected page ranges or individual pages and download the results in a ZIP. Your PDF never leaves your device.',
+		seoTitle: 'Free PDF Splitter — Split PDF Pages Online',
+		seoDescription: 'Split a PDF into selected page ranges or individual pages online for free. Download the extracted PDFs in a ZIP; processing stays in your browser.',
+		guideCopy: 'Choose how to divide your PDF: enter page ranges to create PDFs from selected sections, or split it into individual pages. The resulting PDF files are packaged together in a ZIP download. This tool runs locally in your browser and does not upload your document. Use an unlocked, valid PDF that you are authorised to process.',
 		howTo: ['Choose a PDF file.', 'Enter page ranges such as 1-3, 5, 8-10, or select individual pages.', 'Download a ZIP containing the extracted PDF files.'],
 		faqs: [
 			{ question: 'Can I split into single-page PDFs?', answer: 'Yes. Select Split into individual pages to create one PDF per page in the downloaded ZIP.' },
