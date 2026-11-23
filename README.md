@@ -5,7 +5,7 @@ A growing collection of small, browser-based tools built with Astro and React.
 ## Principles
 
 - Free to use, with no account required.
-- All tool processing runs in the browser; no paid services or processing servers.
+- Tool processing is designed to run in the browser; some tools load supporting resources from this site.
 - Every tool is a React component in `src/components/tools/` registered in `src/data/tools.ts`.
 - Keep the experience clean, mobile-first, and fast.
 - Do not add dependencies that require API keys or payment.
@@ -19,7 +19,7 @@ npm run dev
 
 ## Deploy on Cloudflare Pages
 
-This project builds as a static site and does not need a Cloudflare adapter.
+The Astro site builds as static files. The `functions/` middleware keeps the Pages hostname and `www` hostname redirected to the canonical custom domain.
 
 1. In the Cloudflare dashboard, open **Workers & Pages** and create a **Pages** application using **Connect to Git**.
 2. Connect the GitHub account `starmoreconsulting` and select `starmore-tools`.
@@ -30,6 +30,28 @@ This project builds as a static site and does not need a Cloudflare adapter.
    - Build output directory: `dist`
    - Node.js version: `22.23.4` or newer (the project requires Node `>=22.23.4`)
 4. Save and deploy. Cloudflare Pages will build future pushes to `main` automatically.
+5. Add `starmoretools.com` as a custom domain in Cloudflare Pages. The `functions/_middleware.js` redirect applies to `starmore-tools.pages.dev` and `www.starmoretools.com`.
+
+The canonical site URL is `https://starmoretools.com`. The generated sitemap and `robots.txt` use this domain.
+
+### AdSense setup
+
+AdSense requests are disabled unless all of these Cloudflare Pages environment variables are set for the production build:
+
+| Variable | Value |
+| --- | --- |
+| `PUBLIC_ADSENSE_READY` | Set to `true` only after the site is approved, a Google-certified CMP and applicable privacy messages are configured and published in AdSense, and the privacy/disclosure pages have been reviewed. |
+| `PUBLIC_ADSENSE_CLIENT_ID` | Your AdSense publisher ID, in the form `ca-pub-1234567890123456`. |
+| `PUBLIC_ADSENSE_SLOT_ID` | The responsive display ad unit ID created in AdSense. |
+| `PUBLIC_ADSENSE_CMP_CONFIGURED` | Set to `true` only after the AdSense Privacy & messaging CMP has been configured and published for the site. |
+
+The current integration uses one manually placed responsive display ad on the homepage, department pages, and tool pages. It also exposes a footer control to reopen Google’s privacy choices. Keep `PUBLIC_ADSENSE_READY=false` until the account, consent messages, and ad unit are ready. Obtain and publish the exact seller record supplied by AdSense as `/ads.txt`; do not invent or copy a sample publisher record.
+
+Google Search Console and Bing Webmaster Tools require access to their respective accounts. Verify the domain there and submit `https://starmoretools.com/sitemap.xml` after deployment.
+
+### Cloudflare Web Analytics setup
+
+The source integration is disabled by default. In Cloudflare Web Analytics, add the site using the manual JavaScript snippet and put its token in `PUBLIC_CF_ANALYTICS_TOKEN`; set `PUBLIC_CF_ANALYTICS_ENABLED=true` for the production build. Do not also enable Cloudflare Pages automatic injection, which would add a second beacon. Leave both variables disabled/empty for development and preview builds. Check the Cloudflare dashboard after deployment to confirm data is arriving.
 
 ## Project structure
 
@@ -41,10 +63,10 @@ src/
     [slug].astro                 # Static page generated for each tool
     logo-studio.astro            # Client-only React Logo Studio island
     departments/[dept].astro     # Static page generated for each department
-    about.astro                  # Placeholder about page
-    privacy.astro                # Placeholder privacy page
-    disclosure.astro             # Placeholder affiliate disclosure
-    contact.astro                # Placeholder contact page
+    about.astro                  # About and operator information
+    privacy.astro                # Privacy and advertising consent information
+    disclosure.astro             # Advertising and affiliate disclosure
+    contact.astro                # Contact information
   components/
     ToolLayout.astro             # Shared site frame and global styles
     Recommended.astro            # Optional affiliate recommendation card

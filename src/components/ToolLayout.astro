@@ -5,12 +5,42 @@ interface Props {
 	title: string;
 	description: string;
 	robots?: string;
+	canonical?: boolean;
+	ads?: boolean;
 	editorMode?: boolean;
 }
 
-const { title, description, robots, editorMode = false } = Astro.props;
+const { title, description, robots, canonical = true, ads = false, editorMode = false } = Astro.props;
 const previewBuild = import.meta.env.PUBLIC_SHOW_HIDDEN === 'true';
 const robotsContent = previewBuild ? 'noindex' : robots;
+const canonicalUrl = canonical && Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const pageTitle = `${title} — Starmore Tools`;
+const adsenseReady = ads && import.meta.env.PROD && import.meta.env.PUBLIC_ADSENSE_READY === 'true';
+const adsenseClientId = import.meta.env.PUBLIC_ADSENSE_CLIENT_ID ?? '';
+const adsenseCmpConfigured = import.meta.env.PUBLIC_ADSENSE_CMP_CONFIGURED === 'true';
+const cloudflareAnalyticsEnabled = import.meta.env.PROD && import.meta.env.PUBLIC_CF_ANALYTICS_ENABLED === 'true';
+const cloudflareAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN ?? '';
+
+if (adsenseReady && (!/^ca-pub-\d+$/.test(adsenseClientId) || !adsenseCmpConfigured)) {
+	throw new Error('AdSense is enabled without a valid publisher ID and confirmed Google-certified CMP configuration.');
+}
+
+if (cloudflareAnalyticsEnabled && !/^[a-zA-Z0-9_-]{16,128}$/.test(cloudflareAnalyticsToken)) {
+	throw new Error('Cloudflare Web Analytics is enabled but PUBLIC_CF_ANALYTICS_TOKEN is missing or invalid.');
+}
+
+const pageSchema = canonicalUrl ? JSON.stringify({
+	'@context': 'https://schema.org',
+	'@type': 'WebPage',
+	name: pageTitle,
+	description,
+	url: canonicalUrl,
+	isPartOf: {
+		'@type': 'WebSite',
+		name: 'Starmore Tools',
+		url: Astro.site?.href,
+	},
+}).replaceAll('<', '\\u003c') : undefined;
 ---
 
 <!doctype html>
@@ -22,6 +52,46 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		{robotsContent && <meta name="robots" content={robotsContent} />}
+		{canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Starmore Tools" />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		{canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+		<meta name="twitter:card" content="summary" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={description} />
+		{pageSchema && <script type="application/ld+json" set:html={pageSchema} />}
+		{cloudflareAnalyticsEnabled && (
+			<script
+				is:inline
+				defer
+				src="https://static.cloudflareinsights.com/beacon.min.js"
+				data-cf-beacon={JSON.stringify({ token: cloudflareAnalyticsToken })}
+			></script>
+		)}
+		{adsenseReady && (
+			<>
+				<script is:inline async src={`https://fundingchoicesmessages.google.com/i/pub-${adsenseClientId.replace('ca-pub-', '')}?ers=1`}></script>
+				<script is:inline>
+					(() => {
+						const signalGooglefcPresent = () => {
+							if (window.frames['googlefcPresent']) return;
+							if (!document.body) {
+								setTimeout(signalGooglefcPresent, 0);
+								return;
+							}
+							const iframe = document.createElement('iframe');
+							iframe.style.cssText = 'width:0;height:0;border:none;z-index:-1000;left:-1000px;top:-1000px;display:none';
+							iframe.name = 'googlefcPresent';
+							document.body.appendChild(iframe);
+						};
+						signalGooglefcPresent();
+					})();
+				</script>
+				<script is:inline async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`} crossorigin="anonymous"></script>
+			</>
+		)}
 		<meta name="theme-color" content="#07090c" />
 		<script is:inline>
 			(() => {
@@ -34,7 +104,7 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 				document.documentElement.dataset.theme = theme;
 			})();
 		</script>
-		<title>{title} — Starmore Tools</title>
+		<title>{pageTitle}</title>
 	</head>
 	<body>
 		<div class:list={['site-shell', { 'editor-shell': editorMode }]}>
@@ -70,11 +140,36 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 					<a href="/disclosure/">Disclosure</a>
 					<a href="/contact/">Contact</a>
 				</nav>
+				{adsenseReady && (
+					<div class="privacy-controls">
+						<button id="privacy-choices" type="button">Privacy choices</button>
+						<span id="privacy-choices-status" role="status" aria-live="polite"></span>
+					</div>
+				)}
 				<span class="footer-year">© {new Date().getFullYear()} Starmore Tools</span>
 			</footer>
 		</div>
 		<script is:inline>
 			(() => {
+				const privacyChoices = document.getElementById('privacy-choices');
+				const privacyChoicesStatus = document.getElementById('privacy-choices-status');
+				privacyChoices?.addEventListener('click', () => {
+					const googlefc = window.googlefc = window.googlefc || {};
+					googlefc.callbackQueue = googlefc.callbackQueue || [];
+					let opened = false;
+					googlefc.callbackQueue.push({
+						CONSENT_API_READY: () => {
+							opened = true;
+							if (privacyChoicesStatus) privacyChoicesStatus.textContent = '';
+							googlefc.showRevocationMessage();
+						},
+					});
+					window.setTimeout(() => {
+						if (!opened && privacyChoicesStatus) {
+							privacyChoicesStatus.textContent = 'Privacy choices are unavailable. Check your connection or content blocker and try again.';
+						}
+					}, 5000);
+				});
 				const button = document.getElementById('theme-toggle');
 				if (!button) return;
 				const update = (theme) => {
@@ -145,6 +240,11 @@ const robotsContent = previewBuild ? 'noindex' : robots;
 	.footer-pages { display: flex; flex-wrap: wrap; gap: 15px; }
 	.footer-pages a { color: #666f67; font-size: 10px; }
 	.footer-pages a:hover { color: var(--green); }
+	.privacy-controls { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+	.privacy-controls button { padding: 0; border: 0; background: none; color: #666f67; cursor: pointer; font-size: 10px; text-decoration: underline; text-underline-offset: 3px; }
+	.privacy-controls button:hover { color: var(--green); }
+	.privacy-controls [role="status"]:empty { display: none; }
+	.privacy-controls [role="status"] { max-width: 220px; color: #9a3d32; font-size: 10px; }
 	.footer-year { font-family: var(--mono); font-size: 10px; }
 	.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 	.preview-banner { margin-top: 10px; padding: 9px 12px; border: 1px solid #d5c996; border-radius: 6px; background: #fff7d7; color: #594b1b; font-size: 12px; font-weight: 700; text-align: center; }

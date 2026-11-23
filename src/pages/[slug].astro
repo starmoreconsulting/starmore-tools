@@ -1,5 +1,6 @@
 ---
 import ToolLayout from '../components/ToolLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
 import SpecialCharactersNote from '../components/brand-studio/SpecialCharactersNote.astro';
 import Recommended from '../components/Recommended.astro';
 import AgeCalculator from '../components/tools/AgeCalculator';
@@ -167,7 +168,7 @@ const departmentName = departments.find((department) => department.slug === tool
 const isVisualEditor = tool.component === 'LogoStudioApp';
 ---
 
-<ToolLayout title={tool.seoTitle} description={tool.seoDescription} editorMode={isVisualEditor}>
+<ToolLayout title={tool.seoTitle} description={tool.seoDescription} ads={!isVisualEditor} editorMode={isVisualEditor}>
 	<section class:list={['tool-page', { 'brand-editor-page': isVisualEditor }]}>
 		{!isVisualEditor && <a class="back-link" href="/#tool-library">← All tools</a>}
 		{!isVisualEditor && <header class="tool-page-header">
@@ -329,6 +330,7 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'BrandTypographyTool' && <BrandTypographyTool client:load />}
 			{tool.component === 'BrandFontLoadCheck' && <BrandFontLoadCheck client:load />}
 		</div>
+		{!isVisualEditor && <AdSlot />}
 		{!isVisualEditor && <section class="tool-guide" aria-labelledby="how-to-use">
 			{tool.limitations && <p class="inline-note">{tool.limitations}</p>}
 			{tool.privacyNote && <p class="privacy-note">{tool.privacyNote}</p>}

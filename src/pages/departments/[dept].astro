@@ -1,5 +1,6 @@
 ---
 import ToolLayout from '../../components/ToolLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
 import { getPublishedDepartments, getPublishedToolHref, publishedTools } from '../../data/tools';
 
 export function getStaticPaths() {
@@ -17,7 +18,7 @@ const brandStudioGroups = [
 ].filter((group) => group.tools.length > 0);
 ---
 
-<ToolLayout title={`${department.name} tools`} description={department.description}>
+<ToolLayout title={`${department.name} tools`} description={department.description} ads={true}>
 	<section class="department-page">
 		<header class="page-intro">
 			<a class="back-link" href="/#tool-library">← All tools</a>
@@ -25,6 +26,7 @@ const brandStudioGroups = [
 			<h1>{department.name} tools</h1>
 			<p>{department.description}</p>
 		</header>
+		<AdSlot />
 		{department.slug === 'brand-studio'
 			? <div class="department-groups">
 				{brandStudioGroups.map((group) => (

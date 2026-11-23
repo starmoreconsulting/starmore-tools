@@ -2,11 +2,25 @@
 import ToolLayout from '../components/ToolLayout.astro';
 ---
 
-<ToolLayout title="Affiliate Disclosure" description="Affiliate disclosure for Starmore Tools.">
-	<section class="page-intro">
+<ToolLayout title="Advertising and Affiliate Disclosure" description="Learn how advertising, affiliate links, and other commercial relationships may support Starmore Tools.">
+	<article class="policy-page">
 		<a class="back-link" href="/">← Home</a>
 		<p class="eyebrow">DISCLOSURE</p>
-		<h1>Affiliate Disclosure</h1>
-		<p>[PLACEHOLDER: Add your affiliate and advertising disclosure here.]</p>
-	</section>
+		<h1>Advertising and Affiliate Disclosure</h1>
+		<p>Starmore Tools may use advertising or affiliate links to help support the development and hosting of free tools.</p>
+		<h2>Advertising</h2>
+		<p>AdSense placements are disabled by default in the site configuration. If enabled, ads will be identified as advertisements and may be selected or personalized by Google and its advertising partners. Advertisers do not control the results produced by our tools.</p>
+		<h2>Affiliate links and sponsorships</h2>
+		<p>If we add an affiliate link or sponsored recommendation, we will identify the commercial relationship near the relevant link or content. We do not currently promise, recommend, or endorse a product solely because it may generate a commission.</p>
+		<h2>Editorial independence</h2>
+		<p>Commercial relationships do not change how a tool calculates, converts, edits, or generates its result. We aim to keep tools useful and clearly distinguish them from paid placements.</p>
+	</article>
 </ToolLayout>
+
+<style>
+	.policy-page { max-width: 820px; margin: 0 auto; padding: 48px 25px 72px; color: var(--ink); }
+	.policy-page h1 { margin: 0 0 18px; font-family: Manrope, sans-serif; font-size: clamp(36px, 6vw, 56px); letter-spacing: -.05em; }
+	.policy-page h2 { margin: 30px 0 10px; font-size: 19px; }
+	.policy-page p { color: var(--muted); font-size: 14px; line-height: 1.8; }
+	.policy-page a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+</style>

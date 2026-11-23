@@ -1,19 +1,21 @@
 ---
 import ToolLayout from '../components/ToolLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
 import { departments, getPublishedDepartmentHref, getPublishedDepartments, getPublishedToolHref, publishedTools } from '../data/tools';
 const visibleDepartments = getPublishedDepartments();
 ---
 
 <ToolLayout
 	title="Small tools. Big momentum."
-	description="A growing collection of free, thoughtful tools for everyday work."
+	description="Use free online calculators, developer tools, image editors, PDF utilities, and everyday text tools. No account required."
+	ads={true}
 >
 	<section class="hero">
 		<div class="hero-copy">
 			<p class="eyebrow"><span class="eyebrow-dot"></span> YOUR EVERYDAY TOOLKIT</p>
 			<h1>Small tools.<br /><span>Big momentum.</span></h1>
 			<p class="hero-description">
-				Useful little helpers for the work in between. Free to use, easy to love, and right here when you need them.
+				Calculate, create, convert, and get everyday work done with free online tools. No account required.
 			</p>
 			<a class="hero-link" href="#tool-library">Explore the toolkit <span aria-hidden="true">↓</span></a>
 		</div>
@@ -33,6 +35,8 @@ const visibleDepartments = getPublishedDepartments();
 		</div>
 		<div class="hero-footnote"><span>01</span> A growing collection, made for real life.</div>
 	</section>
+
+	<AdSlot />
 
 	<section class="library" id="tool-library">
 		<div class="library-heading">

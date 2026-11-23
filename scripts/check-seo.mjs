@@ -82,14 +82,17 @@ for (const file of files) {
 	const title = html.match(/<title\b[^>]*>([\s\S]*?)<\/title\s*>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() ?? '';
 	const descriptionTag = html.match(/<meta\b[^>]*>/gi)?.find((tag) => attribute(tag, 'name').toLowerCase() === 'description');
 	const description = descriptionTag ? attribute(descriptionTag, 'content').trim() : '';
+	const canonicalTag = html.match(/<link\b[^>]*>/gi)?.find((tag) => attribute(tag, 'rel').toLowerCase() === 'canonical');
+	const canonical = canonicalTag ? attribute(canonicalTag, 'href').trim() : '';
 	const robotsTag = html.match(/<meta\b[^>]*>/gi)?.find((tag) => attribute(tag, 'name').toLowerCase() === 'robots');
 	const noindex = Boolean(robotsTag && /\bnoindex\b/i.test(attribute(robotsTag, 'content')));
 	const url = pageUrl(file);
-	pages.push({ file, url, title, description, noindex });
+	pages.push({ file, url, title, description, canonical, noindex });
 
 	if (!title) failures.push(`${url}: missing <title>.`);
 	if (!description) failures.push(`${url}: missing meta description.`);
 	if (description.length > 160) failures.push(`${url}: meta description is ${description.length} characters (maximum 160).`);
+	if (!noindex && canonical !== url) failures.push(`${url}: canonical URL is missing or does not match the primary site URL.`);
 }
 
 const titles = new Map();
@@ -142,6 +145,16 @@ if (!previewBuild) {
 	}
 
 	const siteOrigin = new URL(site).origin;
+	for (const url of sitemapUrls) {
+		if (new URL(url).origin !== siteOrigin) failures.push(`Sitemap URL uses a non-primary domain: ${url}.`);
+	}
+
+	const robotsPath = path.join(projectRoot, 'public', 'robots.txt');
+	const robots = await readFile(robotsPath, 'utf8');
+	if (!robots.includes(`Sitemap: ${new URL('/sitemap.xml', site).href}`)) {
+		failures.push(`robots.txt must reference ${new URL('/sitemap.xml', site).href}.`);
+	}
+
 	for (const page of pages) {
 		const html = await readFile(page.file, 'utf8');
 		const anchors = [...html.matchAll(/<a\b[^>]*>/gi)].map((match) => match[0]);

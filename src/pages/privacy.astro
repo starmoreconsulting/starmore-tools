@@ -2,11 +2,42 @@
 import ToolLayout from '../components/ToolLayout.astro';
 ---
 
-<ToolLayout title="Privacy Policy" description="Privacy information for Starmore Tools.">
-	<section class="page-intro">
+<ToolLayout title="Privacy Policy" description="Learn what information Starmore Tools handles, how browser-based tools work, and how to manage advertising privacy choices.">
+	<article class="policy-page">
 		<a class="back-link" href="/">← Home</a>
 		<p class="eyebrow">PRIVACY</p>
 		<h1>Privacy Policy</h1>
-		<p>[PLACEHOLDER: Add your privacy policy here.]</p>
-	</section>
+		<p class="policy-updated">Last updated: November 23, 2026</p>
+		<p>Starmore Tools is operated by Starmore Media and Consultancy Limited. This notice explains how information may be handled when you visit the site and use its tools.</p>
+
+		<h2>Information handled by the site</h2>
+		<ul>
+			<li><strong>Tool inputs:</strong> Most tools are designed to process your text, files, and calculations in your browser. Some tools download supporting resources, such as models, from this website. Follow the privacy note shown with a tool; do not use a tool for sensitive material unless you are comfortable with its stated behavior.</li>
+			<li><strong>Site preference:</strong> The light/dark theme preference is stored in your browser’s local storage so it can be remembered on your next visit.</li>
+			<li><strong>Hosting and security:</strong> The hosting provider may process technical request information, such as your IP address, browser details, requested pages, and request time, to deliver and protect the website. Its processing is subject to the provider’s terms and privacy notice.</li>
+		</ul>
+
+		<h2>Advertising and consent</h2>
+		<p>AdSense integration is disabled by default in the site configuration. If advertising is enabled, Google and its advertising partners may use cookies or similar technologies and process information to deliver, measure, and, depending on your settings and consent, personalize ads. Where configured, Google’s certified consent message provides choices for applicable regions. You can reopen that message using “Privacy choices” in the site footer.</p>
+		<p>Learn more in <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">Google’s advertising and privacy information</a> and <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google’s Privacy Policy</a>.</p>
+
+		<h2>Analytics and third-party services</h2>
+		<p>Cloudflare Web Analytics is disabled by default and only loads in a production build when explicitly enabled with a site token. If enabled, its beacon sends website usage and performance measurements to Cloudflare for the site dashboard; it is not used to send tool inputs. See <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Cloudflare’s Privacy Policy</a> for information about its processing. Some tools also load resources hosted by this website. External links, including links to WhatsApp or Google, are governed by the policies of those services when you visit them.</p>
+
+		<h2>Your choices and questions</h2>
+		<p>You can clear or block local storage and cookies through your browser settings; doing so may affect site preferences or features. To ask a privacy question, contact Starmore Tools through <a href="https://wa.me/2348178136167" target="_blank" rel="noopener noreferrer">WhatsApp</a>.</p>
+
+		<h2>Changes to this notice</h2>
+		<p>This notice may be updated when site features, advertising, analytics, or legal requirements change. Check this page for the current version.</p>
+	</article>
 </ToolLayout>
+
+<style>
+	.policy-page { max-width: 820px; margin: 0 auto; padding: 48px 25px 72px; color: var(--ink); }
+	.policy-page h1 { margin: 0 0 10px; font-family: Manrope, sans-serif; font-size: clamp(36px, 6vw, 56px); letter-spacing: -.05em; }
+	.policy-page h2 { margin: 30px 0 10px; font-size: 19px; }
+	.policy-page p, .policy-page li { color: var(--muted); font-size: 14px; line-height: 1.8; }
+	.policy-page li { margin: 0 0 8px; }
+	.policy-page a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+	.policy-updated { margin-top: 0; font-size: 12px !important; }
+</style>
