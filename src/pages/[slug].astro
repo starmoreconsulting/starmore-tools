@@ -90,6 +90,8 @@ import ImageColourPicker from '../components/tools/ImageColourPicker';
 import ColourPaletteExtractor from '../components/tools/ColourPaletteExtractor';
 import FaviconGenerator from '../components/tools/FaviconGenerator';
 import SocialMediaImageResizer from '../components/tools/SocialMediaImageResizer';
+import SocialMediaPostDesigner from '../components/tools/SocialMediaPostDesigner';
+import SocialMediaImageSizeGuide from '../components/tools/SocialMediaImageSizeGuide';
 import ImageWatermarkGenerator from '../components/tools/ImageWatermarkGenerator';
 import BackgroundRemover from '../components/tools/BackgroundRemover';
 import BackgroundChanger from '../components/tools/BackgroundChanger';
@@ -154,6 +156,43 @@ import BrandStrategyGenerator from '../engines/brand-studio/panels/BrandStrategy
 import BrandColourPaletteGenerator from '../engines/brand-studio/panels/BrandColourPaletteGenerator';
 import BrandTypographyTool from '../engines/brand-studio/panels/BrandTypographyTool';
 import BrandFontLoadCheck from '../engines/brand-studio/panels/BrandFontLoadCheck';
+import BorderRadiusGenerator from '../components/tools/BorderRadiusGenerator';
+import ButtonGenerator from '../components/tools/ButtonGenerator';
+import ColourCodeConverter from '../components/tools/ColourCodeConverter';
+import HtmlColourPicker from '../components/tools/HtmlColourPicker';
+import MetaTagGenerator from '../components/tools/MetaTagGenerator';
+import RobotsTxtGenerator from '../components/tools/RobotsTxtGenerator';
+import XmlSitemapGenerator from '../components/tools/XmlSitemapGenerator';
+import OpenGraphPreviewGenerator from '../components/tools/OpenGraphPreviewGenerator';
+import CaptionGenerator from '../components/tools/CaptionGenerator';
+import HashtagGenerator from '../components/tools/HashtagGenerator';
+import ContentIdeaGenerator from '../components/tools/ContentIdeaGenerator';
+import ContentCalendarGenerator from '../components/tools/ContentCalendarGenerator';
+import YoutubeTitleGenerator from '../components/tools/YoutubeTitleGenerator';
+import YoutubeDescriptionGenerator from '../components/tools/YoutubeDescriptionGenerator';
+import VideoScriptGenerator from '../components/tools/VideoScriptGenerator';
+import VideoAspectRatioConverter from '../components/tools/VideoAspectRatioConverter';
+import BioGenerator from '../components/tools/BioGenerator';
+import LinkInBioCreator from '../components/tools/LinkInBioCreator';
+import BlogTitleGenerator from '../components/tools/BlogTitleGenerator';
+import BlogOutlineGenerator from '../components/tools/BlogOutlineGenerator';
+import CallToActionGenerator from '../components/tools/CallToActionGenerator';
+import AdvertisementCopyGenerator from '../components/tools/AdvertisementCopyGenerator';
+import VolumetricWeightCalculator from '../components/tools/VolumetricWeightCalculator';
+import ActualWeightCalculator from '../components/tools/ActualWeightCalculator';
+import ChargeableWeightCalculator from '../components/tools/ChargeableWeightCalculator';
+import CbmCalculator from '../components/tools/CbmCalculator';
+import ShippingCostCalculator from '../components/tools/ShippingCostCalculator';
+import ChinaNigeriaShippingCostCalculator from '../components/tools/ChinaNigeriaShippingCostCalculator';
+import ImportCostCalculator from '../components/tools/ImportCostCalculator';
+import LandedCostCalculator from '../components/tools/LandedCostCalculator';
+import ProductPricingCalculator from '../components/tools/ProductPricingCalculator';
+import EcommerceProfitCalculator from '../components/tools/EcommerceProfitCalculator';
+import WholesalePricingCalculator from '../components/tools/WholesalePricingCalculator';
+import PackagingSizeCalculator from '../components/tools/PackagingSizeCalculator';
+import BulkOrderCalculator from '../components/tools/BulkOrderCalculator';
+import InventoryTracker from '../components/tools/InventoryTracker';
+import ProductComparisonCalculator from '../components/tools/ProductComparisonCalculator';
 import { departments, publishedTools } from '../data/tools';
 
 export function getStaticPaths() {
@@ -305,6 +344,8 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'ColourPaletteExtractor' && <ColourPaletteExtractor client:load />}
 			{tool.component === 'FaviconGenerator' && <FaviconGenerator client:load />}
 			{tool.component === 'SocialMediaImageResizer' && <SocialMediaImageResizer client:load />}
+			{tool.component === 'SocialMediaPostDesigner' && <SocialMediaPostDesigner client:load />}
+			{tool.component === 'SocialMediaImageSizeGuide' && <SocialMediaImageSizeGuide client:load />}
 			{tool.component === 'ImageWatermarkGenerator' && <ImageWatermarkGenerator client:load />}
 			{tool.component === 'BackgroundRemover' && <BackgroundRemover client:load />}
 			{tool.component === 'BackgroundChanger' && <BackgroundChanger client:load />}
@@ -329,6 +370,43 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'BrandColourPaletteGenerator' && <BrandColourPaletteGenerator client:load />}
 			{tool.component === 'BrandTypographyTool' && <BrandTypographyTool client:load />}
 			{tool.component === 'BrandFontLoadCheck' && <BrandFontLoadCheck client:load />}
+			{tool.component === 'BorderRadiusGenerator' && <BorderRadiusGenerator client:load />}
+			{tool.component === 'ButtonGenerator' && <ButtonGenerator client:load />}
+			{tool.component === 'ColourCodeConverter' && <ColourCodeConverter client:load />}
+			{tool.component === 'HtmlColourPicker' && <HtmlColourPicker client:load />}
+			{tool.component === 'MetaTagGenerator' && <MetaTagGenerator client:load />}
+			{tool.component === 'RobotsTxtGenerator' && <RobotsTxtGenerator client:load />}
+			{tool.component === 'XmlSitemapGenerator' && <XmlSitemapGenerator client:load />}
+			{tool.component === 'OpenGraphPreviewGenerator' && <OpenGraphPreviewGenerator client:load />}
+			{tool.component === 'CaptionGenerator' && <CaptionGenerator client:load />}
+			{tool.component === 'HashtagGenerator' && <HashtagGenerator client:load />}
+			{tool.component === 'ContentIdeaGenerator' && <ContentIdeaGenerator client:load />}
+			{tool.component === 'ContentCalendarGenerator' && <ContentCalendarGenerator client:load />}
+			{tool.component === 'YoutubeTitleGenerator' && <YoutubeTitleGenerator client:load />}
+			{tool.component === 'YoutubeDescriptionGenerator' && <YoutubeDescriptionGenerator client:load />}
+			{tool.component === 'VideoScriptGenerator' && <VideoScriptGenerator client:load />}
+			{tool.component === 'VideoAspectRatioConverter' && <VideoAspectRatioConverter client:load />}
+			{tool.component === 'BioGenerator' && <BioGenerator client:load />}
+			{tool.component === 'LinkInBioCreator' && <LinkInBioCreator client:load />}
+			{tool.component === 'BlogTitleGenerator' && <BlogTitleGenerator client:load />}
+			{tool.component === 'BlogOutlineGenerator' && <BlogOutlineGenerator client:load />}
+			{tool.component === 'CallToActionGenerator' && <CallToActionGenerator client:load />}
+			{tool.component === 'AdvertisementCopyGenerator' && <AdvertisementCopyGenerator client:load />}
+			{tool.component === 'VolumetricWeightCalculator' && <VolumetricWeightCalculator client:load />}
+			{tool.component === 'ActualWeightCalculator' && <ActualWeightCalculator client:load />}
+			{tool.component === 'ChargeableWeightCalculator' && <ChargeableWeightCalculator client:load />}
+			{tool.component === 'CbmCalculator' && <CbmCalculator client:load />}
+			{tool.component === 'ShippingCostCalculator' && <ShippingCostCalculator client:load />}
+			{tool.component === 'ChinaNigeriaShippingCostCalculator' && <ChinaNigeriaShippingCostCalculator client:load />}
+			{tool.component === 'ImportCostCalculator' && <ImportCostCalculator client:load />}
+			{tool.component === 'LandedCostCalculator' && <LandedCostCalculator client:load />}
+			{tool.component === 'ProductPricingCalculator' && <ProductPricingCalculator client:load />}
+			{tool.component === 'EcommerceProfitCalculator' && <EcommerceProfitCalculator client:load />}
+			{tool.component === 'WholesalePricingCalculator' && <WholesalePricingCalculator client:load />}
+			{tool.component === 'PackagingSizeCalculator' && <PackagingSizeCalculator client:load />}
+			{tool.component === 'BulkOrderCalculator' && <BulkOrderCalculator client:load />}
+			{tool.component === 'InventoryTracker' && <InventoryTracker client:load />}
+			{tool.component === 'ProductComparisonCalculator' && <ProductComparisonCalculator client:load />}
 		</div>
 		{!isVisualEditor && <AdSlot />}
 		{!isVisualEditor && <section class="tool-guide" aria-labelledby="how-to-use">

@@ -1,5 +1,12 @@
-import { useState } from 'react';
-import { CURRENCY_RATES, CURRENCY_RATE_DATE, convertCurrency } from '../../engines/calculators/currency-converter';
+import { useEffect, useState } from 'react';
+import {
+	CURRENCY_CODES,
+	CURRENCY_RATE_SOURCE,
+	CURRENCY_RATE_SOURCE_URL,
+	convertCurrency,
+	fetchLatestCurrencyRates,
+	type CurrencyRates,
+} from '../../engines/calculators/currency-converter';
 import { formatAmount, readFiniteNumber } from '../../engines/calculator-format';
 
 const currencyNames: Record<string, string> = {
@@ -12,13 +19,43 @@ export default function CurrencyConverter() {
 	const [amount, setAmount] = useState('');
 	const [from, setFrom] = useState('USD');
 	const [to, setTo] = useState('NGN');
+	const [rates, setRates] = useState<CurrencyRates | null>(null);
+	const [rateDate, setRateDate] = useState('');
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState('');
+
+	async function refreshRates(signal?: AbortSignal) {
+		setLoading(true);
+		setRates(null);
+		setRateDate('');
+		setError('');
+		try {
+			const latest = await fetchLatestCurrencyRates(fetch, signal);
+			setRates(latest.rates);
+			setRateDate(latest.date);
+		} catch (cause) {
+			if (cause instanceof DOMException && cause.name === 'AbortError') return;
+			setError(cause instanceof Error ? cause.message : 'Could not load current reference rates.');
+		} finally {
+			if (!signal?.aborted) setLoading(false);
+		}
+	}
+
+	useEffect(() => {
+		const controller = new AbortController();
+		void refreshRates(controller.signal);
+		return () => controller.abort();
+	}, []);
+
 	const amountValue = readFiniteNumber(amount);
 	const complete = amount.trim() !== '';
 	const valid = complete && amountValue !== null && amountValue >= 0;
 	let result: number | null = null;
-	let error = '';
-	if (valid) {
-		try { result = convertCurrency(amountValue!, from, to); } catch (cause) { error = cause instanceof Error ? cause.message : 'Unable to convert this amount.'; }
+	let conversionError = '';
+	if (valid && rates) {
+		try { result = convertCurrency(amountValue, from, to, rates); } catch (cause) {
+			conversionError = cause instanceof Error ? cause.message : 'Unable to convert this amount.';
+		}
 	}
 
 	return (
@@ -31,13 +68,13 @@ export default function CurrencyConverter() {
 				<div className="calc-field">
 					<label htmlFor="currency-from">From</label>
 					<select id="currency-from" value={from} onChange={(event) => setFrom(event.target.value)}>
-						{Object.keys(CURRENCY_RATES).map((code) => <option key={code} value={code}>{code} — {currencyNames[code]}</option>)}
+						{CURRENCY_CODES.map((code) => <option key={code} value={code}>{code} — {currencyNames[code]}</option>)}
 					</select>
 				</div>
 				<div className="calc-field">
 					<label htmlFor="currency-to">To</label>
 					<select id="currency-to" value={to} onChange={(event) => setTo(event.target.value)}>
-						{Object.keys(CURRENCY_RATES).map((code) => <option key={code} value={code}>{code} — {currencyNames[code]}</option>)}
+						{CURRENCY_CODES.map((code) => <option key={code} value={code}>{code} — {currencyNames[code]}</option>)}
 					</select>
 				</div>
 			</div>
@@ -48,12 +85,18 @@ export default function CurrencyConverter() {
 				</div>
 				<div className="calc-result">
 					<span className="calc-label">REFERENCE RATE</span>
-					<strong>{result === null ? '—' : `1 ${from} = ${formatAmount(convertCurrency(1, from, to))} ${to}`}</strong>
+					<strong>{result === null || !rates ? '—' : `1 ${from} = ${formatAmount(convertCurrency(1, from, to, rates))} ${to}`}</strong>
 				</div>
 			</div>
-			<p className={`tool-message${complete && (!valid || error) ? ' error' : ''}`} role="status">
-				{error || (complete && !valid ? 'Enter a valid non-negative amount.' : result !== null ? `Reference conversion using bundled rates dated ${CURRENCY_RATE_DATE}. Rates are estimates, not live market quotations.` : 'Enter an amount and choose two currencies.')}
+			<div className="tool-actions">
+				<button className="tool-button secondary" type="button" onClick={() => void refreshRates()} disabled={loading}>
+					{loading ? 'Updating rates…' : 'Refresh rates'}
+				</button>
+			</div>
+			<p className={`tool-message${error || conversionError || (complete && !valid) ? ' error' : ''}`} role="status">
+				{error || conversionError || (complete && !valid ? 'Enter a valid non-negative amount.' : loading ? 'Loading the latest available reference rates…' : rates ? `Rates dated ${rateDate}. These are reference rates, not live trade quotes. Verify exchange rates, fees, and settlement terms with your bank or payment provider before a transaction.` : 'Current rates are unavailable. Retry when you have an internet connection.')}
 			</p>
+			<p className="privacy-note">To retrieve the rates, this tool requests currency codes (not your amount) from <a href={CURRENCY_RATE_SOURCE_URL} target="_blank" rel="noopener noreferrer">Frankfurter</a>, a free public service. The conversion amount is calculated in your browser. {CURRENCY_RATE_SOURCE}.</p>
 		</div>
 	);
 }

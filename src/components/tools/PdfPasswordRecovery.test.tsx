@@ -12,13 +12,14 @@ beforeEach(()=>{container=document.createElement('div');document.body.append(con
 afterEach(()=>{act(()=>root.unmount());container.remove();});
 
 describe('PdfPasswordRecovery',()=>{
-	it('renders recovery controls and explanatory status',()=>{
+	it('renders authorized, remembered-entry recovery controls and safety limits',()=>{
 		expect(container.querySelector('#pdf-recovery-file')).not.toBeNull();
-		expect(container.querySelector('#pdf-recovery-mode')).not.toBeNull();
-		expect(container.querySelector('#pdf-recovery-dictionary')).not.toBeNull();
+		expect(container.querySelector('#pdf-recovery-password')).not.toBeNull();
+		expect(container.textContent).toContain('Try simple case and spacing variations');
+		expect(container.textContent).toContain('no number or word guessing');
+		expect(container.textContent).toContain('250 attempts per run');
 		expect(container.querySelector<HTMLButtonElement>('button')?.disabled).toBe(true);
-		expect(container.querySelector('[role="status"]')?.textContent).toContain('authorised');
-		expect(container.textContent).toContain('Passwords you remember');
-		expect(container.textContent).toContain('cannot guarantee recovery');
+		expect(container.querySelector('[role="status"]')?.textContent).toContain('authorized');
+		expect(container.textContent).toContain('do not paste downloaded wordlists');
 	});
 });

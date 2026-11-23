@@ -1,57 +1,99 @@
 import { useState } from 'react';
-import { triggerDownload } from '../../engines/pdf';
-import { normalizeRecoveryCandidates, recoverPdfPassword, type PdfCandidateMode } from '../../engines/pdf-password-recovery';
+import {
+	generateRecoveryCandidates,
+	MAX_PASSWORD_ATTEMPTS,
+	MAX_REMEMBERED_PASSWORDS,
+	recoverPdfWithCandidates,
+} from '../../engines/pdf-password-recovery';
 
 export default function PdfPasswordRecovery() {
 	const [file, setFile] = useState<File | null>(null);
-	const [dictionary, setDictionary] = useState('');
-	const [clues, setClues] = useState('');
-	const [mode, setMode] = useState<PdfCandidateMode>('dictionary');
-	const [minimumLength, setMinimumLength] = useState(1);
-	const [maximumLength, setMaximumLength] = useState(4);
+	const [password, setPassword] = useState('');
+	const [rememberedPasswords, setRememberedPasswords] = useState<string[]>([]);
+	const [includeVariants, setIncludeVariants] = useState(true);
 	const [busy, setBusy] = useState(false);
-	const [progress, setProgress] = useState('Choose a PDF you own or are authorised to recover, then enter passwords you remember.');
+	const [message, setMessage] = useState('');
 
-	const startRecovery = async () => {
-		if (!file) { setProgress('Choose an encrypted PDF before continuing.'); return; }
+	function addRememberedPassword() {
+		if (!password || rememberedPasswords.length >= MAX_REMEMBERED_PASSWORDS) return;
+		setRememberedPasswords((current) => [...current, password]);
+		setPassword('');
+		setMessage('');
+	}
+
+	async function recover() {
+		if (!file || rememberedPasswords.length === 0) return;
 		setBusy(true);
 		try {
+			const candidates = generateRecoveryCandidates(rememberedPasswords, includeVariants);
 			const bytes = new Uint8Array(await file.arrayBuffer());
-			const candidates = normalizeRecoveryCandidates(dictionary, {
-				mode,
-				clues: clues.split(/[,\n]/).map((value) => value.trim()).filter(Boolean),
-				minimumLength: Math.max(1, Math.min(6, minimumLength)),
-				maximumLength: Math.max(1, Math.min(6, maximumLength)),
-				limit: mode === 'dictionary' ? 20000 : 25000,
-			});
-			if (!candidates.length) { setProgress('Enter passwords you remember or choose a bounded candidate mode.'); return; }
-			setProgress(`Testing ${candidates.length.toLocaleString()} local candidates…`);
-			const result = await recoverPdfPassword(bytes, candidates, (current, total) => {
-				setProgress(`Testing candidate ${current.toLocaleString()} of ${total.toLocaleString()}…`);
+			const result = await recoverPdfWithCandidates(bytes, candidates, (current, total) => {
+				setMessage(`Checking remembered passwords and selected variations: ${current} of ${total} attempts…`);
 			});
 			if (!result) {
-				setProgress(`No matching password was found among ${candidates.length.toLocaleString()} candidates. This does not prove that the password is unrecoverable.`);
+				setMessage('None of those remembered passwords or selected variations unlocked the PDF. Check your password manager, backups, or ask the document creator for an authorized copy.');
 				return;
 			}
-			triggerDownload(new Blob([result.decrypted], { type: 'application/pdf' }), file.name.replace(/\.pdf$/i, '') + '-recovered.pdf');
-			setProgress(`Recovered with ${result.algorithm}. The password was: ${result.password}`);
+			const url = URL.createObjectURL(new Blob([result.decrypted], { type: 'application/pdf' }));
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = file.name.replace(/\.pdf$/i, '') + '-unlocked.pdf';
+			link.click();
+			URL.revokeObjectURL(url);
+			setMessage(`Unlocked and downloaded. Detected encryption: ${result.algorithm}.`);
 		} catch (error) {
-			setProgress(error instanceof Error ? error.message : 'Password recovery could not be completed.');
+			setMessage(error instanceof Error ? error.message : 'Recovery failed. No file was downloaded.');
 		} finally {
 			setBusy(false);
 		}
-	};
+	}
 
 	return (
-		<div>
-			<div className="tool-control"><label htmlFor="pdf-recovery-file">Encrypted PDF file</label><input className="image-file-input" id="pdf-recovery-file" type="file" accept="application/pdf,.pdf" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setProgress(event.target.files?.[0] ? 'PDF selected. Configure authorized recovery candidates.' : 'Choose an encrypted PDF file.'); }} /></div>
-			<div className="calc-field"><label htmlFor="pdf-recovery-mode">Candidate source</label><select id="pdf-recovery-mode" value={mode} onChange={(event) => setMode(event.target.value as PdfCandidateMode)}><option value="dictionary">Dictionary or pasted candidates</option><option value="digits">Generated numbers</option><option value="lowercase">Generated lowercase letters</option></select></div>
-			{mode === 'dictionary' && 			<div className="calc-field"><label htmlFor="pdf-recovery-dictionary">Passwords you remember (one candidate per line)</label><textarea id="pdf-recovery-dictionary" value={dictionary} onChange={(event) => setDictionary(event.target.value)} rows={7} placeholder={'remembered phrase\nold project name\npossible password'} /><small>Enter exact candidates you recall, up to 20,000. Each line is tried as entered.</small></div>}
-			<div className="calc-field"><label htmlFor="pdf-recovery-clues">Known words or clues (comma or newline separated)</label><textarea id="pdf-recovery-clues" value={clues} onChange={(event) => setClues(event.target.value)} rows={3} placeholder="company name, person name, project name" /></div>
-			{mode !== 'dictionary' && <div className="calc-grid"><div className="calc-field"><label htmlFor="pdf-recovery-min">Minimum length</label><input id="pdf-recovery-min" type="number" min="1" max="6" value={minimumLength} onChange={(event) => setMinimumLength(Number(event.target.value) || 1)} /></div><div className="calc-field"><label htmlFor="pdf-recovery-max">Maximum length</label><input id="pdf-recovery-max" type="number" min="1" max="6" value={maximumLength} onChange={(event) => setMaximumLength(Number(event.target.value) || 1)} /></div></div>}
-			<div className="tool-actions"><button className="tool-button" type="button" disabled={!file || busy} onClick={() => void startRecovery()}>{busy ? 'Recovering locally…' : 'Recover password and download PDF'}</button></div>
-			<p className="tool-message" role="status">{progress}</p>
-			<p className="privacy-note">Use only with PDFs you own or are authorized to recover. Candidate testing runs locally in this browser; no file or password is uploaded. This tool checks a bounded set of candidates, not every possible password, and cannot guarantee recovery.</p>
+		<div className="tool-form">
+			<p role="status">Use only with PDFs you own or are authorized to access. Your PDF and remembered passwords stay in this browser and are not uploaded.</p>
+			<div className="calc-field">
+				<label htmlFor="pdf-recovery-file">Encrypted PDF</label>
+				<input id="pdf-recovery-file" type="file" accept="application/pdf,.pdf" onChange={(event) => {
+					setFile(event.target.files?.[0] ?? null);
+					setMessage('');
+				}} />
+			</div>
+			<div className="calc-field">
+				<label htmlFor="pdf-recovery-password">A password or clue you personally remember</label>
+				<input
+					id="pdf-recovery-password"
+					type="password"
+					autoComplete="off"
+					spellCheck={false}
+					maxLength={256}
+					value={password}
+					onChange={(event) => setPassword(event.target.value)}
+					onKeyDown={(event) => {
+						if (event.key === 'Enter') {
+							event.preventDefault();
+							addRememberedPassword();
+						}
+					}}
+				/>
+				<div className="tool-actions">
+					<button className="tool-button" type="button" onClick={addRememberedPassword} disabled={!password || rememberedPasswords.length >= MAX_REMEMBERED_PASSWORDS}>Add remembered entry</button>
+				</div>
+				<p>{rememberedPasswords.length} of {MAX_REMEMBERED_PASSWORDS} remembered entries added. Entries are tried in the order added.</p>
+			</div>
+			<label>
+				<input type="checkbox" checked={includeVariants} onChange={(event) => setIncludeVariants(event.target.checked)} />
+				Try simple case and spacing variations of those entries (no number or word guessing)
+			</label>
+			<p>At most {MAX_PASSWORD_ATTEMPTS} attempts per run. Exact entries are tried before variations. Add only passwords, names, or phrases that you personally remember; do not paste downloaded wordlists.</p>
+			<div className="tool-actions">
+				<button className="tool-button" type="button" onClick={recover} disabled={!file || rememberedPasswords.length === 0 || busy}>{busy ? 'Checking…' : 'Try remembered passwords'}</button>
+				{rememberedPasswords.length > 0 && <button className="tool-button secondary" type="button" onClick={() => {
+				setRememberedPasswords([]);
+				setMessage('');
+				}} disabled={busy}>Clear remembered entries</button>}
+			</div>
+			{message && <p role="status">{message}</p>}
+			<p>If these checks do not work, check your password manager, backups, or contact the document creator to request access.</p>
 		</div>
 	);
 }
