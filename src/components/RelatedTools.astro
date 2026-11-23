@@ -1,0 +1,39 @@
+---
+import { getPublishedToolHref, tools } from '../data/tools';
+
+interface Props {
+	slugs?: string[];
+	currentSlug: string;
+}
+
+const { slugs = [], currentSlug } = Astro.props;
+const related = slugs
+	.filter((slug, index) => slug !== currentSlug && slugs.indexOf(slug) === index)
+	.map((slug) => {
+		const tool = tools.find((entry) => entry.slug === slug && entry.live);
+		const href = tool ? getPublishedToolHref(`/${tool.slug}/`) : undefined;
+		return tool && href ? { tool, href } : undefined;
+	})
+	.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
+	.slice(0, 4);
+---
+
+{related.length > 0 && (
+	<nav class="related-tools" aria-label="Related tools">
+		<h2>Related tools</h2>
+		<ul>
+			{related.map(({ tool, href }) => (
+				<li><a href={href}>{tool.name}</a><p>{tool.description}</p></li>
+			))}
+		</ul>
+	</nav>
+)}
+
+<style>
+	.related-tools { margin-top: 24px; padding: 18px 20px; border: 1px solid var(--line, #30363c); border-radius: 6px; background: var(--surface, #11151a); }
+	.related-tools h2 { margin: 0 0 12px; font-size: 15px; }
+	.related-tools ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+	.related-tools li { min-width: 0; }
+	.related-tools a { font-weight: 700; }
+	.related-tools p { margin: 4px 0 0; color: var(--muted, #a4adb5); font-size: 12px; line-height: 1.5; }
+</style>

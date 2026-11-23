@@ -3,6 +3,7 @@ import ToolLayout from '../components/ToolLayout.astro';
 import AdSlot from '../components/AdSlot.astro';
 import SpecialCharactersNote from '../components/brand-studio/SpecialCharactersNote.astro';
 import Recommended from '../components/Recommended.astro';
+import RelatedTools from '../components/RelatedTools.astro';
 import AgeCalculator from '../components/tools/AgeCalculator';
 import BasicCalculator from '../components/tools/BasicCalculator';
 import TipCalculator from '../components/tools/TipCalculator';
@@ -92,6 +93,11 @@ import FaviconGenerator from '../components/tools/FaviconGenerator';
 import SocialMediaImageResizer from '../components/tools/SocialMediaImageResizer';
 import SocialMediaPostDesigner from '../components/tools/SocialMediaPostDesigner';
 import SocialMediaImageSizeGuide from '../components/tools/SocialMediaImageSizeGuide';
+import SearchablePdfMaker from '../components/tools/SearchablePdfMaker';
+import BatchImageOptimizer from '../components/tools/BatchImageOptimizer';
+import DebtPayoffPlanner from '../components/tools/DebtPayoffPlanner';
+import PayslipGenerator from '../components/tools/PayslipGenerator';
+import JobApplicationTracker from '../components/tools/JobApplicationTracker';
 import ImageWatermarkGenerator from '../components/tools/ImageWatermarkGenerator';
 import BackgroundRemover from '../components/tools/BackgroundRemover';
 import BackgroundChanger from '../components/tools/BackgroundChanger';
@@ -346,6 +352,11 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 			{tool.component === 'SocialMediaImageResizer' && <SocialMediaImageResizer client:load />}
 			{tool.component === 'SocialMediaPostDesigner' && <SocialMediaPostDesigner client:load />}
 			{tool.component === 'SocialMediaImageSizeGuide' && <SocialMediaImageSizeGuide client:load />}
+			{tool.component === 'SearchablePdfMaker' && <SearchablePdfMaker client:load />}
+			{tool.component === 'BatchImageOptimizer' && <BatchImageOptimizer client:load />}
+			{tool.component === 'DebtPayoffPlanner' && <DebtPayoffPlanner client:load />}
+			{tool.component === 'PayslipGenerator' && <PayslipGenerator client:load />}
+			{tool.component === 'JobApplicationTracker' && <JobApplicationTracker client:load />}
 			{tool.component === 'ImageWatermarkGenerator' && <ImageWatermarkGenerator client:load />}
 			{tool.component === 'BackgroundRemover' && <BackgroundRemover client:load />}
 			{tool.component === 'BackgroundChanger' && <BackgroundChanger client:load />}
@@ -427,6 +438,7 @@ const isVisualEditor = tool.component === 'LogoStudioApp';
 				))}
 			</div>
 		</section>}
+		{tool.relatedTools && <RelatedTools currentSlug={tool.slug} slugs={tool.relatedTools} />}
 		{tool.recommended && <Recommended {...tool.recommended} />}
 	</section>
 </ToolLayout>

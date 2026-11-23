@@ -79,6 +79,11 @@ export type ToolComponentName =
 	| 'InventoryTracker'
 	| 'SocialMediaPostDesigner'
 	| 'SocialMediaImageSizeGuide'
+	| 'SearchablePdfMaker'
+	| 'BatchImageOptimizer'
+	| 'DebtPayoffPlanner'
+	| 'PayslipGenerator'
+	| 'JobApplicationTracker'
 	| 'PercentageCalculator'
 	| 'DiscountCalculator'
 	| 'VatCalculator'
@@ -236,6 +241,7 @@ export interface ToolDefinition {
 	strategyKind?: 'mission-vision' | 'positioning' | 'personality';
 	imagePreset?: 'brightness-contrast' | 'blurry-photo';
 	recommended?: RecommendedDefinition;
+	relatedTools?: string[];
 }
 
 export const tools: ToolDefinition[] = [
@@ -462,6 +468,7 @@ export const tools: ToolDefinition[] = [
 		component: 'ImageToTextOcr',
 		icon: 'OCR',
 		live: true,
+		relatedTools: ['searchable-pdf-maker', 'document-scanner-enhancer'],
 	},
 	{
 		slug: 'document-scanner-enhancer',
@@ -481,6 +488,7 @@ export const tools: ToolDefinition[] = [
 		component: 'DocumentScanner',
 		icon: 'SCAN',
 		live: true,
+		relatedTools: ['searchable-pdf-maker', 'image-to-text-ocr-extractor', 'image-to-pdf-converter'],
 	},
 	{
 		slug: 'social-media-image-resizer',
@@ -1223,6 +1231,7 @@ export const tools: ToolDefinition[] = [
 		component: 'LoanRepaymentCalculator',
 		icon: '$',
 		live: true,
+		relatedTools: ['debt-payoff-planner', 'compound-interest-calculator'],
 	},
 	{
 		slug: 'salary-calculator',
@@ -1242,6 +1251,7 @@ export const tools: ToolDefinition[] = [
 		component: 'SalaryCalculator',
 		icon: 'PAY',
 		live: true,
+		relatedTools: ['payslip-generator', 'timesheet-generator'],
 	},
 	{
 		slug: 'commission-calculator',
@@ -1325,6 +1335,7 @@ export const tools: ToolDefinition[] = [
 		component: 'CompoundInterestCalculator',
 		icon: '∑',
 		live: true,
+		relatedTools: ['debt-payoff-planner', 'loan-repayment-calculator'],
 	},
 	{
 		slug: 'unit-converter',
@@ -1669,6 +1680,7 @@ export const tools: ToolDefinition[] = [
 		component: 'ImageCompressor',
 		icon: '▧',
 		live: true,
+		relatedTools: ['batch-image-optimizer', 'image-resizer', 'image-format-converter'],
 	},
 	{
 		slug: 'image-resizer',
@@ -1686,6 +1698,7 @@ export const tools: ToolDefinition[] = [
 		component: 'ImageResizer',
 		icon: '↗',
 		live: true,
+		relatedTools: ['batch-image-optimizer', 'image-compressor', 'social-media-image-resizer'],
 	},
 	{
 		slug: 'roi-calculator',
@@ -2147,6 +2160,7 @@ export const tools: ToolDefinition[] = [
 		component: 'PdfTextExtractor',
 		icon: 'P→T',
 		live: true,
+		relatedTools: ['searchable-pdf-maker', 'image-to-text-ocr-extractor', 'document-scanner-enhancer'],
 	},
 	{
 		slug: 'pdf-page-rearranger',
@@ -2316,6 +2330,7 @@ export const tools: ToolDefinition[] = [
 		component: 'ImageFormatConverter',
 		icon: '⇄',
 		live: true,
+		relatedTools: ['batch-image-optimizer', 'image-compressor', 'image-resizer'],
 	},
 	{
 		slug: 'image-cropper',
@@ -3046,6 +3061,7 @@ export const tools: ToolDefinition[] = [
 		component: 'TimesheetGenerator',
 		icon: 'TIME',
 		live: true,
+		relatedTools: ['payslip-generator', 'salary-calculator', 'employee-attendance-tracker'],
 	},
 	{
 		slug: 'resume-builder',
@@ -3066,6 +3082,7 @@ export const tools: ToolDefinition[] = [
 		component: 'ResumeBuilder',
 		icon: 'CV',
 		live: true,
+		relatedTools: ['job-application-tracker', 'cover-letter-builder'],
 	},
 	{
 		slug: 'cover-letter-builder',
@@ -3086,6 +3103,7 @@ export const tools: ToolDefinition[] = [
 		component: 'CoverLetterBuilder',
 		icon: 'CL',
 		live: true,
+		relatedTools: ['job-application-tracker', 'resume-builder'],
 	},
 	{
 		slug: 'project-budget-calculator',
@@ -4386,6 +4404,101 @@ export const tools: ToolDefinition[] = [
 		component: 'SocialMediaImageSizeGuide',
 		icon: 'px',
 		live: true,
+	},
+	{
+		slug: 'searchable-pdf-maker',
+		name: 'Searchable PDF Maker',
+		department: 'pdf',
+		description: 'Add an invisible, searchable English text layer to scanned PDF pages with browser OCR.',
+		seoTitle: 'Free Searchable PDF Maker with Local OCR',
+		seoDescription: 'Turn scanned PDFs into searchable, image-based PDFs with browser OCR. Documents stay on your device; English OCR is supported.',
+		howTo: ['Choose a scanned PDF with up to 10 pages.', 'Create the searchable copy and wait while each page is rendered and recognized.', 'Download the PDF and search or copy text to check OCR accuracy.'],
+		faqs: [
+			{ question: 'Are my PDF pages uploaded?', answer: 'No. Rendering and OCR run in your browser. English OCR model files may be downloaded from the OCR library when first needed, but the document is not uploaded.' },
+			{ question: 'Does the output preserve the original PDF text, forms, or annotations?', answer: 'No. The output uses a rendered page image with an invisible OCR text layer. It does not preserve original vector text, forms, annotations, or bookmarks.' },
+		],
+		limitations: 'English OCR only. Supports unlocked PDFs up to 50 MB and 10 pages. Recognition can misread text; review results before relying on them. Output is image-based and does not preserve interactive or vector PDF content.',
+		privacyNote: 'PDF processing runs locally in your browser. The OCR library may download its free public English model files on first use; your document is not sent to that service.',
+		component: 'SearchablePdfMaker',
+		icon: 'OCR',
+		live: true,
+		relatedTools: ['pdf-text-extractor', 'image-to-text-ocr-extractor', 'document-scanner-enhancer'],
+	},
+	{
+		slug: 'batch-image-optimizer',
+		name: 'Batch Image Optimizer',
+		department: 'image',
+		description: 'Resize and compress multiple images in your browser, then download results individually or as a ZIP.',
+		seoTitle: 'Free Batch Image Optimizer',
+		seoDescription: 'Optimize multiple images locally with adjustable size, format, and quality settings. Download individual files or a ZIP archive.',
+		howTo: ['Choose multiple images and set output dimensions, format, and quality.', 'Process the images and review each result or error.', 'Download results individually or together as a ZIP when the archive fits the supported limit.'],
+		faqs: [
+			{ question: 'Are images uploaded?', answer: 'No. Images are processed locally in your browser.' },
+			{ question: 'Can I download all optimized files together?', answer: 'A ZIP download is available when the combined output fits the stated archive limit; individual downloads remain available otherwise.' },
+		],
+		limitations: 'Browser memory limits vary by device. Files are processed sequentially; use smaller batches if the browser struggles. ZIP export is limited by the tool’s archive-size cap.',
+		privacyNote: 'Image processing is local; files are not uploaded.',
+		component: 'BatchImageOptimizer',
+		icon: '⇣',
+		live: true,
+		relatedTools: ['image-compressor', 'image-resizer', 'image-format-converter'],
+	},
+	{
+		slug: 'debt-payoff-planner',
+		name: 'Debt Payoff Planner',
+		department: 'calculators',
+		description: 'Compare debt snowball and avalanche payoff plans with optional extra monthly payments.',
+		seoTitle: 'Free Debt Snowball and Avalanche Payoff Planner',
+		seoDescription: 'Compare estimated debt payoff schedules and interest using the snowball or avalanche method and an optional extra monthly payment.',
+		howTo: ['Enter each debt’s balance, APR, and minimum monthly payment.', 'Add any extra monthly amount available for repayment.', 'Compare projected payoff order, duration, and interest for both strategies.'],
+		faqs: [
+			{ question: 'What is the difference between snowball and avalanche?', answer: 'Snowball directs extra payments to the smallest balance first; avalanche directs them to the highest APR first. Minimums are applied to the other debts in the plan.' },
+			{ question: 'Are payoff dates guaranteed?', answer: 'No. The projections assume fixed APRs and minimum payments with monthly compounding. Actual lender rules, fees, rates, and payment timing can change results.' },
+		],
+		limitations: 'This is an estimate, not financial advice or a lender quote. Projections are capped at 1,200 months, and debts whose minimum payments do not cover modeled interest are identified rather than given a misleading payoff estimate.',
+		privacyNote: 'Debt balances and payment details are calculated locally in your browser.',
+		component: 'DebtPayoffPlanner',
+		icon: '↘',
+		live: true,
+		relatedTools: ['loan-repayment-calculator', 'compound-interest-calculator'],
+	},
+	{
+		slug: 'payslip-generator',
+		name: 'Payslip Generator',
+		department: 'calculators',
+		description: 'Create a printable payslip from employer, worker, pay-period, earnings, and deduction details.',
+		seoTitle: 'Free Printable Payslip Generator',
+		seoDescription: 'Create and print a payslip using the earnings and deductions you enter. No tax rules or payroll compliance are inferred.',
+		howTo: ['Enter employer, employee, and pay-period information.', 'Add earnings and deductions as line items.', 'Review gross and net pay, then print or save from your browser.'],
+		faqs: [
+			{ question: 'Does this calculate payroll taxes?', answer: 'No. Deductions are entered by you; the tool does not calculate jurisdiction-specific tax, benefits, or payroll obligations.' },
+			{ question: 'Is my payslip data uploaded?', answer: 'No. The payslip is prepared in your browser and uses the browser print dialog.' },
+		],
+		limitations: 'This is a printable record template, not an official payroll system or tax document. Verify all amounts, deductions, and legal requirements for your location.',
+		privacyNote: 'Payslip details are processed locally and are not uploaded.',
+		component: 'PayslipGenerator',
+		icon: '▤',
+		live: true,
+		relatedTools: ['salary-calculator', 'timesheet-generator'],
+	},
+	{
+		slug: 'job-application-tracker',
+		name: 'Job Application Tracker',
+		department: 'utilities',
+		description: 'Track job applications, follow-up dates, status, and notes locally in your browser.',
+		seoTitle: 'Free Job Application Tracker',
+		seoDescription: 'Organize job applications with company, role, dates, status, follow-up reminders, notes, and a downloadable JSON backup.',
+		howTo: ['Add a company, role, and application details.', 'Update application statuses and follow-up dates as you go.', 'Search, filter, and export a JSON backup of your records.'],
+		faqs: [
+			{ question: 'Are application records synced online?', answer: 'No. Records are stored in this browser on this device. Export a JSON backup if you need to move or preserve them.' },
+			{ question: 'Can I import a backup?', answer: 'Yes. Import a JSON backup created by the tracker; imported content is validated before it replaces or adds records.' },
+		],
+		limitations: 'Records are stored locally in this browser and are not synced across devices. Clearing browser data can remove them; export backups regularly.',
+		privacyNote: 'Application details stay in local browser storage unless you choose to export them.',
+		component: 'JobApplicationTracker',
+		icon: '✓',
+		live: true,
+		relatedTools: ['resume-builder', 'cover-letter-builder'],
 	},
 ];
 
